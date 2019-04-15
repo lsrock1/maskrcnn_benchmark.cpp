@@ -11,7 +11,14 @@ set(CMAKE_PREFIX_PATH "/root/libtorch")
 set(OUTPUT
     "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.out")
 set(SRC_FILES
-    example-app.cpp    
+    example-app.cpp
+    include/layers/batch_norm.h
+    include/layers/ROIAlign.h
+    include/utils/nms.h
+    source/layers/ROIAlign.cpp
+    source/utils/nms.cpp
+    source/layers/misc.cpp
+    include/layers/misc.h
 #${PROJECT_SOURCE_DIR}/source/
     )
 
@@ -21,4 +28,4 @@ add_executable(${OUTPUT} ${SRC_FILES})
 target_link_libraries(${OUTPUT} "${TORCH_LIBRARIES}")
 set_property(TARGET ${OUTPUT} PROPERTY CXX_STANDARD 11)
 
-include_directories(include "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(${OUTPUT} PUBLIC include)
