@@ -18,8 +18,9 @@ set(SRC_FILES
     source/layers/ROIAlign.cpp
     source/utils/nms.cpp
     source/layers/misc.cpp
+    source/layers/smooth_l1_loss.cpp
     include/layers/misc.h
-#${PROJECT_SOURCE_DIR}/source/
+    include/layers/smooth_l1_loss.h
     )
 
 find_package(Torch REQUIRED)

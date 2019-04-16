@@ -1,7 +1,25 @@
 #include <layers/misc.h>
 #include <torch/torch.h>
 
-torch::Tensor eConv2dImpl::forward(const torch::Tensor& input){
+
+torch::autograd::variable_list _NewEmptyTensorOpBackward::apply(torch::autograd::variable_list&& grads) {
+    // Our function had one output, so we only expect 1 gradient
+    auto& grad = grads[0];
+
+    // Variable list to hold the gradients at the function's input variables
+    torch::autograd::variable_list grad_inputs(1); 
+
+    // Do gradient computation for each of the inputs
+    if (should_compute_output(0)) {
+        auto grad_result = _NewEmptyTensorOp(grad, shape);
+        grad_inputs[0] = grad_result;
+    }
+
+    return grad_inputs;
+}
+
+
+torch::Tensor Conv2dImpl::forward(const torch::Tensor& input){
     if(input.numel() > 0){
         return torch::nn::Conv2dImpl::forward(input);
     }
@@ -11,6 +29,7 @@ torch::Tensor eConv2dImpl::forward(const torch::Tensor& input){
     
     return _NewEmptyTensorOp(input, shape);
 };
+
 
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape){
     auto& self_ = torch::autograd::as_variable_ref(x);
