@@ -4,6 +4,8 @@
 #include <layers/batch_norm.h>
 #include <typeinfo>
 #include <layers/misc.h>
+#include <structures/bounding_box.h>
+
 
 using namespace std;
 
@@ -15,11 +17,11 @@ int main() {
                    .padding(1)
                    .with_bias(false));
 //   cout << c(t) << endl;
-  auto m = torch::zeros({0, 3, 5, 5}, torch::TensorOptions().requires_grad(true));
-  auto result = c(m);
-  auto b = torch::tensor({1, 1, 1, 2, 2, 2, 3, 3, 3}).view({3, 3});//.split(1, -1);
-  auto index = torch::tensor({1, 1, 0});
-  cout << b[index] << endl;
+//   auto m = torch::ones({3, 3}, torch::TensorOptions().requires_grad(true));
+//   //auto result = c(m);
+//   m[0].clamp_max_(0);
+//   cout << m << endl;
+//   m.narrow({, })
 //   cout << torch::cat(make_tuple(b.at(0), b.at(1), b.at(2)), 1) << endl;
   
 
@@ -30,4 +32,29 @@ int main() {
   
   //반환된 리스트의 이름은 포인터이므로 * 으로 첫 번째 값에 접근한다
   // std::cout << *tensor.data<float>() << '\n';
+
+  ////
+  torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
+  BoxList bb = BoxList(box, make_pair(100, 120), "xyxy");
+  cout << bb;
+  ////
+  bb.AddField("labels", torch::tensor({1, 1}));
+  bb.AddField("scores", torch::tensor({0.4, 0.7}));
+  auto scores = bb.GetField("scores");
+  cout << bb.GetField("scores") << endl;
+  bb.Convert("xywh");
+  cout << bb << endl;
+  cout << "before resize" << endl;
+  cout << bb.get_bbox() << endl;
+  bb.Resize(make_pair(200, 260));
+  cout << "after resize" << endl;
+  cout << bb.get_bbox() << endl;
+  auto score_mask = scores > 0.5;
+  cout << "scores over 0.5 : " <<endl;
+  cout << bb<< endl;
+  cout << score_mask << endl;
+  cout << bb[score_mask] << endl;
+  cout << bb.get_bbox() << endl;
+  cout << bb[0].get_bbox() << endl;
+//   cout << bb;
 }

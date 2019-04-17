@@ -21,6 +21,8 @@ set(SRC_FILES
     source/layers/smooth_l1_loss.cpp
     include/layers/misc.h
     include/layers/smooth_l1_loss.h
+    include/structures/bounding_box.h
+    source/structures/bounding_box.cpp
     )
 
 find_package(Torch REQUIRED)
