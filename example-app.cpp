@@ -10,51 +10,43 @@
 using namespace std;
 
 int main() {
-//   auto bn = FrozenBatchNorm2d(2);
   //Declare 3 dimension tensor with batch dimension
   auto c = Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
                    .stride(1)
                    .padding(1)
                    .with_bias(false));
-//   cout << c(t) << endl;
-//   auto m = torch::ones({3, 3}, torch::TensorOptions().requires_grad(true));
-//   //auto result = c(m);
-//   m[0].clamp_max_(0);
-//   cout << m << endl;
-//   m.narrow({, })
-//   cout << torch::cat(make_tuple(b.at(0), b.at(1), b.at(2)), 1) << endl;
-  
 
-  // cout << c << endl;
-  // cout << (tensor2 < 2) << endl;
-  // at::Tensor tensor = at::zeros({2, 3});
-  // std::cout << tensor << std::endl;
-  
-  //반환된 리스트의 이름은 포인터이므로 * 으로 첫 번째 값에 접근한다
-  // std::cout << *tensor.data<float>() << '\n';
-
-  ////
+  //init bbox tensor size 2, 4
   torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
+  //init boxlist class
   BoxList bb = BoxList(box, make_pair(100, 120), "xyxy");
-  cout << bb;
-  ////
+  cout << bb << endl;
+  //add label and score (dummy)
   bb.AddField("labels", torch::tensor({1, 1}));
   bb.AddField("scores", torch::tensor({0.4, 0.7}));
+  //print if is saved
   auto scores = bb.GetField("scores");
   cout << bb.GetField("scores") << endl;
-  bb.Convert("xywh");
-  cout << bb << endl;
+
+  //print fields
+  cout << "fields" << endl;
+  cout << bb.Fields() << endl;
+  //convert to xywh
+  auto xywh_bbox = bb.Convert("xywh");
+  cout << "converted bbox" << endl;
+  cout << xywh_bbox << endl;
+
+  //resize box
   cout << "before resize" << endl;
   cout << bb.get_bbox() << endl;
-  bb.Resize(make_pair(200, 260));
+  auto resized_bbox = bb.Resize(make_pair(200, 260));
   cout << "after resize" << endl;
-  cout << bb.get_bbox() << endl;
+  cout << resized_bbox.get_bbox() << endl;
+  
+  //mask box with score
   auto score_mask = scores > 0.5;
+  auto masked_bbox = bb[score_mask]; 
   cout << "scores over 0.5 : " <<endl;
-  cout << bb<< endl;
-  cout << score_mask << endl;
-  cout << bb[score_mask] << endl;
-  cout << bb.get_bbox() << endl;
-  cout << bb[0].get_bbox() << endl;
-//   cout << bb;
+  cout << masked_bbox << endl;
+  cout << masked_bbox.get_bbox() << endl;
 }

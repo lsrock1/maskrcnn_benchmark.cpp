@@ -38,66 +38,36 @@ vector<string> BoxList::Fields(){
     return keys;
 }
 
-//convert itself
-void BoxList::Convert(const string mode){
+BoxList BoxList::Convert(const string mode){
     assert(mode.compare("xyxy") == 0 || mode.compare("xywh") == 0);
     if(this->mode_.compare(mode) != 0){
         tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
+        torch::Tensor bbox_tensor;
         if(mode.compare("xyxy") == 0){
-            torch::Tensor bbox_tensor = torch::cat({
+            bbox_tensor = torch::cat({
                 get<0>(splitted_box_coordinates),
                 get<1>(splitted_box_coordinates),
                 get<2>(splitted_box_coordinates),
                 get<3>(splitted_box_coordinates),
             }, -1);
-            this->set_bbox(bbox_tensor);
-            this->set_mode(mode);
-            //BoxList bbox = BoxList(bbox_tensor, this->size_, mode);
         }
         else{
             int TO_REMOVE = 1;
-            torch::Tensor bbox_tensor = torch::cat({
+            bbox_tensor = torch::cat({
                 get<0>(splitted_box_coordinates),
                 get<1>(splitted_box_coordinates),
                 get<2>(splitted_box_coordinates) - get<0>(splitted_box_coordinates) + TO_REMOVE,
                 get<3>(splitted_box_coordinates) - get<1>(splitted_box_coordinates) + TO_REMOVE
             }, -1);
-            this->set_bbox(bbox_tensor);
-            this->set_mode(mode);
-            // BoxList bbox = BoxList(bbox_tensor, this->size_, mode);
         }
+        BoxList bbox = BoxList(bbox_tensor, this->size_, mode);
+        bbox.CopyExtraFields(*this);
+        return bbox;
+    }
+    else{
+        return *this;
     }
 }
-
-// void BoxList::Convert(const string mode, BoxList& dst_bbox){
-//     assert(mode.compare("xyxy") == 0 || mode.compare("xywh") == 0);
-//     if(this->mode_.compare(mode) != 0){
-//         tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
-//         if(mode.compare("xyxy") == 0){
-//             torch::Tensor bbox_tensor = torch::cat({
-//                 get<0>(splitted_box_coordinates),
-//                 get<1>(splitted_box_coordinates),
-//                 get<2>(splitted_box_coordinates),
-//                 get<3>(splitted_box_coordinates),
-//             }, -1);
-//             dst_bbox.Copy(*this);
-//             dst_bbox.set_bbox(bbox_tensor);
-//             //BoxList bbox = BoxList(bbox_tensor, this->size_, mode);
-//         }
-//         else{
-//             int TO_REMOVE = 1;
-//             torch::Tensor bbox_tensor = torch::cat({
-//                 get<0>(splitted_box_coordinates),
-//                 get<1>(splitted_box_coordinates),
-//                 get<2>(splitted_box_coordinates) - get<0>(splitted_box_coordinates) + TO_REMOVE,
-//                 get<3>(splitted_box_coordinates) - get<1>(splitted_box_coordinates) + TO_REMOVE
-//             }, -1);
-//             (*this).set_bbox(bbox_tensor);
-//             (*this).set_mode(mode);
-//             // BoxList bbox = BoxList(bbox_tensor, this->size_, mode);
-//         }
-//     }
-// }
 
 tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> BoxList::SplitIntoXYXY(){
     if(this->mode_.compare("xyxy") == 0){
@@ -120,24 +90,22 @@ tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> BoxList::Split
     }
 }
 
-void BoxList::CopyExtraFields(BoxList bbox){
-    for(auto i = bbox.get_extra_fields().begin(); i != bbox.get_extra_fields().end(); ++i){
-        this->extra_fields_[i->first] = i->second;
+void BoxList::CopyExtraFields(const BoxList bbox){
+    if(!bbox.get_extra_fields().empty()){
+        auto extra_field_src = bbox.get_extra_fields();
+        for(auto i = extra_field_src.begin(); i != extra_field_src.end(); ++i){
+            this->extra_fields_[i->first] = i->second;
+        }
     }
 }
 
-void BoxList::Resize(const pair<int64_t, int64_t> size){
+BoxList BoxList::Resize(const pair<int64_t, int64_t> size){
     //width, height
     pair<float, float> ratios = make_pair(float(size.first) / float(this->size_.first), float(size.second) / float(this->size_.second));
+    torch::Tensor scaled_bbox;
     if(ratios.first == ratios.second){
         float ratio = ratios.first;
-        torch::Tensor scaled_bbox = this->bbox_ * ratio;
-        // BoxList bbox = BoxList(scaled_bbox, size, this->mode_);
-        // for(auto i = extra_fields.begin(); i != extra_fields.end(); ++i){
-        // only tensor type extra field supports
-        // }
-        this->set_bbox(scaled_bbox);
-        this->set_size(size);
+        scaled_bbox = this->bbox_ * ratio;
     }
     else{
         float ratio_width = ratios.first, ratio_height = ratios.second;
@@ -146,19 +114,15 @@ void BoxList::Resize(const pair<int64_t, int64_t> size){
         BoxList::XMax scaled_xmax = get<2>(splitted_box_coordinates) * ratio_width;
         BoxList::YMin scaled_ymin = get<1>(splitted_box_coordinates) * ratio_height;
         BoxList::YMax scaled_ymax = get<3>(splitted_box_coordinates) * ratio_height;
-        torch::Tensor scaled_bbox = torch::cat({
+        scaled_bbox = torch::cat({
             scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax
         }, -1);
-        auto prev_mode = this->get_mode();
-
-        this->set_bbox(scaled_bbox);
-        this->set_size(size);
-        this->set_mode("xyxy");
-        this->Convert(prev_mode);
     }
+    BoxList bbox = BoxList(scaled_bbox, size, "xyxy");
+    return bbox.Convert(this->get_mode());
 }
 
-void BoxList::Transpose(const int method){
+BoxList BoxList::Transpose(const int method){
     assert(method == BoxList::kFlipLeftRight || method == BoxList::kFlipTopBottom);
     int image_width = this->size_.first, image_height = this->size_.second;
     tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
@@ -183,14 +147,11 @@ void BoxList::Transpose(const int method){
     torch::Tensor transposed_boxes = torch::cat({
         transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax
     }, -1);
-    auto prev_mode = this->mode_;
-    this->set_bbox(transposed_boxes);
-    this->set_mode("xyxy");
-    this->Convert(prev_mode);
-    //return BoxList(transposed_boxes, this->size_, "xyxy").Convert(this->mode_);
+    BoxList bbox = BoxList(transposed_boxes, this->size_, "xyxy");
+    return bbox.Convert(this->mode_);
 }
 
-void BoxList::Crop(const tuple<int64_t, int64_t, int64_t, int64_t> box){
+BoxList BoxList::Crop(const tuple<int64_t, int64_t, int64_t, int64_t> box){
     tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
     int64_t width = get<2>(box) - get<0>(box), height = get<3>(box) - get<1>(box);
     BoxList::XMin cropped_xmin = (get<0>(splitted_box_coordinates) - get<0>(box)).clamp(/*min*/0, /*max*/width);
@@ -201,61 +162,58 @@ void BoxList::Crop(const tuple<int64_t, int64_t, int64_t, int64_t> box){
     torch::Tensor cropped_box = torch::cat(
         {cropped_xmin, cropped_ymin, cropped_xmax, cropped_ymax}, -1
     );
-    auto prev_mode = this->mode_;
-    this->set_bbox(cropped_box);
-    this->set_size(make_pair(width, height));
-    this->set_mode(prev_mode);
+    BoxList bbox = BoxList(cropped_box, make_pair(width, height), "xyxy");
+    bbox.CopyExtraFields(*this);
+    return bbox.Convert(this->mode_);
 }
 
-void BoxList::To(const torch::Device device){
-    //BoxList bbox = BoxList(this->bbox_.to(device), this->size_, this->mode_);
+BoxList BoxList::To(const torch::Device device){
+    BoxList bbox = BoxList(this->bbox_.to(device), this->size_, this->mode_);
     for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
-        this->AddField(i->first, (i->second).to(device));
+        bbox.AddField(i->first, (i->second).to(device));
     }
-    this->set_bbox(this->bbox_.to(device));
+    return bbox;
 }
 
-//it changes itself. not a good way..
-BoxList& BoxList::operator[](torch::Tensor item){
+BoxList BoxList::operator[](torch::Tensor item){
     assert(item.sizes().size() == 1 && item.size(0) == this->bbox_.size(0));
-    this->set_bbox(this->bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}));
-    //BoxList bbox = BoxList(this->bbox_.masked_select(item).reshape({-1, 4}), this->size_, this->mode_);
+    BoxList bbox = BoxList(this->bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}), this->size_, this->mode_);
     for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
         auto size_vector = (i->second).sizes().vec();
         size_vector[0] = -1;
         while(size_vector.size() != item.sizes().size())
             item.unsqueeze_(-1);
-        this->AddField(i->first, (i->second).masked_select(item).reshape(at::IntArrayRef(size_vector)));
+        bbox.AddField(i->first, (i->second).masked_select(item).reshape(at::IntArrayRef(size_vector)));
     }
-    return *this;
+    return bbox;
 }
 
-BoxList& BoxList::operator[](const int64_t index){
-    this->set_bbox(this->bbox_[index].reshape({-1, 4}));
-    
+BoxList BoxList::operator[](const int64_t index){
+    BoxList bbox = BoxList(this->bbox_[index].reshape({-1, 4}), this->size_, this->mode_);
     for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
         auto size_vector = (i->second).sizes().vec();
         size_vector[0] = -1;
-        this->AddField(i->first, (i->second)[index].reshape(at::IntArrayRef(size_vector)));
+        bbox.AddField(i->first, (i->second)[index].reshape(at::IntArrayRef(size_vector)));
     }
-    return *this;
+    return bbox;
 }
 
 int64_t BoxList::Length() const {
     return this->bbox_.size(0);
 }
 
-void BoxList::ClipToImage(const bool remove_empty){
+BoxList BoxList::ClipToImage(const bool remove_empty){
     int TO_REMOVE = 1;
-    this->bbox_.narrow(/*dim*/1, /*start*/0, /*length*/1).clamp_(/*min*/0, /*max*/get<0>(this->size_) - TO_REMOVE);
-    this->bbox_.narrow(/*dim*/1, /*start*/1, /*length*/1).clamp_(/*min*/0, /*max*/get<1>(this->size_) - TO_REMOVE);
-    this->bbox_.narrow(/*dim*/1, /*start*/2, /*length*/1).clamp_(/*min*/0, /*max*/get<0>(this->size_) - TO_REMOVE);
-    this->bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/get<1>(this->size_) - TO_REMOVE);
+    torch::Tensor bbox_tensor = torch::cat({
+        this->bbox_.narrow(/*dim*/1, /*start*/0, /*length*/1).clamp_(/*min*/0, /*max*/get<0>(this->size_) - TO_REMOVE),
+        this->bbox_.narrow(/*dim*/1, /*start*/1, /*length*/1).clamp_(/*min*/0, /*max*/get<1>(this->size_) - TO_REMOVE),
+        this->bbox_.narrow(/*dim*/1, /*start*/2, /*length*/1).clamp_(/*min*/0, /*max*/get<0>(this->size_) - TO_REMOVE),
+        this->bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/get<1>(this->size_) - TO_REMOVE)}, 1);
     if(remove_empty){
-        auto keep = (this->bbox_.narrow(1, 3, 1) > this->bbox_.narrow(1, 1, 1)).__and__((this->bbox_.narrow(1, 2, 1) > this->bbox_.narrow(1, 0, 1)));
-        // return (*this)[keep];
+        auto keep = (bbox_tensor.narrow(1, 3, 1) > bbox_tensor.narrow(1, 1, 1)).__and__((bbox_tensor.narrow(1, 2, 1) > bbox_tensor.narrow(1, 0, 1)));
+        return (*this)[keep];
     }
-    // return *this;
+    return *this;
 }
 
 torch::Tensor BoxList::Area(){
@@ -273,27 +231,18 @@ torch::Tensor BoxList::Area(){
     }
 }
 
-void BoxList::CopyWithFields(vector<string> fields, BoxList dst_bbox, const bool skip_missing){
-    dst_bbox.set_bbox(this->bbox_);
-    dst_bbox.set_size(this->size_);
-    dst_bbox.set_mode(this->mode_);
+BoxList BoxList::CopyWithFields(const vector<string> fields, const bool skip_missing){
+    BoxList bbox = BoxList(this->bbox_, this->size_, this->mode_);
     for(auto i = fields.begin(); i != fields.end(); ++i){
         if(this->HasField(*i)){
-            dst_bbox.AddField(*i, this->GetField(*i));
+            bbox.AddField(*i, this->GetField(*i));
         }
         else if(!skip_missing){
             throw invalid_argument("field is not found");
         }
     }
+    return bbox;
 }
-
-// void BoxList::Copy(BoxList& bbox){
-//     this->set_bbox(bbox->get_bbox());
-//     this->set_device(bbox->get_device());
-//     this->set_extra_fields(bbox->get_extra_fields());
-//     this->set_mode(bbox->get_mode());
-//     this->set_size(bbox->get_size());
-// }
 
 ostream& operator << (ostream& os, const BoxList& bbox){
     os << "BoxList(";
@@ -324,22 +273,23 @@ string BoxList::get_mode() const {
     return this->mode_;
 }
 
-void BoxList::set_size(pair<int64_t, int64_t> size){
+void BoxList::set_size(const pair<int64_t, int64_t> size){
     this->size_ = size;
 }
 
-void BoxList::set_extra_fields(map<string, torch::Tensor> fields){
+void BoxList::set_extra_fields(const map<string, torch::Tensor> fields){
     this->extra_fields_ = fields;
 }
 
-void BoxList::set_device(torch::Device device){
-    this->device_ = device;
-}
-
-void BoxList::set_bbox(torch::Tensor bbox){
+void BoxList::set_bbox(const torch::Tensor bbox){
     this->bbox_ = bbox;
+    this->device_ = bbox.device();
 }
 
-void BoxList::set_mode(string mode){
+void BoxList::set_mode(const string mode){
+    this->mode_ = mode;
+}
+
+void BoxList::set_mode(const char* mode){
     this->mode_ = mode;
 }
