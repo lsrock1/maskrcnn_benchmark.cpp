@@ -30,5 +30,3 @@ find_package(Torch REQUIRED)
 add_executable(${OUTPUT} ${SRC_FILES})
 target_link_libraries(${OUTPUT} "${TORCH_LIBRARIES}")
 set_property(TARGET ${OUTPUT} PROPERTY CXX_STANDARD 11)
-
-target_include_directories(${OUTPUT} PUBLIC include)

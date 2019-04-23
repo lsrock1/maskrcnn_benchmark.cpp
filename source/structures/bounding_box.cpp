@@ -5,14 +5,15 @@
 
 
 using namespace std;
+
 //size<width, height>
-BoxList::BoxList(torch::Tensor bbox, pair<int64_t, int64_t> image_size, const char* mode)
+BoxList::BoxList(torch::Tensor bbox, pair<BoxList::Width, BoxList::Height> image_size, const char* mode)
     : device_(bbox.device()),
       size_(image_size),
       bbox_(bbox),
       mode_(mode){};
 
-BoxList::BoxList(torch::Tensor bbox, pair<int64_t, int64_t> image_size, string mode)
+BoxList::BoxList(torch::Tensor bbox, pair<BoxList::Width, BoxList::Height> image_size, string mode)
     : device_(bbox.device()),
       size_(image_size),
       bbox_(bbox),
@@ -99,7 +100,7 @@ void BoxList::CopyExtraFields(const BoxList bbox){
     }
 }
 
-BoxList BoxList::Resize(const pair<int64_t, int64_t> size){
+BoxList BoxList::Resize(const pair<BoxList::Width, BoxList::Height> size){
     //width, height
     pair<float, float> ratios = make_pair(float(size.first) / float(this->size_.first), float(size.second) / float(this->size_.second));
     torch::Tensor scaled_bbox;
@@ -257,7 +258,7 @@ map<string, torch::Tensor> BoxList::get_extra_fields() const {
     return this->extra_fields_;
 }
 
-pair<int64_t, int64_t> BoxList::get_size() const {
+pair<BoxList::Width, BoxList::Height> BoxList::get_size() const {
     return this->size_;
 }
 
@@ -273,7 +274,7 @@ string BoxList::get_mode() const {
     return this->mode_;
 }
 
-void BoxList::set_size(const pair<int64_t, int64_t> size){
+void BoxList::set_size(const pair<BoxList::Width, BoxList::Height> size){
     this->size_ = size;
 }
 
