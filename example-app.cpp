@@ -1,25 +1,24 @@
 #include <torch/torch.h>
 #include <iostream>
 #include <ATen/ATen.h>
-#include <layers/batch_norm.h>
 #include <typeinfo>
-#include <layers/misc.h>
-#include <structures/bounding_box.h>
+#include "bounding_box.h"
 
 
 using namespace std;
+using namespace rcnn;
 
 int main() {
   //Declare 3 dimension tensor with batch dimension
-  auto c = Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
-                   .stride(1)
-                   .padding(1)
-                   .with_bias(false));
+  // auto c = Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
+  //                  .stride(1)
+  //                  .padding(1)
+  //                  .with_bias(false));
 
   //init bbox tensor size 2, 4
   torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
   //init boxlist class
-  BoxList bb = BoxList(box, make_pair(100, 120), "xyxy");
+  structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xyxy");
   cout << bb << endl;
   //add label and score (dummy)
   bb.AddField("labels", torch::tensor({1, 1}));
