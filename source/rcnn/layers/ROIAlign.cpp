@@ -6,7 +6,8 @@
 // #include <THC/THC.h>
 // #include <THC/THCAtomics.cuh>
 // #include <THC/THCDeviceUtils.cuh>
-
+namespace rcnn{
+namespace layers{
 template <typename T>
 struct PreCalc {
   int pos1;
@@ -601,3 +602,5 @@ torch::Tensor ROIAlign_forward_cpu(const torch::Tensor& input,
 //   THCudaCheck(cudaGetLastError());
 //   return grad_input;
 // }
+}//layers
+}//rcnn

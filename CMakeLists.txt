@@ -10,17 +10,17 @@ set(CMAKE_PREFIX_PATH "/root/maskrcnn/lib/libtorch")
 set(OUTPUT
     "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.out")
 
-
 set(SRC_FILES
     example-app.cpp
     )
 
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/yaml-cpp)
+find_package(yaml-cpp REQUIRED)
 find_package(Torch REQUIRED)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source)
-
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/yaml-cpp/include)
 
 add_executable(${OUTPUT} ${SRC_FILES})
-target_link_libraries(${OUTPUT} "${TORCH_LIBRARIES}" structures)
+target_link_libraries(${OUTPUT} "${TORCH_LIBRARIES}" structures config yaml-cpp)
 set_property(TARGET ${OUTPUT} PROPERTY CXX_STANDARD 11)

@@ -2,6 +2,8 @@
 #pragma once
 #include <torch/torch.h>
 
+namespace rcnn{
+namespace layers{
 torch::Tensor ROIAlign_forward_cpu(const torch::Tensor& input,
                                 const torch::Tensor& rois,
                                 const float spatial_scale,
@@ -49,3 +51,5 @@ torch::Tensor ROIAlign_forward(const torch::Tensor& input,
 //   }
 //   AT_ERROR("Not implemented on the CPU");
 // }
+}//layers
+}//rcnn

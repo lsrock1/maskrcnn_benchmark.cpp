@@ -1,6 +1,8 @@
 #include "smooth_l1_loss.h"
 
 
+namespace rcnn{
+namespace layers{
 torch::Tensor smooth_l1_loss(torch::Tensor input, torch::Tensor target, float beta, bool size_average){
     torch::Tensor n = torch::abs(input - target);
     auto cond =  n < beta;
@@ -11,3 +13,5 @@ torch::Tensor smooth_l1_loss(torch::Tensor input, torch::Tensor target, float be
     }
     return loss.sum(); 
 }
+}//layers
+}//rcnn

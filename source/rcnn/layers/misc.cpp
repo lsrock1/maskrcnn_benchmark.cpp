@@ -1,7 +1,8 @@
 #include "misc.h"
 #include <torch/torch.h>
 
-
+namespace rcnn{
+namespace layers{
 torch::autograd::variable_list _NewEmptyTensorOpBackward::apply(torch::autograd::variable_list&& grads) {
     // Our function had one output, so we only expect 1 gradient
     auto& grad = grads[0];
@@ -45,3 +46,5 @@ torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_sh
     }
     return result;
 }
+}//layers
+}//rcnn

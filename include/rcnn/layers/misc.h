@@ -4,6 +4,8 @@
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/VariableTypeUtils.h>
 
+namespace rcnn{
+namespace layers{
 //Reference from https://gist.github.com/mikehamer/df0af5ec7ff98d3cae487975d0c921df
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape);
 
@@ -20,3 +22,5 @@ class Conv2dImpl : public torch::nn::Conv2dImpl{
 };
 
 TORCH_MODULE(Conv2d);
+}//layers
+}//rcnn
