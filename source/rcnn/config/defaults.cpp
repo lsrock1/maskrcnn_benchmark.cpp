@@ -7,7 +7,7 @@ namespace rcnn{
 namespace config{
 
 YAML::Node GetDefaultCFG(){
-  YAML::Node default_config = YAML::LoadFile("/root/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+  YAML::Node default_config;
   
   YAML::Node model;
   model["RPN_ONLY"] = false;
