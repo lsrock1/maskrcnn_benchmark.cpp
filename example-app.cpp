@@ -1,7 +1,4 @@
-#include <torch/torch.h>
 #include <iostream>
-#include <ATen/ATen.h>
-#include <typeinfo>
 #include "bounding_box.h"
 #include "defaults.h"
 
