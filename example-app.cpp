@@ -1,6 +1,7 @@
 #include <iostream>
 #include "bounding_box.h"
 #include "defaults.h"
+#include "misc.h"
 
 
 using namespace std;
@@ -8,14 +9,14 @@ using namespace rcnn;
 
 int main() {
   //Declare 3 dimension tensor with batch dimension
-  // auto c = Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
-  //                  .stride(1)
-  //                  .padding(1)
-  //                  .with_bias(false));
-  auto conf = rcnn::config::GetDefaultCFG();
+  auto c = rcnn::layers::Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
+                   .stride(1)
+                   .padding(1)
+                   .with_bias(false));
+  // auto conf = rcnn::config::GetDefaultCFG();
   // cout << conf << endl;
   //init bbox tensor size 2, 4
-  // torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
+  torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
   // //init boxlist class
   // structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xyxy");
   // cout << bb << endl;
