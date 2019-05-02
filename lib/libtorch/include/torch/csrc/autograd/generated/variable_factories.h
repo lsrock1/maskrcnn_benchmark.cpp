@@ -329,6 +329,32 @@ inline at::Tensor empty(at::IntArrayRef size, const at::TensorOptions & options 
   }
   return result;
 }
+inline at::Tensor _empty_affine_quantized(at::IntArrayRef size, const at::TensorOptions & options = {}, double scale = 1, int64_t zero_point = 0) {
+  torch::jit::Node* node = nullptr;
+  std::shared_ptr<jit::tracer::TracingState> tracer_state;
+  if (jit::tracer::isTracing()) {
+    tracer_state = jit::tracer::getTracingState();
+    at::Symbol op_name;
+    op_name = jit::Symbol::fromQualString("aten::_empty_affine_quantized");
+    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
+    jit::tracer::recordSourceLocation(node);
+    jit::tracer::addInputs(node, "size", size);
+    jit::tracer::addInputs(node, "options", options);
+    jit::tracer::addInputs(node, "scale", scale);
+    jit::tracer::addInputs(node, "zero_point", zero_point);
+    tracer_state->graph->insertNode(node);
+  
+    jit::tracer::setTracingState(nullptr);
+  }
+  at::Tensor tensor = at::_empty_affine_quantized(size, at::TensorOptions(options).is_variable(false), scale, zero_point);
+  at::Tensor result =
+    autograd::make_variable_consuming(std::move(tensor), /*requires_grad=*/options.requires_grad());
+  if (tracer_state) {
+    jit::tracer::setTracingState(std::move(tracer_state));
+    jit::tracer::addOutput(node, result);
+  }
+  return result;
+}
 inline at::Tensor empty_like(const at::Tensor & self) {
   torch::jit::Node* node = nullptr;
   std::shared_ptr<jit::tracer::TracingState> tracer_state;
@@ -524,6 +550,32 @@ inline at::Tensor full_like(const at::Tensor & self, at::Scalar fill_value, cons
   }
   return result;
 }
+inline at::Tensor from_file(std::string filename, c10::optional<bool> shared = c10::nullopt, c10::optional<int64_t> size = 0, const at::TensorOptions & options = {}) {
+  torch::jit::Node* node = nullptr;
+  std::shared_ptr<jit::tracer::TracingState> tracer_state;
+  if (jit::tracer::isTracing()) {
+    tracer_state = jit::tracer::getTracingState();
+    at::Symbol op_name;
+    op_name = jit::Symbol::fromQualString("aten::from_file");
+    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
+    jit::tracer::recordSourceLocation(node);
+    jit::tracer::addInputs(node, "filename", filename);
+    jit::tracer::addInputs(node, "shared", shared);
+    jit::tracer::addInputs(node, "size", size);
+    jit::tracer::addInputs(node, "options", options);
+    tracer_state->graph->insertNode(node);
+  
+    jit::tracer::setTracingState(nullptr);
+  }
+  at::Tensor tensor = at::from_file(filename, shared, size, at::TensorOptions(options).is_variable(false));
+  at::Tensor result =
+    autograd::make_variable_consuming(std::move(tensor), /*requires_grad=*/options.requires_grad());
+  if (tracer_state) {
+    jit::tracer::setTracingState(std::move(tracer_state));
+    jit::tracer::addOutput(node, result);
+  }
+  return result;
+}
 inline at::Tensor hann_window(int64_t window_length, const at::TensorOptions & options = {}) {
   torch::jit::Node* node = nullptr;
   std::shared_ptr<jit::tracer::TracingState> tracer_state;
@@ -701,7 +753,7 @@ inline at::Tensor linspace(at::Scalar start, at::Scalar end, int64_t steps = 100
   }
   return result;
 }
-inline at::Tensor logspace(at::Scalar start, at::Scalar end, int64_t steps = 100, const at::TensorOptions & options = {}) {
+inline at::Tensor logspace(at::Scalar start, at::Scalar end, int64_t steps = 100, double base = 10.0, const at::TensorOptions & options = {}) {
   torch::jit::Node* node = nullptr;
   std::shared_ptr<jit::tracer::TracingState> tracer_state;
   if (jit::tracer::isTracing()) {
@@ -713,12 +765,13 @@ inline at::Tensor logspace(at::Scalar start, at::Scalar end, int64_t steps = 100
     jit::tracer::addInputs(node, "start", start);
     jit::tracer::addInputs(node, "end", end);
     jit::tracer::addInputs(node, "steps", steps);
+    jit::tracer::addInputs(node, "base", base);
     jit::tracer::addInputs(node, "options", options);
     tracer_state->graph->insertNode(node);
   
     jit::tracer::setTracingState(nullptr);
   }
-  at::Tensor tensor = at::logspace(start, end, steps, at::TensorOptions(options).is_variable(false));
+  at::Tensor tensor = at::logspace(start, end, steps, base, at::TensorOptions(options).is_variable(false));
   at::Tensor result =
     autograd::make_variable_consuming(std::move(tensor), /*requires_grad=*/options.requires_grad());
   if (tracer_state) {

@@ -6,17 +6,18 @@
 #include "vision_cuda.h"
 #endif
 
-
-at::Tensor nms(const at::Tensor& dets,
-               const at::Tensor& scores,
+namespace rcnn{
+namespace layers{
+torch::Tensor nms(const torch::Tensor& dets,
+               const torch::Tensor& scores,
                const float threshold) {
 
-  if (dets.type().is_cuda()) {
+  if (dets.is_cuda()) {
 #ifdef WITH_CUDA
     // TODO raise error if not compiled with CUDA
     if (dets.numel() == 0)
-      return at::empty({0}, dets.options().dtype(at::kLong).device(at::kCPU));
-    auto b = at::cat({dets, scores.unsqueeze(1)}, 1);
+      return torch::empty({0}, dets.options().dtype(at::kLong).device(at::kCPU));
+    auto b = torch::cat({dets, scores.unsqueeze(1)}, 1);
     return nms_cuda(b, threshold);
 #else
     AT_ERROR("Not compiled with GPU support");
@@ -26,3 +27,5 @@ at::Tensor nms(const at::Tensor& dets,
   at::Tensor result = nms_cpu(dets, scores, threshold);
   return result;
 }
+}//layers
+}//rcnn

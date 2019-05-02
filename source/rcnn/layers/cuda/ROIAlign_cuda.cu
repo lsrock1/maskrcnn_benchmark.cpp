@@ -7,6 +7,8 @@
 #include <THC/THCDeviceUtils.cuh>
 #include "vision_cuda.h"
 
+namespace rcnn{
+namespace layers{
 // TODO make it in a common file
 #define CUDA_1D_KERNEL_LOOP(i, n)                            \
   for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n; \
@@ -344,4 +346,6 @@ at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
   });
   THCudaCheck(cudaGetLastError());
   return grad_input;
+}
+}
 }

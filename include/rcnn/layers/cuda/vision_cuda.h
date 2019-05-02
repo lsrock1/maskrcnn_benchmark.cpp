@@ -2,6 +2,8 @@
 #pragma once
 #include <torch/torch.h>
 
+namespace rcnn{
+namespace layers{
 
 // at::Tensor SigmoidFocalLoss_forward_cuda(
 // 		const at::Tensor& logits,
@@ -114,3 +116,5 @@ at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh);
 at::Tensor compute_flow_cuda(const at::Tensor& boxes,
                              const int height,
                              const int width);
+}
+}

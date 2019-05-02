@@ -1074,6 +1074,10 @@ struct Graph {
       const std::string& field,
       Value* newValue);
   TORCH_API Node* createGetAttr(Value* obj, const std::string& field);
+  TORCH_API Value* insertGetAttr(Value* obj, const std::string& field) {
+    return insertNode(createGetAttr(obj, field))->output();
+  }
+
   // Note: defined in python_ir.cpp and can be used only in python extension
   Node* createPythonOp(
       THPObjectPtr&& pyobj,
@@ -1237,6 +1241,21 @@ inline const Graph* Value::owningGraph() const {
 }
 
 /************* All nodes not required to be defined before Graph **************/
+struct ProfileOp : public Node {
+  static constexpr Symbol Kind = ::c10::prim::profile;
+  ProfileOp(Graph* graph, std::function<void(std::vector<IValue>&)> callback)
+      : Node(graph, ::c10::prim::profile), callback_(callback) {}
+
+  void cloneFrom(Node* other_) override;
+  Node* allocNewInstance(Graph* g) override;
+
+  const std::function<void(std::vector<IValue>&)>& getCallback() const {
+    return callback_;
+  }
+
+ private:
+  std::function<void(std::vector<IValue>&)> callback_;
+};
 
 // execute a Python function, used for Ops we can't optimize but that we want to
 // optimize around

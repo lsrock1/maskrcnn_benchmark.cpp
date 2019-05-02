@@ -421,14 +421,6 @@ static inline Tensor & _thnn_adaptive_avg_pool3d_forward_out(Tensor & output, co
 static inline Tensor _thnn_adaptive_avg_pool3d_forward(const Tensor & self, IntArrayRef output_size);
 static inline Tensor & _thnn_adaptive_avg_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self);
 static inline Tensor _thnn_adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self);
-static inline std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool2d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size);
-static inline std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool2d_forward(const Tensor & self, IntArrayRef output_size);
-static inline Tensor & _thnn_adaptive_max_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices);
-static inline Tensor _thnn_adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices);
-static inline std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool3d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size);
-static inline std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool3d_forward(const Tensor & self, IntArrayRef output_size);
-static inline Tensor & _thnn_adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices);
-static inline Tensor _thnn_adaptive_max_pool3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices);
 static inline Tensor & _thnn_avg_pool2d_forward_out(Tensor & output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad);
 static inline Tensor _thnn_avg_pool2d_forward(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad);
 static inline Tensor & _thnn_avg_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad);
@@ -703,8 +695,9 @@ static inline std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tenso
 static inline Tensor _embedding_bag_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, const Tensor & maximum_indices, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights);
 static inline Tensor _embedding_bag_sparse_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights);
 static inline Tensor _embedding_bag_dense_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, const Tensor & maximum_indices, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights);
-static inline Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offset2bag, int64_t mode);
+static inline Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, int64_t mode);
 static inline Tensor empty(IntArrayRef size, const TensorOptions & options={});
+static inline Tensor _empty_affine_quantized(IntArrayRef size, const TensorOptions & options={}, double scale=1, int64_t zero_point=0);
 static inline Tensor & empty_out(Tensor & out, IntArrayRef size);
 static inline Tensor empty_like(const Tensor & self);
 static inline Tensor empty_like(const Tensor & self, const TensorOptions & options);
@@ -738,6 +731,7 @@ static inline Tensor full(IntArrayRef size, Scalar fill_value, const TensorOptio
 static inline Tensor & full_out(Tensor & out, IntArrayRef size, Scalar fill_value);
 static inline Tensor full_like(const Tensor & self, Scalar fill_value);
 static inline Tensor full_like(const Tensor & self, Scalar fill_value, const TensorOptions & options);
+static inline Tensor from_file(std::string filename, c10::optional<bool> shared=c10::nullopt, c10::optional<int64_t> size=0, const TensorOptions & options={});
 static inline Tensor grid_sampler(const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode);
 static inline Tensor grid_sampler_2d(const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode);
 static inline std::tuple<Tensor,Tensor> grid_sampler_2d_backward(const Tensor & grad_output, const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode);
@@ -758,10 +752,10 @@ static inline Tensor ifft(const Tensor & self, int64_t signal_ndim, bool normali
 static inline Tensor rfft(const Tensor & self, int64_t signal_ndim, bool normalized=false, bool onesided=true);
 static inline Tensor irfft(const Tensor & self, int64_t signal_ndim, bool normalized=false, bool onesided=true, IntArrayRef signal_sizes={});
 static inline Tensor _fft_with_size(const Tensor & self, int64_t signal_ndim, bool complex_input, bool complex_output, bool inverse, IntArrayRef checked_signal_sizes, bool normalized, bool onesided, IntArrayRef output_sizes);
-static inline int64_t _cufft_get_plan_cache_size();
-static inline int64_t _cufft_get_plan_cache_max_size();
-static inline void _cufft_set_plan_cache_max_size(int64_t max_size);
-static inline void _cufft_clear_plan_cache();
+static inline int64_t _cufft_get_plan_cache_size(int64_t device_index);
+static inline int64_t _cufft_get_plan_cache_max_size(int64_t device_index);
+static inline void _cufft_set_plan_cache_max_size(int64_t device_index, int64_t max_size);
+static inline void _cufft_clear_plan_cache(int64_t device_index);
 static inline Tensor index(const Tensor & self, TensorList indices);
 static inline Tensor index_copy(const Tensor & self, int64_t dim, const Tensor & index, const Tensor & source);
 static inline Tensor & index_put_(Tensor & self, TensorList indices, const Tensor & values, bool accumulate=false);
@@ -803,8 +797,8 @@ static inline Tensor log2(const Tensor & self);
 static inline Tensor & log2_(Tensor & self);
 static inline Tensor & log2_out(Tensor & out, const Tensor & self);
 static inline Tensor logdet(const Tensor & self);
-static inline Tensor logspace(Scalar start, Scalar end, int64_t steps=100, const TensorOptions & options={});
-static inline Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps=100);
+static inline Tensor logspace(Scalar start, Scalar end, int64_t steps=100, double base=10.0, const TensorOptions & options={});
+static inline Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps=100, double base=10.0);
 static inline Tensor log_softmax(const Tensor & self, int64_t dim, ScalarType dtype);
 static inline Tensor log_softmax(const Tensor & self, int64_t dim);
 static inline Tensor _log_softmax(const Tensor & self, int64_t dim, bool half_to_float);
@@ -1037,11 +1031,10 @@ static inline Tensor trunc(const Tensor & self);
 static inline Tensor & trunc_(Tensor & self);
 static inline Tensor & trunc_out(Tensor & out, const Tensor & self);
 static inline std::tuple<Tensor,Tensor> _unique(const Tensor & self, bool sorted=true, bool return_inverse=false);
-static inline std::tuple<Tensor,Tensor> _unique_dim(const Tensor & self, int64_t dim, bool sorted=true, bool return_inverse=false);
+static inline std::tuple<Tensor,Tensor,Tensor> unique_dim(const Tensor & self, int64_t dim, bool sorted=true, bool return_inverse=false, bool return_counts=false);
 static inline std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool return_inverse=false, bool return_counts=false, c10::optional<int64_t> dim=c10::nullopt);
 static inline std::tuple<Tensor,Tensor,Tensor> unique_dim_consecutive(const Tensor & self, int64_t dim, bool return_inverse=false, bool return_counts=false);
-static inline std::tuple<Tensor,Tensor,Tensor> _unique2_temporary_will_remove_soon(const Tensor & self, bool sorted=true, bool return_inverse=false, bool return_counts=false);
-static inline std::tuple<Tensor,Tensor,Tensor> _unique_dim2_temporary_will_remove_soon(const Tensor & self, int64_t dim, bool sorted=true, bool return_inverse=false, bool return_counts=false);
+static inline std::tuple<Tensor,Tensor,Tensor> _unique2(const Tensor & self, bool sorted=true, bool return_inverse=false, bool return_counts=false);
 static inline Tensor _unsafe_view(const Tensor & self, IntArrayRef size);
 static inline Tensor unsqueeze(const Tensor & self, int64_t dim);
 static inline Tensor var(const Tensor & self, bool unbiased=true);
@@ -1112,6 +1105,7 @@ static inline Tensor quantize_linear(const Tensor & self, double scale, int64_t 
 static inline Tensor dequantize(const Tensor & self);
 static inline Scalar q_scale(const Tensor & self);
 static inline Scalar q_zero_point(const Tensor & self);
+static inline Tensor int_repr(const Tensor & self);
 static inline std::vector<Tensor> meshgrid(TensorList tensors);
 static inline Tensor cartesian_prod(TensorList tensors);
 static inline Tensor combinations(const Tensor & self, int64_t r=2, bool with_replacement=false);
@@ -1231,8 +1225,8 @@ static inline Tensor _cholesky_solve_helper(const Tensor & self, const Tensor & 
 static inline std::tuple<Tensor,Tensor> solve(const Tensor & self, const Tensor & A);
 static inline std::tuple<Tensor &,Tensor &> solve_out(Tensor & solution, Tensor & lu, const Tensor & self, const Tensor & A);
 static inline std::tuple<Tensor,Tensor> _solve_helper(const Tensor & self, const Tensor & A);
-static inline Tensor & potri_out(Tensor & out, const Tensor & self, bool upper=true);
-static inline Tensor potri(const Tensor & self, bool upper=true);
+static inline Tensor & cholesky_inverse_out(Tensor & out, const Tensor & self, bool upper=false);
+static inline Tensor cholesky_inverse(const Tensor & self, bool upper=false);
 static inline std::tuple<Tensor &,Tensor &> pstrf_out(Tensor & u, Tensor & pivot, const Tensor & self, bool upper=true, Scalar tol=-1);
 static inline std::tuple<Tensor,Tensor> pstrf(const Tensor & self, bool upper=true, Scalar tol=-1);
 static inline std::tuple<Tensor &,Tensor &> qr_out(Tensor & Q, Tensor & R, const Tensor & self);
@@ -1395,11 +1389,11 @@ static inline Tensor & adaptive_avg_pool3d_out(Tensor & out, const Tensor & self
 static inline Tensor adaptive_avg_pool3d(const Tensor & self, IntArrayRef output_size);
 static inline Tensor & adaptive_avg_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self);
 static inline Tensor adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self);
-static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size);
+static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size);
 static inline std::tuple<Tensor,Tensor> adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size);
 static inline Tensor & adaptive_max_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices);
 static inline Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices);
-static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size);
+static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size);
 static inline std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size);
 static inline Tensor & adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices);
 static inline Tensor adaptive_max_pool3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices);
@@ -2799,30 +2793,6 @@ static inline Tensor & _thnn_adaptive_avg_pool3d_backward_out(Tensor & grad_inpu
 static inline Tensor _thnn_adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self) {
     return detail::infer_type(self)._thnn_adaptive_avg_pool3d_backward(grad_output, self);
 }
-static inline std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool2d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool2d_forward_out(output, indices, self, output_size);
-}
-static inline std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool2d_forward(const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool2d_forward(self, output_size);
-}
-static inline Tensor & _thnn_adaptive_max_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool2d_backward_out(grad_input, grad_output, self, indices);
-}
-static inline Tensor _thnn_adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool2d_backward(grad_output, self, indices);
-}
-static inline std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool3d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool3d_forward_out(output, indices, self, output_size);
-}
-static inline std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool3d_forward(const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool3d_forward(self, output_size);
-}
-static inline Tensor & _thnn_adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool3d_backward_out(grad_input, grad_output, self, indices);
-}
-static inline Tensor _thnn_adaptive_max_pool3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-    return detail::infer_type(self)._thnn_adaptive_max_pool3d_backward(grad_output, self, indices);
-}
 static inline Tensor & _thnn_avg_pool2d_forward_out(Tensor & output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad) {
     return detail::infer_type(self)._thnn_avg_pool2d_forward_out(output, self, kernel_size, stride, padding, ceil_mode, count_include_pad);
 }
@@ -3645,11 +3615,14 @@ static inline Tensor _embedding_bag_sparse_backward(const Tensor & grad, const T
 static inline Tensor _embedding_bag_dense_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, const Tensor & maximum_indices, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights) {
     return detail::infer_type(grad)._embedding_bag_dense_backward(grad, indices, offsets, offset2bag, bag_size, maximum_indices, num_weights, scale_grad_by_freq, mode, per_sample_weights);
 }
-static inline Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offset2bag, int64_t mode) {
-    return detail::infer_type(grad)._embedding_bag_per_sample_weights_backward(grad, weight, indices, offset2bag, mode);
+static inline Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, int64_t mode) {
+    return detail::infer_type(grad)._embedding_bag_per_sample_weights_backward(grad, weight, indices, offsets, offset2bag, mode);
 }
 static inline Tensor empty(IntArrayRef size, const TensorOptions & options) {
     return at::getType(options).empty(size, options);
+}
+static inline Tensor _empty_affine_quantized(IntArrayRef size, const TensorOptions & options, double scale, int64_t zero_point) {
+    return at::getType(options)._empty_affine_quantized(size, options, scale, zero_point);
 }
 static inline Tensor & empty_out(Tensor & out, IntArrayRef size) {
     return detail::infer_type(out).empty_out(out, size);
@@ -3750,6 +3723,9 @@ static inline Tensor full_like(const Tensor & self, Scalar fill_value) {
 static inline Tensor full_like(const Tensor & self, Scalar fill_value, const TensorOptions & options) {
     return at::getType(options).full_like(self, fill_value, options);
 }
+static inline Tensor from_file(std::string filename, c10::optional<bool> shared, c10::optional<int64_t> size, const TensorOptions & options) {
+    return at::getType(options).from_file(filename, shared, size, options);
+}
 static inline Tensor grid_sampler(const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode) {
     return detail::infer_type(input).grid_sampler(input, grid, interpolation_mode, padding_mode);
 }
@@ -3810,17 +3786,17 @@ static inline Tensor irfft(const Tensor & self, int64_t signal_ndim, bool normal
 static inline Tensor _fft_with_size(const Tensor & self, int64_t signal_ndim, bool complex_input, bool complex_output, bool inverse, IntArrayRef checked_signal_sizes, bool normalized, bool onesided, IntArrayRef output_sizes) {
     return detail::infer_type(self)._fft_with_size(self, signal_ndim, complex_input, complex_output, inverse, checked_signal_sizes, normalized, onesided, output_sizes);
 }
-static inline int64_t _cufft_get_plan_cache_size() {
-    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_get_plan_cache_size();
+static inline int64_t _cufft_get_plan_cache_size(int64_t device_index) {
+    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_get_plan_cache_size(device_index);
 }
-static inline int64_t _cufft_get_plan_cache_max_size() {
-    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_get_plan_cache_max_size();
+static inline int64_t _cufft_get_plan_cache_max_size(int64_t device_index) {
+    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_get_plan_cache_max_size(device_index);
 }
-static inline void _cufft_set_plan_cache_max_size(int64_t max_size) {
-    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_set_plan_cache_max_size(max_size);
+static inline void _cufft_set_plan_cache_max_size(int64_t device_index, int64_t max_size) {
+    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_set_plan_cache_max_size(device_index, max_size);
 }
-static inline void _cufft_clear_plan_cache() {
-    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_clear_plan_cache();
+static inline void _cufft_clear_plan_cache(int64_t device_index) {
+    return at::getNonVariableType(at::Backend::Undefined, at::ScalarType::Float)._cufft_clear_plan_cache(device_index);
 }
 static inline Tensor index(const Tensor & self, TensorList indices) {
     return detail::infer_type(self).index(self, indices);
@@ -3945,11 +3921,11 @@ static inline Tensor & log2_out(Tensor & out, const Tensor & self) {
 static inline Tensor logdet(const Tensor & self) {
     return detail::infer_type(self).logdet(self);
 }
-static inline Tensor logspace(Scalar start, Scalar end, int64_t steps, const TensorOptions & options) {
-    return at::getType(options).logspace(start, end, steps, options);
+static inline Tensor logspace(Scalar start, Scalar end, int64_t steps, double base, const TensorOptions & options) {
+    return at::getType(options).logspace(start, end, steps, base, options);
 }
-static inline Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps) {
-    return detail::infer_type(out).logspace_out(out, start, end, steps);
+static inline Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps, double base) {
+    return detail::infer_type(out).logspace_out(out, start, end, steps, base);
 }
 static inline Tensor log_softmax(const Tensor & self, int64_t dim, ScalarType dtype) {
     return detail::infer_type(self).log_softmax(self, dim, dtype);
@@ -4647,8 +4623,8 @@ static inline Tensor & trunc_out(Tensor & out, const Tensor & self) {
 static inline std::tuple<Tensor,Tensor> _unique(const Tensor & self, bool sorted, bool return_inverse) {
     return detail::infer_type(self)._unique(self, sorted, return_inverse);
 }
-static inline std::tuple<Tensor,Tensor> _unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse) {
-    return detail::infer_type(self)._unique_dim(self, dim, sorted, return_inverse);
+static inline std::tuple<Tensor,Tensor,Tensor> unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) {
+    return detail::infer_type(self).unique_dim(self, dim, sorted, return_inverse, return_counts);
 }
 static inline std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool return_inverse, bool return_counts, c10::optional<int64_t> dim) {
     return detail::infer_type(self).unique_consecutive(self, return_inverse, return_counts, dim);
@@ -4656,11 +4632,8 @@ static inline std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor &
 static inline std::tuple<Tensor,Tensor,Tensor> unique_dim_consecutive(const Tensor & self, int64_t dim, bool return_inverse, bool return_counts) {
     return detail::infer_type(self).unique_dim_consecutive(self, dim, return_inverse, return_counts);
 }
-static inline std::tuple<Tensor,Tensor,Tensor> _unique2_temporary_will_remove_soon(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) {
-    return detail::infer_type(self)._unique2_temporary_will_remove_soon(self, sorted, return_inverse, return_counts);
-}
-static inline std::tuple<Tensor,Tensor,Tensor> _unique_dim2_temporary_will_remove_soon(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) {
-    return detail::infer_type(self)._unique_dim2_temporary_will_remove_soon(self, dim, sorted, return_inverse, return_counts);
+static inline std::tuple<Tensor,Tensor,Tensor> _unique2(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) {
+    return detail::infer_type(self)._unique2(self, sorted, return_inverse, return_counts);
 }
 static inline Tensor _unsafe_view(const Tensor & self, IntArrayRef size) {
     return detail::infer_type(self)._unsafe_view(self, size);
@@ -4871,6 +4844,9 @@ static inline Scalar q_scale(const Tensor & self) {
 }
 static inline Scalar q_zero_point(const Tensor & self) {
     return detail::infer_type(self).q_zero_point(self);
+}
+static inline Tensor int_repr(const Tensor & self) {
+    return detail::infer_type(self).int_repr(self);
 }
 static inline std::vector<Tensor> meshgrid(TensorList tensors) {
     return detail::infer_type(tensors).meshgrid(tensors);
@@ -5229,11 +5205,11 @@ static inline std::tuple<Tensor &,Tensor &> solve_out(Tensor & solution, Tensor 
 static inline std::tuple<Tensor,Tensor> _solve_helper(const Tensor & self, const Tensor & A) {
     return detail::infer_type(self)._solve_helper(self, A);
 }
-static inline Tensor & potri_out(Tensor & out, const Tensor & self, bool upper) {
-    return detail::infer_type(self).potri_out(out, self, upper);
+static inline Tensor & cholesky_inverse_out(Tensor & out, const Tensor & self, bool upper) {
+    return detail::infer_type(self).cholesky_inverse_out(out, self, upper);
 }
-static inline Tensor potri(const Tensor & self, bool upper) {
-    return detail::infer_type(self).potri(self, upper);
+static inline Tensor cholesky_inverse(const Tensor & self, bool upper) {
+    return detail::infer_type(self).cholesky_inverse(self, upper);
 }
 static inline std::tuple<Tensor &,Tensor &> pstrf_out(Tensor & u, Tensor & pivot, const Tensor & self, bool upper, Scalar tol) {
     return detail::infer_type(self).pstrf_out(u, pivot, self, upper, tol);
@@ -5721,8 +5697,8 @@ static inline Tensor & adaptive_avg_pool3d_backward_out(Tensor & grad_input, con
 static inline Tensor adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self) {
     return detail::infer_type(self).adaptive_avg_pool3d_backward(grad_output, self);
 }
-static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self).adaptive_max_pool2d_out(output, indices, self, output_size);
+static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
+    return detail::infer_type(self).adaptive_max_pool2d_out(out, indices, self, output_size);
 }
 static inline std::tuple<Tensor,Tensor> adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size) {
     return detail::infer_type(self).adaptive_max_pool2d(self, output_size);
@@ -5733,8 +5709,8 @@ static inline Tensor & adaptive_max_pool2d_backward_out(Tensor & grad_input, con
 static inline Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
     return detail::infer_type(self).adaptive_max_pool2d_backward(grad_output, self, indices);
 }
-static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
-    return detail::infer_type(self).adaptive_max_pool3d_out(output, indices, self, output_size);
+static inline std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size) {
+    return detail::infer_type(self).adaptive_max_pool3d_out(out, indices, self, output_size);
 }
 static inline std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size) {
     return detail::infer_type(self).adaptive_max_pool3d(self, output_size);

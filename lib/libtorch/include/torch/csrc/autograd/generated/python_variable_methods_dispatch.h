@@ -509,6 +509,11 @@ inline Tensor dispatch_cholesky(Tensor & self, bool upper) {
   AutoNoGIL no_gil;
   return self.cholesky(upper);
 }
+inline Tensor dispatch_cholesky_inverse(Tensor & self, bool upper) {
+
+  AutoNoGIL no_gil;
+  return self.cholesky_inverse(upper);
+}
 inline Tensor dispatch_cholesky_solve(Tensor & self, const Tensor & input2, bool upper) {
 
   AutoNoGIL no_gil;
@@ -984,6 +989,11 @@ inline Tensor dispatch_indices(Tensor & self) {
   AutoNoGIL no_gil;
   return self.indices();
 }
+inline Tensor dispatch_int_repr(Tensor & self) {
+
+  AutoNoGIL no_gil;
+  return self.int_repr();
+}
 inline Tensor dispatch_inverse(Tensor & self) {
 
   AutoNoGIL no_gil;
@@ -1443,11 +1453,6 @@ inline Tensor dispatch_polygamma_(Tensor & self, int64_t n) {
 
   AutoNoGIL no_gil;
   return self.polygamma_(n);
-}
-inline Tensor dispatch_potri(Tensor & self, bool upper) {
-
-  AutoNoGIL no_gil;
-  return self.potri(upper);
 }
 inline Tensor dispatch_pow(Tensor & self, const Tensor & exponent) {
 

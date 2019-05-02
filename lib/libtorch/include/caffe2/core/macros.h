@@ -34,7 +34,7 @@ static_assert(
 /* #undef CAFFE2_THREADPOOL_STATS */
 #define CAFFE2_USE_EXCEPTION_PTR
 /* #undef CAFFE2_USE_ACCELERATE */
-/* #undef CAFFE2_USE_CUDNN */
+#define CAFFE2_USE_CUDNN
 /* #undef CAFFE2_USE_EIGEN_FOR_BLAS */
 /* #undef CAFFE2_USE_FBCODE */
 /* #undef CAFFE2_USE_GOOGLE_GLOG */
@@ -54,11 +54,11 @@ static_assert(
 
 // Useful build settings that are recorded in the compiled binary
 #define CAFFE2_BUILD_STRINGS { \
-  {"CXX_FLAGS", "  -Wno-deprecated -fvisibility-inlines-hidden -fopenmp -D_FORCE_INLINES -D_MWAITXINTRIN_H_INCLUDED -D__STRICT_ANSI__ -O2 -fPIC -Wno-narrowing -Wall -Wextra -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -Wno-unused-but-set-variable -Wno-maybe-uninitialized"}, \
+  {"CXX_FLAGS", "  -Wno-deprecated -fvisibility-inlines-hidden -fopenmp -O2 -fPIC -Wno-narrowing -Wall -Wextra -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math"}, \
   {"BUILD_TYPE", "Release"}, \
   {"BLAS", "MKL"}, \
-  {"USE_CUDA", "False"}, \
-  {"USE_NCCL", "False"}, \
+  {"USE_CUDA", "True"}, \
+  {"USE_NCCL", "True"}, \
   {"USE_MPI", "OFF"}, \
   {"USE_GFLAGS", "OFF"}, \
   {"USE_GLOG", "OFF"}, \

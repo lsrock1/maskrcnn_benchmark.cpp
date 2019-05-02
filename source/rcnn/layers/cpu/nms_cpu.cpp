@@ -1,7 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #include "vision_cpu.h"
 
-
+namespace rcnn{
+namespace layers{
 template <typename scalar_t>
 at::Tensor nms_cpu_kernel(const at::Tensor& dets,
                           const at::Tensor& scores,
@@ -72,4 +73,7 @@ at::Tensor nms_cpu(const at::Tensor& dets,
     result = nms_cpu_kernel<scalar_t>(dets, scores, threshold);
   });
   return result;
+}
+
+}
 }

@@ -21,15 +21,15 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   bool is_sparse() const override {
     return backend() == Backend::SparseCPU || backend() == Backend::SparseCUDA || backend() == Backend::SparseHIP;
   }
+  bool is_quantized() const override {
+    return backend() == Backend::QuantizedCPU;
+  }
   bool is_distributed() const override {
     return false;
   }
 
   Type & toBackend(Backend b) const override;
   Type & toScalarType(ScalarType s) const override;
-
-  Tensor copy(const Tensor & src, bool non_blocking=false, optional<Device> to_device={}) const override;
-  Tensor & copy_(Tensor & self, const Tensor & src, bool non_blocking=false) const override;
 
   void backward(
       Tensor& self,
@@ -515,14 +515,6 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor _thnn_adaptive_avg_pool3d_forward(const Tensor & self, IntArrayRef output_size) const override;
   Tensor & _thnn_adaptive_avg_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self) const override;
   Tensor _thnn_adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self) const override;
-  std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool2d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
-  std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool2d_forward(const Tensor & self, IntArrayRef output_size) const override;
-  Tensor & _thnn_adaptive_max_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
-  Tensor _thnn_adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
-  std::tuple<Tensor &,Tensor &> _thnn_adaptive_max_pool3d_forward_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
-  std::tuple<Tensor,Tensor> _thnn_adaptive_max_pool3d_forward(const Tensor & self, IntArrayRef output_size) const override;
-  Tensor & _thnn_adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
-  Tensor _thnn_adaptive_max_pool3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
   Tensor & _thnn_avg_pool2d_forward_out(Tensor & output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad) const override;
   Tensor _thnn_avg_pool2d_forward(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad) const override;
   Tensor & _thnn_avg_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad) const override;
@@ -746,6 +738,7 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor conv_transpose1d(const Tensor & input, const Tensor & weight, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef output_padding, int64_t groups, IntArrayRef dilation) const override;
   Tensor conv_transpose2d(const Tensor & input, const Tensor & weight, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef output_padding, int64_t groups, IntArrayRef dilation) const override;
   Tensor conv_transpose3d(const Tensor & input, const Tensor & weight, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef output_padding, int64_t groups, IntArrayRef dilation) const override;
+  Tensor & copy_(Tensor & self, const Tensor & src, bool non_blocking) const override;
   Tensor & s_copy_(Tensor & self, const Tensor & src, bool non_blocking) const override;
   Tensor _s_copy_from(const Tensor & self, const Tensor & dst, bool non_blocking) const override;
   void _copy_same_type_(Tensor & self, const Tensor & src) const override;
@@ -806,8 +799,9 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor _embedding_bag_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, const Tensor & maximum_indices, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights) const override;
   Tensor _embedding_bag_sparse_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights) const override;
   Tensor _embedding_bag_dense_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, const Tensor & maximum_indices, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights) const override;
-  Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offset2bag, int64_t mode) const override;
+  Tensor _embedding_bag_per_sample_weights_backward(const Tensor & grad, const Tensor & weight, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, int64_t mode) const override;
   Tensor empty(IntArrayRef size, const TensorOptions & options) const override;
+  Tensor _empty_affine_quantized(IntArrayRef size, const TensorOptions & options, double scale, int64_t zero_point) const override;
   Tensor & resize_(Tensor & self, IntArrayRef size) const override;
   Tensor & empty_out(Tensor & out, IntArrayRef size) const override;
   Tensor empty_like(const Tensor & self) const override;
@@ -844,6 +838,7 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor & full_out(Tensor & out, IntArrayRef size, Scalar fill_value) const override;
   Tensor full_like(const Tensor & self, Scalar fill_value) const override;
   Tensor full_like(const Tensor & self, Scalar fill_value, const TensorOptions & options) const override;
+  Tensor from_file(std::string filename, c10::optional<bool> shared, c10::optional<int64_t> size, const TensorOptions & options) const override;
   Tensor grid_sampler(const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode) const override;
   Tensor grid_sampler_2d(const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode) const override;
   std::tuple<Tensor,Tensor> grid_sampler_2d_backward(const Tensor & grad_output, const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode) const override;
@@ -864,10 +859,10 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor rfft(const Tensor & self, int64_t signal_ndim, bool normalized, bool onesided) const override;
   Tensor irfft(const Tensor & self, int64_t signal_ndim, bool normalized, bool onesided, IntArrayRef signal_sizes) const override;
   Tensor _fft_with_size(const Tensor & self, int64_t signal_ndim, bool complex_input, bool complex_output, bool inverse, IntArrayRef checked_signal_sizes, bool normalized, bool onesided, IntArrayRef output_sizes) const override;
-  int64_t _cufft_get_plan_cache_size() const override;
-  int64_t _cufft_get_plan_cache_max_size() const override;
-  void _cufft_set_plan_cache_max_size(int64_t max_size) const override;
-  void _cufft_clear_plan_cache() const override;
+  int64_t _cufft_get_plan_cache_size(int64_t device_index) const override;
+  int64_t _cufft_get_plan_cache_max_size(int64_t device_index) const override;
+  void _cufft_set_plan_cache_max_size(int64_t device_index, int64_t max_size) const override;
+  void _cufft_clear_plan_cache(int64_t device_index) const override;
   Tensor index(const Tensor & self, TensorList indices) const override;
   Tensor & index_copy_(Tensor & self, int64_t dim, const Tensor & index, const Tensor & source) const override;
   Tensor index_copy(const Tensor & self, int64_t dim, const Tensor & index, const Tensor & source) const override;
@@ -910,8 +905,8 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor & log2_(Tensor & self) const override;
   Tensor & log2_out(Tensor & out, const Tensor & self) const override;
   Tensor logdet(const Tensor & self) const override;
-  Tensor logspace(Scalar start, Scalar end, int64_t steps, const TensorOptions & options) const override;
-  Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps) const override;
+  Tensor logspace(Scalar start, Scalar end, int64_t steps, double base, const TensorOptions & options) const override;
+  Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps, double base) const override;
   Tensor log_softmax(const Tensor & self, int64_t dim, ScalarType dtype) const override;
   Tensor log_softmax(const Tensor & self, int64_t dim) const override;
   Tensor _log_softmax(const Tensor & self, int64_t dim, bool half_to_float) const override;
@@ -1157,11 +1152,10 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor & trunc_out(Tensor & out, const Tensor & self) const override;
   Tensor type_as(const Tensor & self, const Tensor & other) const override;
   std::tuple<Tensor,Tensor> _unique(const Tensor & self, bool sorted, bool return_inverse) const override;
-  std::tuple<Tensor,Tensor> _unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse) const override;
+  std::tuple<Tensor,Tensor,Tensor> unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) const override;
   std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool return_inverse, bool return_counts, c10::optional<int64_t> dim) const override;
   std::tuple<Tensor,Tensor,Tensor> unique_dim_consecutive(const Tensor & self, int64_t dim, bool return_inverse, bool return_counts) const override;
-  std::tuple<Tensor,Tensor,Tensor> _unique2_temporary_will_remove_soon(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) const override;
-  std::tuple<Tensor,Tensor,Tensor> _unique_dim2_temporary_will_remove_soon(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) const override;
+  std::tuple<Tensor,Tensor,Tensor> _unique2(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) const override;
   Tensor _unsafe_view(const Tensor & self, IntArrayRef size) const override;
   Tensor unsqueeze(const Tensor & self, int64_t dim) const override;
   Tensor & unsqueeze_(Tensor & self, int64_t dim) const override;
@@ -1256,6 +1250,7 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor dequantize(const Tensor & self) const override;
   Scalar q_scale(const Tensor & self) const override;
   Scalar q_zero_point(const Tensor & self) const override;
+  Tensor int_repr(const Tensor & self) const override;
   Tensor to(const Tensor & self, const TensorOptions & options, bool non_blocking, bool copy) const override;
   Tensor to(const Tensor & self, Device device, ScalarType dtype, bool non_blocking, bool copy) const override;
   Tensor to(const Tensor & self, ScalarType dtype, bool non_blocking, bool copy) const override;
@@ -1448,8 +1443,8 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   std::tuple<Tensor,Tensor> solve(const Tensor & self, const Tensor & A) const override;
   std::tuple<Tensor &,Tensor &> solve_out(Tensor & solution, Tensor & lu, const Tensor & self, const Tensor & A) const override;
   std::tuple<Tensor,Tensor> _solve_helper(const Tensor & self, const Tensor & A) const override;
-  Tensor & potri_out(Tensor & out, const Tensor & self, bool upper) const override;
-  Tensor potri(const Tensor & self, bool upper) const override;
+  Tensor & cholesky_inverse_out(Tensor & out, const Tensor & self, bool upper) const override;
+  Tensor cholesky_inverse(const Tensor & self, bool upper) const override;
   std::tuple<Tensor &,Tensor &> pstrf_out(Tensor & u, Tensor & pivot, const Tensor & self, bool upper, Scalar tol) const override;
   std::tuple<Tensor,Tensor> pstrf(const Tensor & self, bool upper, Scalar tol) const override;
   std::tuple<Tensor &,Tensor &> qr_out(Tensor & Q, Tensor & R, const Tensor & self) const override;
@@ -1613,11 +1608,11 @@ struct CAFFE2_API TypeDefault : public TypeExtendedInterface {
   Tensor adaptive_avg_pool3d(const Tensor & self, IntArrayRef output_size) const override;
   Tensor & adaptive_avg_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self) const override;
   Tensor adaptive_avg_pool3d_backward(const Tensor & grad_output, const Tensor & self) const override;
-  std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
+  std::tuple<Tensor &,Tensor &> adaptive_max_pool2d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
   std::tuple<Tensor,Tensor> adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size) const override;
   Tensor & adaptive_max_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
   Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
-  std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & output, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
+  std::tuple<Tensor &,Tensor &> adaptive_max_pool3d_out(Tensor & out, Tensor & indices, const Tensor & self, IntArrayRef output_size) const override;
   std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size) const override;
   Tensor & adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;
   Tensor adaptive_max_pool3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) const override;

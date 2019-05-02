@@ -2,7 +2,9 @@
 #pragma once
 #include <torch/torch.h>
 
-
+namespace rcnn{
+namespace layers{
+    
 at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
                                 const at::Tensor& rois,
                                 const float spatial_scale,
@@ -14,3 +16,6 @@ at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
 at::Tensor nms_cpu(const at::Tensor& dets,
                    const at::Tensor& scores,
                    const float threshold);
+}
+}
+

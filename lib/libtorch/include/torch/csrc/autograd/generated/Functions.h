@@ -35,13 +35,13 @@ struct TypeAndSize {
   /* implicit */
   TypeAndSize(const Tensor & t)
     : sizes(t.sizes().vec())
-    , type(&t.dispatch_type()) {}
+    , type(&t.type()) {}
 
   Tensor zeros() { return at::zeros(sizes, *type); }
 
 private:
   std::vector<int64_t> sizes;
-  Type* type;
+  at::DeprecatedTypeProperties* type;
 };
 
 struct AbsBackward : public TraceableFunction {
@@ -447,6 +447,17 @@ struct CholeskySolveBackward : public TraceableFunction {
   using TraceableFunction::TraceableFunction;
   variable_list apply(variable_list&& grads) override;
   std::string name() const override { return "CholeskySolveBackward"; }
+  void release_variables() override {
+
+  }
+
+
+
+};
+struct CholeskyInverseBackward : public TraceableFunction {
+  using TraceableFunction::TraceableFunction;
+  variable_list apply(variable_list&& grads) override;
+  std::string name() const override { return "CholeskyInverseBackward"; }
   void release_variables() override {
 
   }
@@ -1035,28 +1046,6 @@ struct GerBackward : public TraceableFunction {
 
   SavedVariable vec2_;
   SavedVariable self_;
-
-};
-struct IndicesBackward0 : public Function {
-  using Function::Function;
-  variable_list apply(variable_list&& grads) override;
-  std::string name() const override { return "IndicesBackward0"; }
-  void release_variables() override {
-
-  }
-
-
-
-};
-struct IndicesBackward1 : public Function {
-  using Function::Function;
-  variable_list apply(variable_list&& grads) override;
-  std::string name() const override { return "IndicesBackward1"; }
-  void release_variables() override {
-
-  }
-
-
 
 };
 struct GridSampler2DBackward : public TraceableFunction {
@@ -2098,17 +2087,6 @@ struct PoissonBackward : public TraceableFunction {
   }
 
   TypeAndSize self_info;
-
-};
-struct PotriBackward : public TraceableFunction {
-  using TraceableFunction::TraceableFunction;
-  variable_list apply(variable_list&& grads) override;
-  std::string name() const override { return "PotriBackward"; }
-  void release_variables() override {
-
-  }
-
-
 
 };
 struct PowBackward0 : public TraceableFunction {
@@ -3248,10 +3226,10 @@ struct StandardGammaGradBackward : public TraceableFunction {
 
 
 };
-struct ValuesBackward0 : public Function {
+struct ValuesBackward : public Function {
   using Function::Function;
   variable_list apply(variable_list&& grads) override;
-  std::string name() const override { return "ValuesBackward0"; }
+  std::string name() const override { return "ValuesBackward"; }
   void release_variables() override {
     self_.reset_data();
     self_.reset_grad_function();
@@ -3259,17 +3237,6 @@ struct ValuesBackward0 : public Function {
 
   std::vector<int64_t> self_sizes;
   SavedVariable self_;
-
-};
-struct ValuesBackward1 : public Function {
-  using Function::Function;
-  variable_list apply(variable_list&& grads) override;
-  std::string name() const override { return "ValuesBackward1"; }
-  void release_variables() override {
-
-  }
-
-
 
 };
 struct TrilinearBackward : public TraceableFunction {
@@ -3398,9 +3365,9 @@ struct EmbeddingBagBackward : public TraceableFunction {
 
   SavedVariable weight_;
   SavedVariable indices_;
+  SavedVariable offsets_;
   int64_t mode = 0;
   int64_t weight_argsize_0 = 0;
-  SavedVariable offsets_;
   bool scale_grad_by_freq;
   bool sparse;
   SavedVariable per_sample_weights_;

@@ -9,6 +9,8 @@
 #include <iostream>
 #include "vision_cuda.h"
 
+namespace rcnn{
+namespace layers{
 int const threadsPerBlock = sizeof(unsigned long long) * 8;
 
 __device__ inline float devIoU(float const * const a, float const * const b) {
@@ -129,4 +131,6 @@ at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh) {
                        keep.narrow(/*dim=*/0, /*start=*/0, /*length=*/num_to_keep).to(
                          order_t.device(), keep.scalar_type())
                      }).sort(0, false));
+}
+}
 }

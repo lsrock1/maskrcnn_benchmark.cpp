@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget c10 caffe2)
+foreach(_expectedTarget c10_cuda c10 caffe2 caffe2_gpu)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -50,6 +50,14 @@ if(_IMPORT_PREFIX STREQUAL "/")
   set(_IMPORT_PREFIX "")
 endif()
 
+# Create imported target c10_cuda
+add_library(c10_cuda SHARED IMPORTED)
+
+set_target_properties(c10_cuda PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "c10;caffe2::cudart"
+)
+
 # Create imported target c10
 add_library(c10 SHARED IMPORTED)
 
@@ -64,6 +72,14 @@ set_target_properties(caffe2 PROPERTIES
   INTERFACE_COMPILE_OPTIONS "\$<\$<COMPILE_LANGUAGE:CXX>:-std=c++11>"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "protobuf::libprotobuf;c10;Threads::Threads;caffe2::mkl;caffe2::mkldnn"
+)
+
+# Create imported target caffe2_gpu
+add_library(caffe2_gpu SHARED IMPORTED)
+
+set_target_properties(caffe2_gpu PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "caffe2::cudart;c10_cuda;caffe2;caffe2::cufft;caffe2::curand;caffe2::cudnn;/usr/local/cuda/lib64/libculibos.a;dl;/usr/local/cuda/lib64/libculibos.a;caffe2::cublas"
 )
 
 if(CMAKE_VERSION VERSION_LESS 2.8.12)

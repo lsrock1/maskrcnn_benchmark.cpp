@@ -78,27 +78,27 @@ else()
   endif()
 endif()
 
-if (False)
+if (True)
   # The file public/cuda.cmake exclusively uses CAFFE2_USE_*.
   # If Caffe2 was compiled with the libraries below, they must
   # be found again when including the Caffe2 target.
-  set(CAFFE2_USE_CUDA False)
-  set(CAFFE2_USE_CUDNN OFF)
-  set(CAFFE2_USE_TENSORRT False)
+  set(CAFFE2_USE_CUDA True)
+  set(CAFFE2_USE_CUDNN ON)
+  set(CAFFE2_USE_TENSORRT OFF)
   include("${CMAKE_CURRENT_LIST_DIR}/public/cuda.cmake")
-  if ( AND NOT CAFFE2_USE_CUDA)
+  if (True AND NOT CAFFE2_USE_CUDA)
     message(FATAL_ERROR
       "Your installed Caffe2 version uses CUDA but I cannot find the CUDA "
       "libraries. Please set the proper CUDA prefixes and / or install "
       "CUDA.")
   endif()
-  if ( AND NOT CAFFE2_USE_CUDNN)
+  if (ON AND NOT CAFFE2_USE_CUDNN)
     message(FATAL_ERROR
       "Your installed Caffe2 version uses cuDNN but I cannot find the cuDNN "
       "libraries. Please set the proper cuDNN prefixes and / or install "
       "cuDNN.")
   endif()
-  if ( AND NOT CAFFE2_USE_TENSORRT)
+  if (False AND NOT CAFFE2_USE_TENSORRT)
     message(FATAL_ERROR
       "Your installed Caffe2 version uses TensorRT but I cannot find the TensorRT "
       "libraries. Please set the proper TensorRT prefixes and / or install "
@@ -119,7 +119,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/Caffe2Targets.cmake")
 # We will also define a helper variable, Caffe2_MAIN_LIBS, that resolves to
 # the main caffe2 libraries in cases of cuda presence / absence.
 caffe2_interface_library(caffe2 caffe2_library)
-if (False)
+if (True)
   caffe2_interface_library(caffe2_gpu caffe2_gpu_library)
   set(Caffe2_MAIN_LIBS caffe2_library caffe2_gpu_library)
 else()

@@ -184,25 +184,25 @@ inline Tensor dispatch__cudnn_rnn_flatten_weight(TensorList weight_arr, int64_t 
   AutoNoGIL no_gil;
   return at::_cudnn_rnn_flatten_weight(weight_arr, weight_stride0, input_size, mode, hidden_size, num_layers, batch_first, bidirectional);
 }
-inline void dispatch__cufft_clear_plan_cache() {
+inline void dispatch__cufft_clear_plan_cache(int64_t device_index) {
 
   AutoNoGIL no_gil;
-  return at::_cufft_clear_plan_cache();
+  return at::_cufft_clear_plan_cache(device_index);
 }
-inline int64_t dispatch__cufft_get_plan_cache_max_size() {
+inline int64_t dispatch__cufft_get_plan_cache_max_size(int64_t device_index) {
 
   AutoNoGIL no_gil;
-  return at::_cufft_get_plan_cache_max_size();
+  return at::_cufft_get_plan_cache_max_size(device_index);
 }
-inline int64_t dispatch__cufft_get_plan_cache_size() {
+inline int64_t dispatch__cufft_get_plan_cache_size(int64_t device_index) {
 
   AutoNoGIL no_gil;
-  return at::_cufft_get_plan_cache_size();
+  return at::_cufft_get_plan_cache_size(device_index);
 }
-inline void dispatch__cufft_set_plan_cache_max_size(int64_t max_size) {
+inline void dispatch__cufft_set_plan_cache_max_size(int64_t device_index, int64_t max_size) {
 
   AutoNoGIL no_gil;
-  return at::_cufft_set_plan_cache_max_size(max_size);
+  return at::_cufft_set_plan_cache_max_size(device_index, max_size);
 }
 inline int64_t dispatch__debug_has_internal_overlap(const Tensor & self) {
 
@@ -228,6 +228,11 @@ inline std::tuple<Tensor,Tensor,Tensor,Tensor> dispatch__embedding_bag(const Ten
 
   AutoNoGIL no_gil;
   return at::_embedding_bag(weight, indices, offsets, scale_grad_by_freq, mode, sparse, per_sample_weights);
+}
+inline Tensor dispatch__empty_affine_quantized(IntArrayRef size, double scale, int64_t zero_point, const TensorOptions & options) {
+  maybe_initialize_cuda(options);
+  AutoNoGIL no_gil;
+  return torch::_empty_affine_quantized(size, options, scale, zero_point);
 }
 inline Tensor dispatch__fft_with_size(const Tensor & self, int64_t signal_ndim, bool complex_input, bool complex_output, bool inverse, IntArrayRef checked_signal_sizes, bool normalized, bool onesided, IntArrayRef output_sizes) {
 
@@ -394,20 +399,10 @@ inline std::tuple<Tensor,Tensor> dispatch__unique(const Tensor & self, bool sort
   AutoNoGIL no_gil;
   return at::_unique(self, sorted, return_inverse);
 }
-inline std::tuple<Tensor,Tensor,Tensor> dispatch__unique2_temporary_will_remove_soon(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) {
+inline std::tuple<Tensor,Tensor,Tensor> dispatch__unique2(const Tensor & self, bool sorted, bool return_inverse, bool return_counts) {
 
   AutoNoGIL no_gil;
-  return at::_unique2_temporary_will_remove_soon(self, sorted, return_inverse, return_counts);
-}
-inline std::tuple<Tensor,Tensor> dispatch__unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse) {
-
-  AutoNoGIL no_gil;
-  return at::_unique_dim(self, dim, sorted, return_inverse);
-}
-inline std::tuple<Tensor,Tensor,Tensor> dispatch__unique_dim2_temporary_will_remove_soon(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) {
-
-  AutoNoGIL no_gil;
-  return at::_unique_dim2_temporary_will_remove_soon(self, dim, sorted, return_inverse, return_counts);
+  return at::_unique2(self, sorted, return_inverse, return_counts);
 }
 inline Tensor dispatch__weight_norm(const Tensor & v, const Tensor & g, int64_t dim) {
 
@@ -963,6 +958,16 @@ inline Tensor dispatch_cholesky(const Tensor & self, bool upper) {
 
   AutoNoGIL no_gil;
   return self.cholesky(upper);
+}
+inline Tensor dispatch_cholesky_inverse(const Tensor & self, bool upper, Tensor out) {
+
+  AutoNoGIL no_gil;
+  return at::cholesky_inverse_out(out, self, upper);
+}
+inline Tensor dispatch_cholesky_inverse(const Tensor & self, bool upper) {
+
+  AutoNoGIL no_gil;
+  return self.cholesky_inverse(upper);
 }
 inline Tensor dispatch_cholesky_solve(const Tensor & self, const Tensor & input2, bool upper, Tensor out) {
 
@@ -1599,6 +1604,11 @@ inline Tensor dispatch_frobenius_norm(const Tensor & self, IntArrayRef dim, bool
   AutoNoGIL no_gil;
   return at::frobenius_norm(self, dim, keepdim);
 }
+inline Tensor dispatch_from_file(std::string filename, c10::optional<bool> shared, c10::optional<int64_t> size, const TensorOptions & options) {
+  maybe_initialize_cuda(options);
+  AutoNoGIL no_gil;
+  return torch::from_file(filename, shared, size, options);
+}
 inline Tensor dispatch_full(IntArrayRef size, Scalar fill_value, Tensor out) {
 
   AutoNoGIL no_gil;
@@ -1844,6 +1854,11 @@ inline Tensor dispatch_instance_norm(const Tensor & input, const Tensor & weight
   AutoNoGIL no_gil;
   return at::instance_norm(input, weight, bias, running_mean, running_var, use_input_stats, momentum, eps, cudnn_enabled);
 }
+inline Tensor dispatch_int_repr(const Tensor & self) {
+
+  AutoNoGIL no_gil;
+  return self.int_repr();
+}
 inline Tensor dispatch_inverse(const Tensor & self, Tensor out) {
 
   AutoNoGIL no_gil;
@@ -2054,15 +2069,15 @@ inline Tensor dispatch_logdet(const Tensor & self) {
   AutoNoGIL no_gil;
   return self.logdet();
 }
-inline Tensor dispatch_logspace(Scalar start, Scalar end, int64_t steps, Tensor out) {
+inline Tensor dispatch_logspace(Scalar start, Scalar end, int64_t steps, double base, Tensor out) {
 
   AutoNoGIL no_gil;
-  return at::logspace_out(out, start, end, steps);
+  return at::logspace_out(out, start, end, steps, base);
 }
-inline Tensor dispatch_logspace(Scalar start, Scalar end, int64_t steps, const TensorOptions & options) {
+inline Tensor dispatch_logspace(Scalar start, Scalar end, int64_t steps, double base, const TensorOptions & options) {
   maybe_initialize_cuda(options);
   AutoNoGIL no_gil;
-  return torch::logspace(start, end, steps, options);
+  return torch::logspace(start, end, steps, base, options);
 }
 inline Tensor dispatch_logsumexp(const Tensor & self, IntArrayRef dim, bool keepdim, Tensor out) {
 
@@ -2199,10 +2214,25 @@ inline std::tuple<Tensor,Tensor> dispatch_max(const Tensor & self, int64_t dim, 
   AutoNoGIL no_gil;
   return self.max(dim, keepdim);
 }
+inline Tensor dispatch_max_pool1d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, bool ceil_mode) {
+
+  AutoNoGIL no_gil;
+  return at::max_pool1d(self, kernel_size, stride, padding, dilation, ceil_mode);
+}
 inline std::tuple<Tensor,Tensor> dispatch_max_pool1d_with_indices(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, bool ceil_mode) {
 
   AutoNoGIL no_gil;
   return at::max_pool1d_with_indices(self, kernel_size, stride, padding, dilation, ceil_mode);
+}
+inline Tensor dispatch_max_pool2d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, bool ceil_mode) {
+
+  AutoNoGIL no_gil;
+  return at::max_pool2d(self, kernel_size, stride, padding, dilation, ceil_mode);
+}
+inline Tensor dispatch_max_pool3d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, bool ceil_mode) {
+
+  AutoNoGIL no_gil;
+  return at::max_pool3d(self, kernel_size, stride, padding, dilation, ceil_mode);
 }
 inline Tensor dispatch_mean(const Tensor & self) {
 
@@ -2593,16 +2623,6 @@ inline Tensor dispatch_polygamma(int64_t n, const Tensor & self) {
 
   AutoNoGIL no_gil;
   return self.polygamma(n);
-}
-inline Tensor dispatch_potri(const Tensor & self, bool upper, Tensor out) {
-
-  AutoNoGIL no_gil;
-  return at::potri_out(out, self, upper);
-}
-inline Tensor dispatch_potri(const Tensor & self, bool upper) {
-
-  AutoNoGIL no_gil;
-  return self.potri(upper);
 }
 inline Tensor dispatch_pow(const Tensor & self, const Tensor & exponent, Tensor out) {
 
@@ -3483,6 +3503,11 @@ inline std::tuple<Tensor,Tensor,Tensor> dispatch_unique_consecutive(const Tensor
 
   AutoNoGIL no_gil;
   return at::unique_consecutive(self, return_inverse, return_counts, dim);
+}
+inline std::tuple<Tensor,Tensor,Tensor> dispatch_unique_dim(const Tensor & self, int64_t dim, bool sorted, bool return_inverse, bool return_counts) {
+
+  AutoNoGIL no_gil;
+  return at::unique_dim(self, dim, sorted, return_inverse, return_counts);
 }
 inline Tensor dispatch_unsqueeze(const Tensor & self, int64_t dim) {
 

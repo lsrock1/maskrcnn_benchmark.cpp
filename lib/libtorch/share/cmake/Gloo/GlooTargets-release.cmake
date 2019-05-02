@@ -25,5 +25,15 @@ set_target_properties(gloo_builder PROPERTIES
 list(APPEND _IMPORT_CHECK_TARGETS gloo_builder )
 list(APPEND _IMPORT_CHECK_FILES_FOR_gloo_builder "/pytorch/torch/lib/libgloo_builder.a" )
 
+# Import target "gloo_cuda" for configuration "Release"
+set_property(TARGET gloo_cuda APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+set_target_properties(gloo_cuda PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "CXX"
+  IMPORTED_LOCATION_RELEASE "/pytorch/torch/lib/libgloo_cuda.a"
+  )
+
+list(APPEND _IMPORT_CHECK_TARGETS gloo_cuda )
+list(APPEND _IMPORT_CHECK_FILES_FOR_gloo_cuda "/pytorch/torch/lib/libgloo_cuda.a" )
+
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

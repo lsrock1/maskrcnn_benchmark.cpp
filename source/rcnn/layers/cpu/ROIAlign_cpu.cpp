@@ -1,6 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #include "vision_cpu.h"
 
+namespace rcnn{
+namespace layers{
 // implementation taken from Caffe2
 template <typename T>
 struct PreCalc {
@@ -254,4 +256,6 @@ at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
          output.data<scalar_t>());
   });
   return output;
+}
+}
 }

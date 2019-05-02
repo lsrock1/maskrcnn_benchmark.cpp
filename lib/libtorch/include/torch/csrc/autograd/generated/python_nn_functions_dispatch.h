@@ -34,20 +34,20 @@ inline Tensor dispatch_adaptive_avg_pool3d(const Tensor & self, IntArrayRef outp
   AutoNoGIL no_gil;
   return at::adaptive_avg_pool3d(self, output_size);
 }
-inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size, Tensor & output, Tensor & indices) {
+inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size, Tensor & out, Tensor & indices) {
 
   AutoNoGIL no_gil;
-  return at::adaptive_max_pool2d_out(output, indices, self, output_size);
+  return at::adaptive_max_pool2d_out(out, indices, self, output_size);
 }
 inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool2d(const Tensor & self, IntArrayRef output_size) {
 
   AutoNoGIL no_gil;
   return at::adaptive_max_pool2d(self, output_size);
 }
-inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size, Tensor & output, Tensor & indices) {
+inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size, Tensor & out, Tensor & indices) {
 
   AutoNoGIL no_gil;
-  return at::adaptive_max_pool3d_out(output, indices, self, output_size);
+  return at::adaptive_max_pool3d_out(out, indices, self, output_size);
 }
 inline std::tuple<Tensor,Tensor> dispatch_adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size) {
 

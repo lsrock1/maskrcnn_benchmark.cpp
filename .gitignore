@@ -47,5 +47,6 @@
 # Ignore all local history of files
 .history
 
+lib/
 # End of https://www.gitignore.io/api/c++,visualstudiocode
 build/

@@ -47,7 +47,7 @@ set(TORCH_LIBRARIES torch ${Caffe2_MAIN_LIBS})
 find_library(C10_LIBRARY c10 PATHS "${TORCH_INSTALL_PREFIX}/lib")
 list(APPEND TORCH_LIBRARIES ${C10_LIBRARY})
 
-if (False)
+if (True)
   if(MSVC)
     set(NVTOOLEXT_HOME "C:/Program Files/NVIDIA Corporation/NvToolsExt")
     if ($ENV{NVTOOLEXT_HOME})

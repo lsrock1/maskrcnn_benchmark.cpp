@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget gloo gloo_builder)
+foreach(_expectedTarget gloo gloo_builder gloo_cuda)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -55,7 +55,7 @@ add_library(gloo STATIC IMPORTED)
 
 set_target_properties(gloo PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:pthread>"
+  INTERFACE_LINK_LIBRARIES "/usr/local/cuda/lib64/libcudart.so;\$<LINK_ONLY:pthread>"
 )
 
 # Create imported target gloo_builder
@@ -63,7 +63,15 @@ add_library(gloo_builder STATIC IMPORTED)
 
 set_target_properties(gloo_builder PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "gloo"
+  INTERFACE_LINK_LIBRARIES "gloo;gloo_cuda"
+)
+
+# Create imported target gloo_cuda
+add_library(gloo_cuda STATIC IMPORTED)
+
+set_target_properties(gloo_cuda PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "/usr/local/cuda/lib64/libcudart.so;gloo;/usr/local/cuda/lib64/libnccl_static.a;dl;rt"
 )
 
 if(CMAKE_VERSION VERSION_LESS 2.8.12)
