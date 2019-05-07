@@ -4,7 +4,7 @@
 namespace rcnn{
 namespace modeling{
 
-StageSpec::StageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group)
+ResStageSpec::ResStageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group)
                     : num_layers_(num_layers),
                       stage_to_(stage_to),
                       is_fpn_(is_fpn),
@@ -13,39 +13,39 @@ StageSpec::StageSpec(std::string block, std::initializer_list<int64_t> num_layer
                       block_(block)
                       {}
 
-std::string StageSpec::get_block(){
+std::string ResStageSpec::get_block(){
   return this->block_;
 }
 
-std::initializer_list<int64_t> StageSpec::get_num_layers(){
+std::initializer_list<int64_t> ResStageSpec::get_num_layers(){
   return this->num_layers_;
 }
 
-int StageSpec::get_stage_to(){
+int ResStageSpec::get_stage_to(){
   return this->stage_to_;
 }
 
-bool StageSpec::get_is_fpn(){
+bool ResStageSpec::get_is_fpn(){
   return this->is_fpn_;
 }
 
-int64_t StageSpec::get_groups(){
+int64_t ResStageSpec::get_groups(){
   return this->groups_;
 }
 
-int64_t StageSpec::get_width_per_group(){
+int64_t ResStageSpec::get_width_per_group(){
   return this->width_per_group_;
 }
 
-void StageSpec::set_freeze_at(int at){
+void ResStageSpec::set_freeze_at(int at){
   this->freeze_at_ = at;
 }
 
-int StageSpec::get_freeze_at(){
+int ResStageSpec::get_freeze_at(){
   return this->freeze_at_;
 }
 
-ResNetImpl::ResNetImpl(StageSpec stage_spec)
+ResNetImpl::ResNetImpl(ResStageSpec stage_spec)
             : groups_(stage_spec.get_groups()),
               base_width_(stage_spec.get_width_per_group()),
               block_(stage_spec.get_block()),
@@ -75,7 +75,7 @@ torch::Tensor ResNetImpl::forward(torch::Tensor x){
     return x;
 }
 
-std::vector<torch::Tensor> ResNetImpl::fpn_forward(torch::Tensor x){
+std::vector<torch::Tensor> ResNetImpl::forward_fpn(torch::Tensor x){
   std::vector<torch::Tensor> fpn;
   x = bn1_->forward(conv1_->forward(x)).relu_();
   x = torch::max_pool2d(x, 3, 2, 1);
@@ -273,16 +273,16 @@ rcnn::layers::Conv2d Conv1x1(int64_t in_planes, int64_t out_planes, int64_t stri
                                         .with_bias(false));
 }
 
-std::map<std::string, StageSpec> ResBackbones(){
-  StageSpec R50C4{"Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64};
-  StageSpec R50C5{"Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64};
-  StageSpec R101C4{"Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64};
-  StageSpec R101C5{"Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64};
-  StageSpec R50FPN{"Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64};
-  StageSpec R101FPN{"Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64};
-  StageSpec R152FPN{"Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64};
+std::map<std::string, ResStageSpec> ResBackbones(){
+  ResStageSpec R50C4{"Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64};
+  ResStageSpec R50C5{"Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64};
+  ResStageSpec R101C4{"Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64};
+  ResStageSpec R101C5{"Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64};
+  ResStageSpec R50FPN{"Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64};
+  ResStageSpec R101FPN{"Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64};
+  ResStageSpec R152FPN{"Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64};
 
-  std::map<std::string, StageSpec> blockMap{
+  std::map<std::string, ResStageSpec> blockMap{
     {"R-50-C4", R50C4},
     {"R-50-C5", R50C5},
     {"R-101-C4", R101C4},

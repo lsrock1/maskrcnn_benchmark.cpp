@@ -1,8 +1,6 @@
 #include <iostream>
-#include "bounding_box.h"
-#include "defaults.h"
+#include <typeinfo>
 #include "misc.h"
-#include "nms.h"
 
 
 using namespace std;
@@ -14,7 +12,17 @@ int main() {
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
-  auto conf = rcnn::config::GetDefaultCFG();
+  auto a = rcnn::layers::MakeConv3x3(3, 4);
+  cout << a << endl;
+  // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
+  // cout << (*conf2)["MODEL"] << endl;
+  // cout << (*conf)["MODEL"]<< endl;
+  // for(auto i = (*conf).begin(); i != (*conf).end(); ++i){
+  //   cout << i->second << endl;
+  // }
+  // for(auto i = conf.begin(); i != conf.end(); ++i){
+  //   cout << i->as<string>() << endl;
+  // }
   // cout << conf << endl;
   //init bbox tensor size 2, 4
   // torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});

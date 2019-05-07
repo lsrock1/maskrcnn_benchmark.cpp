@@ -2,15 +2,16 @@
 #include <torch/torch.h>
 #include "misc.h"
 #include "batch_norm.h"
+#include "backbone.h"
 #include <vector>
 #include <string>
 
 namespace rcnn{
 namespace modeling{
 
-  class StageSpec{
+  class ResStageSpec{
     public:
-      StageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group);
+      ResStageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group);
       int get_stage_to();
       std::initializer_list<int64_t> get_num_layers();
       bool get_is_fpn();
@@ -32,7 +33,7 @@ namespace modeling{
   
   class ResNetImpl : public torch::nn::Module{
     public:
-      ResNetImpl(StageSpec stage_spec);
+      ResNetImpl(ResStageSpec stage_spec);
       torch::Tensor forward(torch::Tensor x);
       std::vector<torch::Tensor> fpn_forward(torch::Tensor x);
 

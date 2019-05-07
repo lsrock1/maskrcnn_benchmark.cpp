@@ -1,3 +1,6 @@
-add_library(modeling backbone/resnet.cpp backbone/fpn.cpp)
-target_include_directories(modeling PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/rcnn/modeling/backbone/)
-target_link_libraries(modeling "${TORCH_LIBRARIES}" layers)
+file(GLOB sources "backbone/*.cpp" "*.cpp")
+add_library(modeling ${sources})
+target_include_directories(modeling  
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/rcnn/modeling/backbone/
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/rcnn/modeling/ )
+target_link_libraries(modeling "${TORCH_LIBRARIES}" layers yaml-cpp)
