@@ -12,8 +12,8 @@ namespace modeling{
   BackboneImpl<Backbone>::BackboneImpl(Backbone body)
                     : body_(body){}
 
-  
-  torch::Tensor BackboneImpl::forward(torch::Tensor x){
+  template<typename Backbone>
+  torch::Tensor BackboneImpl<Backbone>::forward(torch::Tensor x){
     if(fpn_){
       x = body_->forward_fpn(x);
       return fpn_(x);

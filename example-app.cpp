@@ -14,7 +14,13 @@ int main() {
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
-  auto a = rcnn::modeling::FPN(false, {2, 4, 8, 16}, 16);
+  std::valarray<int64_t> init(4);
+  init[0] = 2;
+  init[1] = 4;
+  init[2] = 8;
+  init[3] = 16;
+  auto a = rcnn::modeling::FPNLastMaxPool(false, init, 16);
+  cout << a << endl;
   // auto b = rcnn::modeling::ResBackBones();
   // auto c = rcnn::modeling::ResNet(b.find("R-101-FPN")->second);
   // auto t = torch::randn({2, 3, 800, 800});
