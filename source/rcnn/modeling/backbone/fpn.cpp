@@ -21,7 +21,7 @@ namespace modeling{
     layer_blocks_ = {layer_block1_, layer_block2_, layer_block3_};
   };
 
-  std::deque<torch::Tensor> FPNImpl::forward_fpn(std::vector<torch::Tensor>& x){
+  std::deque<torch::Tensor> FPNImpl::forward(std::vector<torch::Tensor>& x){
     std::deque<torch::Tensor> results;
     torch::Tensor inner_top_down;
     torch::Tensor inner_lateral;
@@ -42,8 +42,8 @@ namespace modeling{
                                         :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels))),
                                          last_level_(register_module("max_pooling", LastLevelMaxPool())){};
 
-  std::deque<torch::Tensor> FPNLastMaxPoolImpl::forward_fpn(std::vector<torch::Tensor>& x){
-    std::deque<torch::Tensor> results = fpn_->forward_fpn(x);
+  std::deque<torch::Tensor> FPNLastMaxPoolImpl::forward(std::vector<torch::Tensor>& x){
+    std::deque<torch::Tensor> results = fpn_->forward(x);
     results.push_back(last_level_->forward(results.back()));
     return results;
   }
