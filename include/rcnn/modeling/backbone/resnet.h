@@ -1,6 +1,6 @@
 #pragma once
 #include <torch/torch.h>
-#include "misc.h"
+#include "conv2d.h"
 #include "batch_norm.h"
 #include "backbone.h"
 #include <vector>
@@ -33,9 +33,9 @@ namespace modeling{
   
   class ResNetImpl : public torch::nn::Module{
     public:
-      ResNetImpl(ResStageSpec stage_spec);
+      ResNetImpl(ResStageSpec& stage_spec);
       torch::Tensor forward(torch::Tensor x);
-      std::vector<torch::Tensor> fpn_forward(torch::Tensor x);
+      std::vector<torch::Tensor> forward_fpn(torch::Tensor x);
 
     private:      
       torch::nn::Sequential MakeLayer(int64_t planes, int64_t blocks, int64_t stride=1);
@@ -91,7 +91,7 @@ namespace modeling{
 
   rcnn::layers::Conv2d Conv3x3(int64_t in_planes, int64_t out_planes, int64_t stride=1, int64_t groups=1);
   rcnn::layers::Conv2d Conv1x1(int64_t in_planes, int64_t out_planes, int64_t stride=1);
-  std::map<int, std::vector<int>> ResBackBones();
+  std::map<std::string, ResStageSpec> ResBackBones();
 
 }//namespace resnet
 }//namespace model

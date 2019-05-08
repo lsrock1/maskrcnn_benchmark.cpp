@@ -45,7 +45,7 @@ int ResStageSpec::get_freeze_at(){
   return this->freeze_at_;
 }
 
-ResNetImpl::ResNetImpl(ResStageSpec stage_spec)
+ResNetImpl::ResNetImpl(ResStageSpec& stage_spec)
             : groups_(stage_spec.get_groups()),
               base_width_(stage_spec.get_width_per_group()),
               block_(stage_spec.get_block()),
@@ -273,14 +273,14 @@ rcnn::layers::Conv2d Conv1x1(int64_t in_planes, int64_t out_planes, int64_t stri
                                         .with_bias(false));
 }
 
-std::map<std::string, ResStageSpec> ResBackbones(){
-  ResStageSpec R50C4{"Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64};
-  ResStageSpec R50C5{"Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64};
-  ResStageSpec R101C4{"Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64};
-  ResStageSpec R101C5{"Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64};
-  ResStageSpec R50FPN{"Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64};
-  ResStageSpec R101FPN{"Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64};
-  ResStageSpec R152FPN{"Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64};
+std::map<std::string, ResStageSpec> ResBackBones(){
+  ResStageSpec R50C4("Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64);
+  ResStageSpec R50C5("Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64);
+  ResStageSpec R101C4("Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64);
+  ResStageSpec R101C5("Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64);
+  ResStageSpec R50FPN("Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64);
+  ResStageSpec R101FPN("Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64);
+  ResStageSpec R152FPN("Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64);
 
   std::map<std::string, ResStageSpec> blockMap{
     {"R-50-C4", R50C4},

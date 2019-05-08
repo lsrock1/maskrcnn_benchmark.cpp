@@ -1,6 +1,8 @@
 #include <iostream>
 #include <typeinfo>
-#include "misc.h"
+#include "fpn.h"
+#include "resnet.h"
+#include <torch/torch.h>
 
 
 using namespace std;
@@ -12,8 +14,11 @@ int main() {
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
-  auto a = rcnn::layers::MakeConv3x3(3, 4);
-  cout << a << endl;
+  auto a = rcnn::modeling::FPN(false, {2, 4, 8, 16}, 16);
+  // auto b = rcnn::modeling::ResBackBones();
+  // auto c = rcnn::modeling::ResNet(b.find("R-101-FPN")->second);
+  // auto t = torch::randn({2, 3, 800, 800});
+  // cout << c->forward_fpn(t)[0].sizes() << endl;
   // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
   // cout << (*conf2)["MODEL"] << endl;
   // cout << (*conf)["MODEL"]<< endl;

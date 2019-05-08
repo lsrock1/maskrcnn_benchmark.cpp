@@ -1,22 +1,43 @@
 #pragma once
 #include <torch/torch.h>
 #include <vector>
+#include <deque>
+#include "conv2d.h"
+#include "make_layers.h"
 
 namespace rcnn{
 namespace modeling{
   class FPNImpl : public torch::nn::Module{
     private:
-      bool use_relu;
-      int64_t out_channels;
-      std::string last_level;
-      torch::nn::Conv2d inner_block1_, inner_block2_, inner_block3_, inner_block4{nullptr};
-      torch::nn::Conv2d layer_block1_, layer_block2_, layer_block3_, layer_block4{nullptr};
-
+      std::vector<torch::nn::Sequential> inner_blocks_;
+      std::vector<torch::nn::Sequential> layer_blocks_;
+      torch::nn::Sequential inner_block1_{nullptr}, inner_block2_{nullptr}, inner_block3_{nullptr}, inner_block4_{nullptr};
+      torch::nn::Sequential layer_block1_{nullptr}, layer_block2_{nullptr}, layer_block3_{nullptr}, layer_block4_{nullptr};
+      
     public:
-      FPNImpl(int64_t in_channels_list, int64_t out_channels, std::string last_level="LastLevelMaxPool");
-      torch::Tensor forward(std::vector<torch::Tensor> x);
-  }
+      FPNImpl(const bool use_relu, const std::initializer_list<int64_t> in_channels_list, const int64_t out_channels);
+      std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
+  };
 
   TORCH_MODULE(FPN);
+
+  class LastLevelMaxPoolImpl : public torch::nn::Module{
+    public:
+      torch::Tensor forward(torch::Tensor& x);
+  };
+
+  TORCH_MODULE(LastLevelMaxPool);
+  
+  class FPNLastMaxPoolImpl : public torch::nn::Module{
+    private:
+      LastLevelMaxPool last_level_;
+      FPN fpn_;
+
+    public:
+      FPNLastMaxPoolImpl(const bool use_relu, const std::initializer_list<int64_t> in_channels_list, const int64_t out_channels);
+      std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
+  };
+
+  TORCH_MODULE(FPNLastMaxPool);
 }
 }
