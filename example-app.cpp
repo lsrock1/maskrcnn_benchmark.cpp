@@ -15,7 +15,7 @@ int main() {
   //                  .padding(1)
   //                  .with_bias(false));
   auto b = rcnn::modeling::ResBackbones();
-  auto c = rcnn::modeling::ResNet(b.find("R-101-FPN")->second);
+  auto c = rcnn::modeling::ResNet(b.find("R-50-C4")->second);
   // cout << c << endl;
   auto back = rcnn::modeling::ResBackbone(c);
   cout << back << endl;

@@ -55,7 +55,7 @@ ResNetImpl::ResNetImpl(StageSpec& stage_spec)
                   is_fpn_ = stage_spec.get_is_fpn();
                   auto it = stage_spec.get_num_layers().begin();
                   layer1_ = register_module("layer1", MakeLayer(64, *(it++)));
-                  layer2_ = register_module("layer2", MakeLayer(128, *(it++)));
+                  layer2_ = register_module("layer2", MakeLayer(128, *(it++), 2));
                   layer3_ = register_module("layer3", MakeLayer(256, *(it++), 2));
                   if(stage_spec.get_stage_to() > 4)
                     layer4_ = register_module("layer4", MakeLayer(512, *(it++), 2));
@@ -65,7 +65,7 @@ ResNetImpl::ResNetImpl(StageSpec& stage_spec)
               }
 
 int64_t ResNetImpl::get_out_channels(){
-  return ResNetImpl::out_channels;
+  return is_fpn_ ? ResNetImpl::out_channels : ResNetImpl::out_channels * 4;
 }
 
 int64_t ResNetImpl::get_res2_out_channels(){

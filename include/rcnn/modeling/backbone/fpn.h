@@ -11,8 +11,6 @@ namespace modeling{
     private:
       std::vector<torch::nn::Sequential> inner_blocks_;
       std::vector<torch::nn::Sequential> layer_blocks_;
-      torch::nn::Sequential inner_block1_{nullptr}, inner_block2_{nullptr}, inner_block3_{nullptr}, inner_block4_{nullptr};
-      torch::nn::Sequential layer_block1_{nullptr}, layer_block2_{nullptr}, layer_block3_{nullptr}, layer_block4_{nullptr};
       
     public:
       FPNImpl(const bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels);
