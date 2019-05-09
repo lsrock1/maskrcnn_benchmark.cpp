@@ -1,6 +1,6 @@
 #include <iostream>
 #include <typeinfo>
-#include "fpn.h"
+#include "backbone.h"
 #include "resnet.h"
 #include <torch/torch.h>
 
@@ -14,17 +14,13 @@ int main() {
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
-  std::valarray<int64_t> init(4);
-  init[0] = 2;
-  init[1] = 4;
-  init[2] = 8;
-  init[3] = 16;
-  auto a = rcnn::modeling::FPNLastMaxPool(false, init, 16);
-  cout << a << endl;
-  // auto b = rcnn::modeling::ResBackBones();
-  // auto c = rcnn::modeling::ResNet(b.find("R-101-FPN")->second);
-  // auto t = torch::randn({2, 3, 800, 800});
-  // cout << c->forward_fpn(t)[0].sizes() << endl;
+  auto b = rcnn::modeling::ResBackbones();
+  auto c = rcnn::modeling::ResNet(b.find("R-101-FPN")->second);
+  // cout << c << endl;
+  auto back = rcnn::modeling::ResBackbone(c);
+  cout << back << endl;
+  auto t = torch::randn({2, 3, 800, 800});
+  cout << back->forward(t)[0].sizes() << endl;
   // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
   // cout << (*conf2)["MODEL"] << endl;
   // cout << (*conf)["MODEL"]<< endl;

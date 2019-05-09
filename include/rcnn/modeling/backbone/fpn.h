@@ -1,7 +1,6 @@
 #pragma once
 #include <torch/torch.h>
 #include <vector>
-#include <valarray>
 #include <deque>
 #include "conv2d.h"
 #include "make_layers.h"
@@ -16,7 +15,7 @@ namespace modeling{
       torch::nn::Sequential layer_block1_{nullptr}, layer_block2_{nullptr}, layer_block3_{nullptr}, layer_block4_{nullptr};
       
     public:
-      FPNImpl(const bool use_relu, const std::valarray<int64_t> in_channels_list, const int64_t out_channels);
+      FPNImpl(const bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels);
       std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
   };
 
@@ -35,7 +34,7 @@ namespace modeling{
       FPN fpn_;
 
     public:
-      FPNLastMaxPoolImpl(const bool use_relu, const std::valarray<int64_t> in_channels_list, const int64_t out_channels);
+      FPNLastMaxPoolImpl(const bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels);
       std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
   };
 

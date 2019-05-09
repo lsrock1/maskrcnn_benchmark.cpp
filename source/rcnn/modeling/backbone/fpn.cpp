@@ -4,7 +4,7 @@
 namespace rcnn{
 namespace modeling{
 
-  FPNImpl::FPNImpl(bool use_relu, const std::valarray<int64_t> in_channels_list, int64_t out_channels){
+  FPNImpl::FPNImpl(bool use_relu, const std::vector<int64_t> in_channels_list, int64_t out_channels){
     inner_block1_ = register_module("fpn_inner1", rcnn::layers::ConvWithKaimingUniform(use_relu, in_channels_list[0], out_channels, 1));
     layer_block1_ = register_module("fpn_layer1", rcnn::layers::ConvWithKaimingUniform(use_relu, out_channels, out_channels, 3, 1));
 
@@ -27,17 +27,16 @@ namespace modeling{
     torch::Tensor last_inner = inner_block4_->forward(x[3]);
     results.push_front(layer_block4_->forward(last_inner));
     for(int i = 2; i > 0; --i){
-      std::cout << last_inner.sizes();
-      inner_top_down = torch::upsample_bilinear2d(last_inner, {2, 2, 2, 2}, false);
+      inner_top_down = torch::upsample_bilinear2d(last_inner, {last_inner.size(2)*2, last_inner.size(3)*2}, false);
       inner_lateral = inner_blocks_[i]->forward(x[i]);
-      last_inner += inner_lateral;
+      last_inner = inner_top_down + inner_lateral;
       results.push_front(layer_blocks_[i]->forward(last_inner));
     }
     
     return results;
   }
 
-  FPNLastMaxPoolImpl::FPNLastMaxPoolImpl(bool use_relu, const std::valarray<int64_t> in_channels_list, const int64_t out_channels)
+  FPNLastMaxPoolImpl::FPNLastMaxPoolImpl(bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels)
                                         :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels))),
                                          last_level_(register_module("max_pooling", LastLevelMaxPool())){};
 
@@ -48,7 +47,6 @@ namespace modeling{
   }
 
   torch::Tensor LastLevelMaxPoolImpl::forward(torch::Tensor& x){
-    std::cout << "last ccall" << std::endl;
     return torch::max_pool2d(x, 1, 2, 0);
   }
 }

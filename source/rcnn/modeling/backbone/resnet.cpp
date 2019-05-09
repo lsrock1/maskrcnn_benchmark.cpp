@@ -4,7 +4,7 @@
 namespace rcnn{
 namespace modeling{
 
-ResStageSpec::ResStageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group)
+ResNetImpl::StageSpec::StageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group)
                     : num_layers_(num_layers),
                       stage_to_(stage_to),
                       is_fpn_(is_fpn),
@@ -13,39 +13,39 @@ ResStageSpec::ResStageSpec(std::string block, std::initializer_list<int64_t> num
                       block_(block)
                       {}
 
-std::string ResStageSpec::get_block(){
+std::string ResNetImpl::StageSpec::get_block(){
   return this->block_;
 }
 
-std::initializer_list<int64_t> ResStageSpec::get_num_layers(){
+std::initializer_list<int64_t> ResNetImpl::StageSpec::get_num_layers(){
   return this->num_layers_;
 }
 
-int ResStageSpec::get_stage_to(){
+int ResNetImpl::StageSpec::get_stage_to(){
   return this->stage_to_;
 }
 
-bool ResStageSpec::get_is_fpn(){
+bool ResNetImpl::StageSpec::get_is_fpn(){
   return this->is_fpn_;
 }
 
-int64_t ResStageSpec::get_groups(){
+int64_t ResNetImpl::StageSpec::get_groups(){
   return this->groups_;
 }
 
-int64_t ResStageSpec::get_width_per_group(){
+int64_t ResNetImpl::StageSpec::get_width_per_group(){
   return this->width_per_group_;
 }
 
-void ResStageSpec::set_freeze_at(int at){
+void ResNetImpl::StageSpec::set_freeze_at(int at){
   this->freeze_at_ = at;
 }
 
-int ResStageSpec::get_freeze_at(){
+int ResNetImpl::StageSpec::get_freeze_at(){
   return this->freeze_at_;
 }
 
-ResNetImpl::ResNetImpl(ResStageSpec& stage_spec)
+ResNetImpl::ResNetImpl(StageSpec& stage_spec)
             : groups_(stage_spec.get_groups()),
               base_width_(stage_spec.get_width_per_group()),
               block_(stage_spec.get_block()),
@@ -63,6 +63,18 @@ ResNetImpl::ResNetImpl(ResStageSpec& stage_spec)
                   initialize();
                   freeze_backbone(stage_spec.get_freeze_at());
               }
+
+int64_t ResNetImpl::get_out_channels(){
+  return ResNetImpl::out_channels;
+}
+
+int64_t ResNetImpl::get_res2_out_channels(){
+  return ResNetImpl::res2_out_channels;
+}
+
+bool ResNetImpl::get_is_fpn(){
+  return is_fpn_;
+}
 
 torch::Tensor ResNetImpl::forward(torch::Tensor x){
     x = bn1_->forward(conv1_->forward(x)).relu_();
@@ -273,16 +285,16 @@ rcnn::layers::Conv2d Conv1x1(int64_t in_planes, int64_t out_planes, int64_t stri
                                         .with_bias(false));
 }
 
-std::map<std::string, ResStageSpec> ResBackBones(){
-  ResStageSpec R50C4("Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64);
-  ResStageSpec R50C5("Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64);
-  ResStageSpec R101C4("Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64);
-  ResStageSpec R101C5("Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64);
-  ResStageSpec R50FPN("Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64);
-  ResStageSpec R101FPN("Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64);
-  ResStageSpec R152FPN("Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64);
+std::map<std::string, ResNetImpl::StageSpec> ResBackbones(){
+  ResNetImpl::StageSpec R50C4("Bottleneck", {3, 4, 6, 3}, 4, false, 1, 64);
+  ResNetImpl::StageSpec R50C5("Bottleneck", {3, 4, 6, 3}, 5, false, 1, 64);
+  ResNetImpl::StageSpec R101C4("Bottleneck", {3, 4, 23, 3}, 4, false, 1, 64);
+  ResNetImpl::StageSpec R101C5("Bottleneck", {3, 4, 23, 3}, 5, false, 1, 64);
+  ResNetImpl::StageSpec R50FPN("Bottleneck", {3, 4, 6, 3}, 5, true, 1, 64);
+  ResNetImpl::StageSpec R101FPN("Bottleneck", {3, 4, 23, 3}, 5, true, 1, 64);
+  ResNetImpl::StageSpec R152FPN("Bottleneck", {3, 8, 36, 3}, 5, true, 1, 64);
 
-  std::map<std::string, ResStageSpec> blockMap{
+  std::map<std::string, ResNetImpl::StageSpec> blockMap{
     {"R-50-C4", R50C4},
     {"R-50-C5", R50C5},
     {"R-101-C4", R101C4},
