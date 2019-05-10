@@ -1,17 +1,20 @@
 #include "defaults.h"
 #include "yaml-cpp/yaml.h"
-#include <iostream>
 
 namespace rcnn{
 namespace config{
 
-YAML::Node* GetDefaultCFG(){
+void SetDefaultCFGFromFile(std::string file_path){
+
+}
+
+const YAML::Node* GetDefaultCFG(){
   if(cfg){
     return cfg;
   }
   else{
     cfg = new YAML::Node();
-  
+    
     (*cfg)["MODEL"] = YAML::Node();
     (*cfg)["MODEL"]["RPN_ONLY"] = false;
     (*cfg)["MODEL"]["MASK_ON"] = false;

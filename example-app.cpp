@@ -1,7 +1,6 @@
 #include <iostream>
 #include <typeinfo>
-#include "backbone.h"
-#include "resnet.h"
+#include "defaults.h"
 #include <torch/torch.h>
 
 
@@ -14,13 +13,13 @@ int main() {
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
-  auto b = rcnn::modeling::ResBackbones();
-  auto c = rcnn::modeling::ResNet(b.find("R-50-C4")->second);
-  // cout << c << endl;
-  auto back = rcnn::modeling::ResBackbone(c);
-  cout << back << endl;
-  auto t = torch::randn({2, 3, 800, 800});
-  cout << back->forward(t)[0].sizes() << endl;
+  // auto b = rcnn::modeling::ResBackbones();
+  // auto c = rcnn::modeling::ResNet(b.find("R-50-C4")->second);
+  // // cout << c << endl;
+  // auto back = rcnn::modeling::ResBackbone(c);
+  // cout << back << endl;
+  // auto t = torch::randn({2, 3, 800, 800});
+  // cout << back->forward(t)[0].sizes() << endl;
   // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
   // cout << (*conf2)["MODEL"] << endl;
   // cout << (*conf)["MODEL"]<< endl;

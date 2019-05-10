@@ -9,8 +9,8 @@ namespace config{
   namespace{
     YAML::Node* cfg = nullptr;
   }
-
-YAML::Node* GetDefaultCFG();
+void SetDefaultCFGFromFile(std::string file_path);
+const YAML::Node* GetDefaultCFG();
 // YAML::Node SetConfigFromFile(std::string path);
 
 }//configs
