@@ -18,17 +18,9 @@ namespace modeling{
   };
 
   TORCH_MODULE(FPN);
-
-  class LastLevelMaxPoolImpl : public torch::nn::Module{
-    public:
-      torch::Tensor forward(torch::Tensor& x);
-  };
-
-  TORCH_MODULE(LastLevelMaxPool);
   
   class FPNLastMaxPoolImpl : public torch::nn::Module{
     private:
-      LastLevelMaxPool last_level_;
       FPN fpn_;
 
     public:

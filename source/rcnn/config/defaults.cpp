@@ -1,5 +1,5 @@
 #include "defaults.hpp"
-#include <iostream>
+
 
 namespace rcnn{
 namespace config{
@@ -132,16 +132,16 @@ void SetCFGFromFile(const char*  file_path){
   //SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["USE_GN"], false);
 
   //RESNET
-  SetNode((*cfg)["MODEL"]["RESNET"], YAML::Node());
-  SetNode((*cfg)["MODEL"]["RESNET"]["NUM_GROUPS"], 1);
-  SetNode((*cfg)["MODEL"]["RESNET"]["WIDTH_PER_GROUP"], 64);
-  SetNode((*cfg)["MODEL"]["RESNET"]["STRIDE_IN_1X1"], true);
-  SetNode((*cfg)["MODEL"]["RESNET"]["TRANS_FUNC"], "BottleneckWithFixedBatchNorm");
-  SetNode((*cfg)["MODEL"]["RESNET"]["STEM_FUNC"], "StemWithFixedBatchNorm");
-  SetNode((*cfg)["MODEL"]["RESNET"]["RES5_DILATION"], 1);
-  SetNode((*cfg)["MODEL"]["RESNET"]["BACKBONE_OUT_CHANNELS"], 256 * 4);
-  SetNode((*cfg)["MODEL"]["RESNET"]["RES2_OUT_CHANNELS"], 256);
-  SetNode((*cfg)["MODEL"]["RESNET"]["STEM_OUT_CHANNELS"], 64);
+  SetNode((*cfg)["MODEL"]["RESNETS"], YAML::Node());
+  SetNode((*cfg)["MODEL"]["RESNETS"]["NUM_GROUPS"], 1);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["WIDTH_PER_GROUP"], 64);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["STRIDE_IN_1X1"], true);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["TRANS_FUNC"], "BottleneckWithFixedBatchNorm");
+  SetNode((*cfg)["MODEL"]["RESNETS"]["STEM_FUNC"], "StemWithFixedBatchNorm");
+  SetNode((*cfg)["MODEL"]["RESNETS"]["RES5_DILATION"], 1);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["BACKBONE_OUT_CHANNELS"], 1024);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["RES2_OUT_CHANNELS"], 256);
+  SetNode((*cfg)["MODEL"]["RESNETS"]["STEM_OUT_CHANNELS"], 64);
   // std::vector<bool> vec{false, false, false, false};
   // SetNode((*cfg)["MODEL"]["RESNET"]["STAGE_WITH_DCN"], vec);
   // SetNode((*cfg)["MODEL"]["RESNET"]["DEFORMABLE_GROUPS"], 1);
@@ -177,9 +177,15 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["DTYPE"], "float32");
 }
 
+CFGString::CFGString(std::string result)
+          :name_(result){};
+
+const char* CFGString::get(){
+  return name_.c_str();
+}
+
 template<typename T>
 const T GetCFG(std::initializer_list<const char*> node){
-  //SetDefaultCFGFromFile("/root/e2e_faster_rcnn_R_50_FPN_1x.yaml");
   if(!cfg){
     throw "Set Config file first";
   }
@@ -187,13 +193,24 @@ const T GetCFG(std::initializer_list<const char*> node){
   for(auto i = node.begin(); i != node.end(); ++i){
     tmp.push_back(tmp.back()[*i]);
   }
-  // std::ostringstream stream;
-  // stream << tmp;
-  // std::string str = stream.str();
   return tmp.back().as<T>();
 }
 
 template const std::vector<int> GetCFG<std::vector<int>>(std::initializer_list<const char*> node);
 template const bool GetCFG<bool>(std::initializer_list<const char*> node);
+template const int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
+template const int GetCFG<int>(std::initializer_list<const char*> node);
+
+template<> const CFGString GetCFG<CFGString>(std::initializer_list<const char*> node){
+  if(!cfg){
+    throw "Set Config file first";
+  }
+  std::vector<YAML::Node> tmp{*cfg};
+  for(auto i = node.begin(); i != node.end(); ++i){
+    tmp.push_back(tmp.back()[*i]);
+  }
+  return CFGString(tmp.back().as<std::string>());
+}
+
 }//mrcn
 }//configs

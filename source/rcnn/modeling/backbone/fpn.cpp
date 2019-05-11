@@ -1,4 +1,5 @@
 #include "fpn.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -23,22 +24,16 @@ namespace modeling{
       last_inner = inner_top_down + inner_lateral;
       results.push_front(layer_blocks_[i]->forward(last_inner));
     }
-    
     return results;
   }
 
   FPNLastMaxPoolImpl::FPNLastMaxPoolImpl(bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels)
-                                        :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels))),
-                                         last_level_(register_module("max_pooling", LastLevelMaxPool())){};
-
+                                        :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels))){};
+  
   std::deque<torch::Tensor> FPNLastMaxPoolImpl::forward(std::vector<torch::Tensor>& x){
     std::deque<torch::Tensor> results = fpn_->forward(x);
-    results.push_back(last_level_->forward(results.back()));
+    results.push_back(torch::max_pool2d(results.back(), 1, 2, 0));
     return results;
-  }
-
-  torch::Tensor LastLevelMaxPoolImpl::forward(torch::Tensor& x){
-    return torch::max_pool2d(x, 1, 2, 0);
   }
 }
 }
