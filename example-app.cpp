@@ -1,6 +1,6 @@
 #include <iostream>
 #include <typeinfo>
-#include "defaults.h"
+#include "defaults.hpp"
 #include <torch/torch.h>
 
 
@@ -8,6 +8,11 @@ using namespace std;
 using namespace rcnn;
 
 int main() {
+  rcnn::config::SetCFGFromFile("/root/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+  cout << rcnn::config::GetCFG<std::vector<int>>({"MODEL", "ROI_MASK_HEAD", "CONV_LAYERS"})[0] <<endl;
+  cout << rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"}) <<endl;
+  //rcnn::config::SetCFGFromFile();
+  //rcnn::config::GetDefaultCFG();
   //Declare 3 dimension tensor with batch dimension
   // auto c = rcnn::layers::Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
   //                  .stride(1)
