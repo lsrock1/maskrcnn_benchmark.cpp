@@ -1,7 +1,5 @@
 #include "bounding_box.h"
-#include <cassert>
-#include <ATen/ATen.h>
-#include <stdexcept>
+
 
 namespace rcnn{
 namespace structures{

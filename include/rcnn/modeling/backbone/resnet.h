@@ -4,7 +4,7 @@
 #include "batch_norm.h"
 #include <vector>
 #include <string>
-#include "defaults.hpp"
+#include "defaults.h"
 
 namespace rcnn{
 namespace modeling{

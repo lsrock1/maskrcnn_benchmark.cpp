@@ -1,5 +1,4 @@
 #include "fpn.h"
-#include <iostream>
 
 
 namespace rcnn{

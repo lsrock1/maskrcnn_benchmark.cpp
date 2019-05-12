@@ -4,7 +4,9 @@
 #include <tuple>
 #include <vector>
 #include <torch/torch.h>
-#include <iostream>
+#include <cassert>
+// #include <ATen/ATen.h>
+#include <stdexcept>
 
 namespace rcnn{
 namespace structures{
