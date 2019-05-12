@@ -11,40 +11,39 @@ using namespace rcnn;
 
 int main() {
   rcnn::config::SetCFGFromFile("/root/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+
   //#####balanced sampler
-  auto sampler = rcnn::modeling::BalancedPositiveNegativeSampler(4, 0.7);
-  vector<torch::Tensor> vec;
-  auto first = torch::randint(3, {8}, torch::TensorOptions().dtype(torch::kInt8));
-  vec.push_back(first);
-  auto second = torch::randint(3, {9}, torch::TensorOptions().dtype(torch::kInt8));
-  vec.push_back(second);
-  cout << "first : " << endl << first << endl;
-  cout << "seoncd : " << endl << second << endl;
-  auto result = sampler(vec);
-  cout << "end sampling" << endl;
-  cout << result.first << endl;
-  cout << result.second << endl;
+  // auto sampler = rcnn::modeling::BalancedPositiveNegativeSampler(4, 0.7);
+  // vector<torch::Tensor> vec;
+  // auto first = torch::randint(3, {8}, torch::TensorOptions().dtype(torch::kInt8));
+  // vec.push_back(first);
+  // auto second = torch::randint(3, {9}, torch::TensorOptions().dtype(torch::kInt8));
+  // vec.push_back(second);
+  // cout << "first : " << endl << first << endl;
+  // cout << "seoncd : " << endl << second << endl;
+  // auto result = sampler(vec);
+  // cout << "end sampling" << endl;
+  // cout << result.first << endl;
+  // cout << result.second << endl;
   //######
-  cout << rcnn::config::GetCFG<std::vector<int>>({"MODEL", "ROI_MASK_HEAD", "CONV_LAYERS"})[0] <<endl;
-  cout << rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"}) <<endl;
+
+  // cout << rcnn::config::GetCFG<std::vector<int>>({"MODEL", "ROI_MASK_HEAD", "CONV_LAYERS"})[0] <<endl;
+  // cout << rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"}) <<endl;
   //Declare 3 dimension tensor with batch dimension
   // auto c = rcnn::layers::Conv2d(torch::nn::Conv2dOptions(3, 3, 3)
   //                  .stride(1)
   //                  .padding(1)
   //                  .with_bias(false));
   
-  // auto name = rcnn::config::GetCFG<rcnn::config::CFGString>({"MODEL", "BACKBONE", "CONV_BODY"});
-  // cout << name.get() << endl;
-  // cout << rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "BACKBONE_OUT_CHANNELS"}) << endl;
-  // auto c = rcnn::modeling::BuildBackBone();
-  // cout << c << endl;
-  // auto t = torch::randn({2, 3, 800, 800});
-  // auto results = c->forward<deque<torch::Tensor>>(t);
-  // cout << results[0].sizes() << endl;
-  //   cout << results[1].sizes() << endl;
-  // cout << results[2].sizes() << endl;
-  // cout << results[3].sizes() << endl;
-
+  auto c = rcnn::modeling::BuildBackBone();
+  cout << c << endl;
+  auto t = torch::randn({2, 3, 800, 800});
+  auto results = c->forward<deque<torch::Tensor>>(t);
+  cout << results[0].sizes() << endl;
+    cout << results[1].sizes() << endl;
+  cout << results[2].sizes() << endl;
+  cout << results[3].sizes() << endl;
+  cout << results[4].sizes() << endl;
   // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
   // cout << (*conf2)["MODEL"] << endl;
   // cout << (*conf)["MODEL"]<< endl;

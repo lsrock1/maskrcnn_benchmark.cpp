@@ -1,5 +1,4 @@
 #pragma once
-#include <torch/torch.h>
 #include <vector>
 #include <deque>
 #include "conv2d.h"

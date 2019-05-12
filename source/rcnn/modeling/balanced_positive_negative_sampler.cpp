@@ -20,9 +20,10 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> BalancedPositi
   torch::Tensor pos_idx_per_image_mask;
   torch::Tensor neg_idx_per_image_mask;
   for(torch::Tensor& matched_idxs_per_image : matched_idxs){
-    //list coordinates of positive or negative idxs
+    //list of positive or negative idxs
     torch::Tensor positive = torch::nonzero(matched_idxs_per_image >= 1).squeeze(1);
     torch::Tensor negative = torch::nonzero(matched_idxs_per_image == 1).squeeze(1);
+    //prevent from over indexing
     num_pos = std::min(num_pos_, positive.numel());
     num_neg = std::min(num_neg_, negative.numel());
 

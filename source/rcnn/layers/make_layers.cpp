@@ -1,4 +1,5 @@
 #include "make_layers.h"
+#include "conv2d.h"
 
 namespace rcnn{
 namespace layers{

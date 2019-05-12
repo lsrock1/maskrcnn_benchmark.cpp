@@ -1,9 +1,6 @@
 #pragma once
-#include <torch/torch.h>
 #include "conv2d.h"
 #include "batch_norm.h"
-#include <vector>
-#include <string>
 #include "defaults.h"
 
 namespace rcnn{
