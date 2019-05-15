@@ -6,8 +6,8 @@ namespace modeling{
 
   FPNImpl::FPNImpl(bool use_relu, const std::vector<int64_t> in_channels_list, int64_t out_channels){
     for(int i = 0; i < in_channels_list.size(); ++i){
-      inner_blocks_.emplace_back(register_module("fpn_inner"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, in_channels_list[i], out_channels, 1)));
-      layer_blocks_.emplace_back(register_module("fpn_layers"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, out_channels, out_channels, 3, 1)));
+      inner_blocks_.push_back(register_module("fpn_inner"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, in_channels_list[i], out_channels, 1)));
+      layer_blocks_.push_back(register_module("fpn_layers"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, out_channels, out_channels, 3, 1)));
     }
   };
 

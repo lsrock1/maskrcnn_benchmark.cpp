@@ -2,6 +2,7 @@
 
 namespace rcnn{
 namespace layers{
+
 FrozenBatchNorm2dImpl::FrozenBatchNorm2dImpl(int64_t dimension)
   : weight(register_buffer("weight", torch::ones(dimension))),
   bias(register_buffer("bias", torch::zeros(dimension))),
@@ -16,5 +17,6 @@ torch::Tensor FrozenBatchNorm2dImpl::forward(torch::Tensor x){
   bias = bias.reshape({1, -1, 1, 1});
   return x * scale + bias;
 };
+
 }//layers
 }//rcnn

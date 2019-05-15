@@ -201,6 +201,8 @@ template const std::vector<int> GetCFG<std::vector<int>>(std::initializer_list<c
 template const bool GetCFG<bool>(std::initializer_list<const char*> node);
 template const int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
 template const int GetCFG<int>(std::initializer_list<const char*> node);
+template const double GetCFG<double>(std::initializer_list<const char*> node);
+
 
 template<> const CFGString GetCFG<CFGString>(std::initializer_list<const char*> node){
   if(!cfg){

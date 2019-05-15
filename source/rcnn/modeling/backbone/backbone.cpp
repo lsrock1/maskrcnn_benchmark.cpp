@@ -26,7 +26,7 @@ namespace modeling{
     }
     else{
       std::deque<torch::Tensor> results;
-      results.emplace_front(body_->forward(x));
+      results.push_front(body_->forward(x));
       return results;
     }
   }

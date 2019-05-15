@@ -1,3 +1,4 @@
+//Reference from https://gist.github.com/mikehamer/df0af5ec7ff98d3cae487975d0c921df
 #include "conv2d.h"
 
 
@@ -35,7 +36,7 @@ torch::Tensor Conv2dImpl::forward(const torch::Tensor& input){
 
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape){
   auto& self_ = torch::autograd::as_variable_ref(x);
-  auto result = torch::empty(new_shape, torch::TensorOptions().dtype(self_.dtype()).requires_grad(self_.requires_grad()));
+  auto result = torch::empty(new_shape, torch::TensorOptions().dtype(self_.dtype()).device(self_.device()));
   // auto tmp = self_.data().new_empty(new_shape);
   //auto result = torch::autograd::as_variable(tmp);
 
