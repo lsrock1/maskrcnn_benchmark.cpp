@@ -12,11 +12,13 @@ add_executable(${target}
 
 # Link libraries
 target_link_libraries(${target}
-    PRIVATE
-    gtest
-    maskrcnn
-    ${TORCH_LIBRARIES})
+    PUBLIC
+    config
+    gtest)
+    # maskrcnn
+    # ${TORCH_LIBRARIES})
+    # GTest)
 
-gtest_add_tests(
-    TARGET ${target}
+add_test(NAME ${target}
+  COMMAND ${target}
 )

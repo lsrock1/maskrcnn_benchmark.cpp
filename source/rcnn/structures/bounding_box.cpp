@@ -1,4 +1,6 @@
 #include "bounding_box.h"
+#include "nms.h"
+#include <cassert>
 
 
 namespace rcnn{
@@ -175,16 +177,28 @@ BoxList BoxList::To(const torch::Device device){
 }
 
 BoxList BoxList::operator[](torch::Tensor item){
-    assert(item.sizes().size() == 1 && item.size(0) == this->bbox_.size(0));
-    BoxList bbox = BoxList(this->bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}), this->size_, this->mode_);
-    for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
+    assert(item.sizes().size() == 1);
+    if(item.dtype() == torch::kByte){
+      BoxList bbox = BoxList(this->bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}), this->size_, this->mode_);
+      for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
         auto size_vector = (i->second).sizes().vec();
         size_vector[0] = -1;
         while(size_vector.size() != item.sizes().size())
-            item.unsqueeze_(-1);
+          item.unsqueeze_(-1);
         bbox.AddField(i->first, (i->second).masked_select(item).reshape(at::IntArrayRef(size_vector)));
+      }
+      return bbox;
     }
-    return bbox;
+    else{
+      //index_select
+      BoxList bbox = BoxList(this->bbox_.index_select(/*dim=*/0, item), this->size_, this->mode_);
+      for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
+        auto size_vector = (i->second).sizes().vec();
+        size_vector[0] = -1;
+        bbox.AddField(i->first, (i->second).index_select(/*dim=*/0, item).reshape(at::IntArrayRef(size_vector)));
+      }
+      return bbox;
+    }
 }
 
 BoxList BoxList::operator[](const int64_t index){
@@ -241,6 +255,20 @@ BoxList BoxList::CopyWithFields(const std::vector<std::string> fields, const boo
         }
     }
     return bbox;
+}
+
+BoxList BoxList::nms(const float nms_thresh, const int max_proposals, const std::string score_field){
+  if(nms_thresh <= 0){
+    return *this;
+  }
+  std::string mode = mode_;
+  BoxList boxlist = this->Convert("xyxy");
+  torch::Tensor boxes = boxlist.get_bbox();
+  torch::Tensor scores = boxlist.GetField(score_field);
+  torch::Tensor keep = rcnn::layers::nms(boxes, scores, nms_thresh);
+  if(max_proposals > 0 && keep.size(0) > max_proposals)
+    keep = keep.narrow(/*dim=*/0, /*start=*/0, /*end=*/max_proposals);
+  return boxlist[keep].Convert(mode);
 }
 
 std::ostream& operator << (std::ostream& os, const BoxList& bbox){

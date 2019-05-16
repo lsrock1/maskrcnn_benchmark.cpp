@@ -2,17 +2,16 @@
 #include <typeinfo>
 #include <cassert>
 #include "defaults.h"
-#include "backbone.h"
+#include "modeling.h"
 #include "image_list.h"
 #include <torch/torch.h>
-#include "balanced_positive_negative_sampler.h"
-#include "anchor_generator.h"
 
 
 using namespace std;
 using namespace rcnn;
 
 int main() {
+  // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
   //to image list
   auto toimagetest_first = torch::randn({1, 3, 10, 10});
@@ -21,16 +20,16 @@ int main() {
   vectoimagetest.push_back(toimagetest_first);
   vectoimagetest.push_back(toimagetest_second);
   auto img_list = rcnn::structures::ToImageList(vectoimagetest, 3);
-  cout << img_list.get_tensors() << endl;
+  // cout << img_list.get_tensors() << endl;
   //
 
   //////////////////anchor generator
   int64_t stride = 16;
   vector<int64_t> anchor_sizes{8, 16, 32};
-  vector<double> aspect_ratios{0.5, 1, 2};
+  vector<float> aspect_ratios{0.5, 1, 2};
   auto result_anchor = rcnn::modeling::GenerateAnchors(stride, anchor_sizes, aspect_ratios);
-  cout << result_anchor << endl;
-  cout << result_anchor.dtype() << endl;
+  // cout << result_anchor << endl;
+
   //original implementation result
   // tensor([[  2.2500,   5.0000,  12.7500,  10.0000],
   //       [ -3.5000,   2.0000,  18.5000,  13.0000],
@@ -43,10 +42,10 @@ int main() {
   //       [ -3.0000, -14.0000,  18.0000,  29.0000]], dtype=torch.float64)
 
   vector<int64_t> feature_sizes{128, 256, 512};
-  rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::AnchorGenerator(feature_sizes, aspect_ratios, anchor_sizes);
+  rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();
   deque<torch::Tensor> tmp_features;
   tmp_features.push_back(torch::randn({1, 1, 10, 10}));
-  tmp_features.push_back(torch::randn({1, 1, 15, 15}));
+  // tmp_features.push_back(torch::randn({1, 1, 15, 15}));
   anchorclass->forward(img_list, tmp_features);
   //////////////////
 
@@ -89,10 +88,15 @@ int main() {
   //   cout << i->as<string>() << endl;
   // }
   // cout << conf << endl;
+  
+  ////////////////bounding box
   //init bbox tensor size 2, 4
-  // torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 50, 50}).reshape({2, 4});
-  // //init boxlist class
-  // structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xyxy");
+  torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 5, 5, 50, 50, 10, 10, 80, 80, 10, 10, 30, 30, 4, 4, 30, 30, 3, 3}).reshape({-1, 4}).to(torch::kF32);
+  torch::Tensor scores = torch::tensor({0.7, 0.6, 0.8, 0.9, 0.9, 0.5}).to(torch::kF32);
+  //init boxlist class
+  structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xywh");
+  bb.AddField("scores", scores);
+  cout << bb.nms(0.5);
   // cout << bb << endl;
   // //add label and score (dummy)
   // bb.AddField("labels", torch::tensor({1, 1}));

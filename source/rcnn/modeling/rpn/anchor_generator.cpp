@@ -1,4 +1,7 @@
-#include <anchor_generator.h>
+#include "rpn/anchor_generator.h"
+#include "defaults.h"
+#include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
@@ -51,14 +54,14 @@ namespace modeling{
     }
   }
 
-  torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<double> aspect_ratios){
+  torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<float> aspect_ratios){
     //ex) (0,5, 1, 2)
-    torch::Tensor aspect_ratios_tensor = torch::tensor(aspect_ratios).to(torch::kF64);
+    torch::Tensor aspect_ratios_tensor = torch::tensor(aspect_ratios).to(torch::kF32);
     //ex) (32, 64, 128, 256, 512) / 16
-    torch::Tensor anchor_sizes_tensor = torch::tensor(anchor_sizes).to(torch::kF64) / base_size;
+    torch::Tensor anchor_sizes_tensor = torch::tensor(anchor_sizes).to(torch::kF32) / base_size;
     //(0, 0, base_size-1, base_size-1)
     //base anchor: (0, 0) (base_size-1, base_size-1)
-    torch::Tensor anchor = torch::tensor({0., 0., (double) (base_size-1), (double) (base_size-1)}).to(torch::kF64);
+    torch::Tensor anchor = torch::tensor({0., 0., (float) (base_size-1), (float) (base_size-1)}).to(torch::kF32);
     torch::Tensor anchors = RepeatAnchorRatios(anchor, aspect_ratios_tensor);
     std::vector<torch::Tensor> repeated_scale_anchors;
     for(auto i = 0; i < anchors.size(0); ++i){
@@ -83,7 +86,7 @@ namespace modeling{
     return named_buffers()[std::to_string(index)];
   }
 
-  AnchorGeneratorImpl::AnchorGeneratorImpl(std::vector<int64_t> sizes, std::vector<double> aspect_ratios, std::vector<int64_t> anchor_strides, int straddle_thresh)
+  AnchorGeneratorImpl::AnchorGeneratorImpl(std::vector<int64_t> sizes, std::vector<float> aspect_ratios, std::vector<int64_t> anchor_strides, int straddle_thresh)
       :strides_(anchor_strides),
        straddle_thresh_(straddle_thresh){
     std::vector<torch::Tensor> cell_anchors;
@@ -92,8 +95,7 @@ namespace modeling{
       cell_anchors.push_back(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat64));
     }
     else{
-      if(anchor_strides.size() != sizes.size())
-        throw "FPN should have #anchor_strides == #sizes";
+      assert(anchor_strides.size() == sizes.size());
       for(int i = 0; i < sizes.size(); ++i){
         std::vector<int64_t> size{sizes[i]};
         cell_anchors.push_back(GenerateAnchors(anchor_strides[i], size, aspect_ratios).toType(torch::kFloat64));
@@ -135,7 +137,7 @@ namespace modeling{
     std::vector<std::pair<int64_t, int64_t>> grid_sizes;
     std::vector<std::vector<rcnn::structures::BoxList>> anchors;
     for(auto i = 0; i < feature_maps.size(); ++i){
-      grid_sizes.push_back(std::make_pair(feature_maps[i].size(1), feature_maps[i].size(2)));
+      grid_sizes.push_back(std::make_pair(feature_maps[i].size(2), feature_maps[i].size(3)));
     }
     std::vector<torch::Tensor> anchors_over_all_feature_maps = GridAnchors(grid_sizes);
     auto image_sizes = image_list.get_image_sizes();
@@ -166,6 +168,18 @@ namespace modeling{
       inds_inside = torch::ones(anchors.size(0), torch::TensorOptions().dtype(torch::kInt8).device(anchors.device()));
     }
     boxlist.AddField("visibility", inds_inside);
+  }
+
+  AnchorGenerator MakeAnchorGenerator(){
+    std::vector<int64_t> anchor_sizes = rcnn::config::GetCFG<std::vector<int64_t>>({"MODEL", "RPN", "ANCHOR_SIZES"});
+    std::vector<float> aspect_ratios = rcnn::config::GetCFG<std::vector<float>>({"MODEL", "RPN", "ASPECT_RATIOS"});
+    std::vector<int64_t> anchor_stride = rcnn::config::GetCFG<std::vector<int64_t>>({"MODEL", "RPN", "ANCHOR_STRIDE"});
+    int straddle_thresh = rcnn::config::GetCFG<int>({"MODEL", "RPN", "STRADDLE_THRESH"});
+    if(rcnn::config::GetCFG<bool>({"MODEL", "RPN", "USE_FPN"}))
+      assert(anchor_stride.size() == anchor_sizes.size());
+    else
+      assert(anchor_stride.size() == 1);
+    return AnchorGenerator(anchor_sizes, aspect_ratios, anchor_stride, straddle_thresh);
   }
 }
 }//rcnn

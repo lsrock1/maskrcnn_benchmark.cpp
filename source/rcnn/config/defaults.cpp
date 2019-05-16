@@ -65,12 +65,12 @@ void SetCFGFromFile(const char*  file_path){
   //RPN
   SetNode((*cfg)["MODEL"]["RPN"], YAML::Node());
   SetNode((*cfg)["MODEL"]["RPN"]["USE_FPN"], false);
-  std::vector<int> anchor_size{32, 64, 128, 256, 512};
-  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_SIZE"], anchor_size);
-  std::vector<int> anchor_stride{16};
+  std::vector<int64_t> anchor_sizes{32, 64, 128, 256, 512};
+  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_SIZES"], anchor_sizes);
+  std::vector<int64_t> anchor_stride{16};
   SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_STRIDE"], anchor_stride);
-  std::vector<double> aspect_ratio{0.5, 1.0, 2.0};
-  SetNode((*cfg)["MODEL"]["RPN"]["ASPECT_RATIO"], aspect_ratio);
+  std::vector<float> aspect_ratios{0.5, 1.0, 2.0};
+  SetNode((*cfg)["MODEL"]["RPN"]["ASPECT_RATIOS"], aspect_ratios);
   SetNode((*cfg)["MODEL"]["RPN"]["STRADDLE_THRESH"], 0);
   SetNode((*cfg)["MODEL"]["RPN"]["FG_IOU_THRESHOLD"], 0.7);
   SetNode((*cfg)["MODEL"]["RPN"]["BG_IOU_THRESHOLD"], 0.3);
@@ -92,7 +92,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["USE_FPN"], false);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["FG_IOU_THRESHOLD"], 0.5);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BG_IOU_THRESHOLD"], 0.5);
-  std::vector<double> bbox_reg_weights{10, 10., 5., 5.};
+  std::vector<float> bbox_reg_weights{10, 10., 5., 5.};
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BBOX_REG_WEIGHTS"], bbox_reg_weights);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BATCH_SIZE_PER_IMAGE"], 512);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["POSITIVE_FRACTION"], 0.25);
@@ -198,10 +198,13 @@ const T GetCFG(std::initializer_list<const char*> node){
 }
 
 template const std::vector<int> GetCFG<std::vector<int>>(std::initializer_list<const char*> node);
+template const std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node);
+template const std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node);
+
 template const bool GetCFG<bool>(std::initializer_list<const char*> node);
 template const int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
 template const int GetCFG<int>(std::initializer_list<const char*> node);
-template const double GetCFG<double>(std::initializer_list<const char*> node);
+template const float GetCFG<float>(std::initializer_list<const char*> node);
 
 
 template<> const CFGString GetCFG<CFGString>(std::initializer_list<const char*> node){

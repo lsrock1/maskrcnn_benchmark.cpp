@@ -10,13 +10,13 @@ TEST(defaults, SetCFGFromFile)
     //check if default empty, yaml exists
     EXPECT_STREQ("catalog://ImageNetPretrained/MSRA/R-50", model_weight.get());
 
-    double lr = GetCFG<double>({"SOLVER", "BASE_LR"});
-    //check if default exists, yaml exists
-    EXPECT_EQ(lr, 0.01);
+    // double lr = GetCFG<double>({"SOLVER", "BASE_LR"});
+    // //check if default exists, yaml exists
+    // EXPECT_EQ(lr, 0.01);
     
-    bool stride1x1 = GetCFG<bool>({"MODEL", "RESNETS", "STRIDE_IN_1X1"});
-    //check if default exists, yaml empty
-    EXPECT_EQ(stride1x1, true);
+    // bool stride1x1 = GetCFG<bool>({"MODEL", "RESNETS", "STRIDE_IN_1X1"});
+    // //check if default exists, yaml empty
+    // EXPECT_EQ(stride1x1, true);
 }
 
 // TEST(AccountInfo, DeckControl)

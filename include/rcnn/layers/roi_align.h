@@ -2,10 +2,10 @@
 #pragma once
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/VariableTypeUtils.h>
-#include "vision_cpu.h"
+#include "cpu/vision_cpu.h"
 
 #ifdef WITH_CUDA
-#include "vision_cuda.h"
+#include "cuda/vision_cuda.h"
 #endif
 
 namespace rcnn{

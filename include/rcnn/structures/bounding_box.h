@@ -4,8 +4,6 @@
 #include <tuple>
 #include <vector>
 #include <torch/torch.h>
-#include <cassert>
-// #include <ATen/ATen.h>
 #include <stdexcept>
 
 namespace rcnn{
@@ -35,6 +33,7 @@ namespace structures{
     BoxList Crop(const std::tuple<int64_t, int64_t, int64_t, int64_t> box);
     BoxList To(const torch::Device device);
     int64_t Length() const;
+    BoxList nms(const float nms_thresh, const int max_proposals=-1, const std::string score_field="scores");
     BoxList operator[](torch::Tensor item);
     BoxList operator[](const int64_t index);
         
