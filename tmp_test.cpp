@@ -13,6 +13,7 @@ using namespace rcnn;
 int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
+
   //to image list
   auto toimagetest_first = torch::randn({1, 3, 10, 10});
   auto toimagetest_second = torch::randn({1, 3, 11, 11});
@@ -96,7 +97,8 @@ int main() {
   //init boxlist class
   structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xywh");
   bb.AddField("scores", scores);
-  cout << bb.nms(0.5);
+  cout << bb.nms(0.5) << endl;
+  cout << bb.RemoveSmallBoxes(5) << endl;
   // cout << bb << endl;
   // //add label and score (dummy)
   // bb.AddField("labels", torch::tensor({1, 1}));

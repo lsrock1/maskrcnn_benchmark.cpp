@@ -8,14 +8,17 @@
 
 namespace rcnn{
 namespace structures{
-  class BoxList{
+  namespace{
     using XMin = torch::Tensor;
     using YMin = torch::Tensor;
     using XMax = torch::Tensor;
     using YMax = torch::Tensor;
     using Width = int64_t;
     using Height = int64_t;
+  }
 
+  class BoxList{
+    
     static const int kFlipLeftRight = 0;
     static const int kFlipTopBottom = 1;
 
@@ -34,6 +37,7 @@ namespace structures{
     BoxList To(const torch::Device device);
     int64_t Length() const;
     BoxList nms(const float nms_thresh, const int max_proposals=-1, const std::string score_field="scores");
+    BoxList RemoveSmallBoxes(const int min_size);
     BoxList operator[](torch::Tensor item);
     BoxList operator[](const int64_t index);
         
@@ -50,6 +54,9 @@ namespace structures{
     void set_bbox(const torch::Tensor bbox);
     void set_mode(const std::string mode);
     void set_mode(const char* mode);
+    
+    static torch::Tensor BoxListIOU(BoxList a, BoxList b);
+    static BoxList BoxListCat(std::vector<BoxList> boxlists);
 
   private:
     std::map<std::string, torch::Tensor> extra_fields_;

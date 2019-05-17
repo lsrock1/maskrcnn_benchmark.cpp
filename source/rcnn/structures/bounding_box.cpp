@@ -1,19 +1,63 @@
 #include "bounding_box.h"
 #include "nms.h"
 #include <cassert>
+#include <algorithm>
 
 
 namespace rcnn{
 namespace structures{
 
+torch::Tensor BoxListIOU(BoxList a, BoxList b){
+  assert(a.get_size() == b.get_size());
+  int TO_REMOVE = 1;
+  a = a.Convert("xyxy");
+  b = b.Convert("xyxy");
+  torch::Tensor area_a = a.Area();
+  torch::Tensor area_b = b.Area();
+  torch::Tensor bbox_a = a.get_bbox();
+  torch::Tensor bbox_b = b.get_bbox();
+  torch::Tensor lt = torch::max(bbox_a.unsqueeze(1).slice(/*dim=*/2, /*start=*/0, /*end=*/2), bbox_b.slice(1, 0, 2));
+  torch::Tensor rb = torch::min(bbox_a.unsqueeze(1).slice(/*dim=*/2, /*start=*/2, /*end=*/4), bbox_b.slice(1, 2, 4));
+
+  torch::Tensor wh = (rb - lt + TO_REMOVE).clamp(0);
+  torch::Tensor inter = wh.slice(2, 0, 1) * wh.slice(2, 1, 1);
+  return inter / (area_a.unsqueeze(1) + area_b - inter);
+}
+
+BoxList BoxListCat(std::vector<BoxList> boxlists){
+  std::pair<Width, Height> size = boxlists[0].get_size();
+  std::string mode = boxlists[0].get_mode();
+  std::vector<std::string> fields = boxlists[0].Fields();
+  std::vector<std::string> compared_field;
+  std::sort(fields.begin(), fields.end());
+  std::vector<torch::Tensor> cat_bbox;
+  
+  for(auto& boxlist: boxlists){
+    compared_field = boxlist.Fields();
+    std::sort(compared_field.begin(), compared_field.end());
+    cat_bbox.push_back(boxlist.get_bbox());
+    assert(boxlist.get_size() == size && boxlist.get_mode() == mode && fields == compared_field);
+  }
+  BoxList cat_boxlists = BoxList(torch::cat(cat_bbox, 0), size, mode);
+  for(auto& field: fields){
+    std::vector<torch::Tensor> cat_field;
+    for(auto& boxlist: boxlists){
+      cat_field.push_back(boxlist.GetField(field));
+    }
+    cat_boxlists.AddField(field, torch::cat(cat_field, 0));
+    cat_field.clear();
+  }
+  return cat_boxlists;
+}
+
 //size<width, height>
-BoxList::BoxList(torch::Tensor bbox, std::pair<BoxList::Width, BoxList::Height> image_size, const char* mode)
+BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, const char* mode)
     : device_(bbox.device()),
       size_(image_size),
       bbox_(bbox),
       mode_(mode){};
 
-BoxList::BoxList(torch::Tensor bbox, std::pair<BoxList::Width, BoxList::Height> image_size, std::string mode)
+BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
     : device_(bbox.device()),
       size_(image_size),
       bbox_(bbox),
@@ -42,7 +86,7 @@ std::vector<std::string> BoxList::Fields(){
 BoxList BoxList::Convert(const std::string mode){
     assert(mode.compare("xyxy") == 0 || mode.compare("xywh") == 0);
     if(this->mode_.compare(mode) != 0){
-        std::tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
+        std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
         torch::Tensor bbox_tensor;
         if(mode.compare("xyxy") == 0){
             bbox_tensor = torch::cat({
@@ -70,7 +114,7 @@ BoxList BoxList::Convert(const std::string mode){
     }
 }
 
-std::tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> BoxList::SplitIntoXYXY(){
+std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
     if(this->mode_.compare("xyxy") == 0){
         std::vector<torch::Tensor> splitted_box_coordinates = this->bbox_.split(1, /*dim=*/-1);
         return std::make_tuple(
@@ -100,7 +144,7 @@ void BoxList::CopyExtraFields(const BoxList bbox){
     }
 }
 
-BoxList BoxList::Resize(const std::pair<BoxList::Width, BoxList::Height> size){
+BoxList BoxList::Resize(const std::pair<Width, Height> size){
     //width, height
     std::pair<float, float> ratios = std::make_pair(float(size.first) / float(this->size_.first), float(size.second) / float(this->size_.second));
     torch::Tensor scaled_bbox;
@@ -110,11 +154,11 @@ BoxList BoxList::Resize(const std::pair<BoxList::Width, BoxList::Height> size){
     }
     else{
         float ratio_width = ratios.first, ratio_height = ratios.second;
-        std::tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
-        BoxList::XMin scaled_xmin = std::get<0>(splitted_box_coordinates) * ratio_width;
-        BoxList::XMax scaled_xmax = std::get<2>(splitted_box_coordinates) * ratio_width;
-        BoxList::YMin scaled_ymin = std::get<1>(splitted_box_coordinates) * ratio_height;
-        BoxList::YMax scaled_ymax = std::get<3>(splitted_box_coordinates) * ratio_height;
+        std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
+        XMin scaled_xmin = std::get<0>(splitted_box_coordinates) * ratio_width;
+        XMax scaled_xmax = std::get<2>(splitted_box_coordinates) * ratio_width;
+        YMin scaled_ymin = std::get<1>(splitted_box_coordinates) * ratio_height;
+        YMax scaled_ymax = std::get<3>(splitted_box_coordinates) * ratio_height;
         scaled_bbox = torch::cat({
             scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax
         }, -1);
@@ -126,11 +170,11 @@ BoxList BoxList::Resize(const std::pair<BoxList::Width, BoxList::Height> size){
 BoxList BoxList::Transpose(const int method){
     assert(method == BoxList::kFlipLeftRight || method == BoxList::kFlipTopBottom);
     int image_width = this->size_.first, image_height = this->size_.second;
-    std::tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
-    BoxList::XMin transposed_xmin;
-    BoxList::XMax transposed_xmax;
-    BoxList::YMin transposed_ymin;
-    BoxList::YMax transposed_ymax;
+    std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
+    XMin transposed_xmin;
+    XMax transposed_xmax;
+    YMin transposed_ymin;
+    YMax transposed_ymax;
     if(method == BoxList::kFlipLeftRight){
         int TO_REMOVE = 1;
         transposed_xmin = image_width - std::get<2>(splitted_box_coordinates) - TO_REMOVE;
@@ -153,12 +197,12 @@ BoxList BoxList::Transpose(const int method){
 }
 
 BoxList BoxList::Crop(const std::tuple<int64_t, int64_t, int64_t, int64_t> box){
-    std::tuple<BoxList::XMin, BoxList::YMin, BoxList::XMax, BoxList::YMax> splitted_box_coordinates = SplitIntoXYXY();
+    std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
     int64_t width = std::get<2>(box) - std::get<0>(box), height = std::get<3>(box) - std::get<1>(box);
-    BoxList::XMin cropped_xmin = (std::get<0>(splitted_box_coordinates) - std::get<0>(box)).clamp(/*min*/0, /*max*/width);
-    BoxList::YMin cropped_ymin = (std::get<1>(splitted_box_coordinates) - std::get<1>(box)).clamp(/*min*/0, /*max*/height);
-    BoxList::XMax cropped_xmax = (std::get<2>(splitted_box_coordinates) - std::get<0>(box)).clamp(/*min*/0, /*max*/width);
-    BoxList::YMax cropped_ymax = (std::get<3>(splitted_box_coordinates) - std::get<1>(box)).clamp(/*min*/0, /*max*/height);
+    XMin cropped_xmin = (std::get<0>(splitted_box_coordinates) - std::get<0>(box)).clamp(/*min*/0, /*max*/width);
+    YMin cropped_ymin = (std::get<1>(splitted_box_coordinates) - std::get<1>(box)).clamp(/*min*/0, /*max*/height);
+    XMax cropped_xmax = (std::get<2>(splitted_box_coordinates) - std::get<0>(box)).clamp(/*min*/0, /*max*/width);
+    YMax cropped_ymax = (std::get<3>(splitted_box_coordinates) - std::get<1>(box)).clamp(/*min*/0, /*max*/height);
 
     torch::Tensor cropped_box = torch::cat(
         {cropped_xmin, cropped_ymin, cropped_xmax, cropped_ymax}, -1
@@ -271,6 +315,12 @@ BoxList BoxList::nms(const float nms_thresh, const int max_proposals, const std:
   return boxlist[keep].Convert(mode);
 }
 
+BoxList BoxList::RemoveSmallBoxes(const int min_size){
+  std::vector<torch::Tensor> bbox = Convert("xywh").get_bbox().unbind(/*dim=*/1);
+  torch::Tensor keep = (bbox[2] >= min_size).__and__(bbox[3] >= min_size);
+  return (*this)[keep];
+}
+
 std::ostream& operator << (std::ostream& os, const BoxList& bbox){
     os << "BoxList(";
     os << "num_boxes=" << bbox.Length() << ", ";
@@ -284,7 +334,7 @@ std::map<std::string, torch::Tensor> BoxList::get_extra_fields() const {
     return this->extra_fields_;
 }
 
-std::pair<BoxList::Width, BoxList::Height> BoxList::get_size() const {
+std::pair<Width, Height> BoxList::get_size() const {
     return this->size_;
 }
 
@@ -300,7 +350,7 @@ std::string BoxList::get_mode() const {
     return this->mode_;
 }
 
-void BoxList::set_size(const std::pair<BoxList::Width, BoxList::Height> size){
+void BoxList::set_size(const std::pair<Width, Height> size){
     this->size_ = size;
 }
 

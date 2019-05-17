@@ -22,13 +22,15 @@ namespace modeling{
 
   torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<float> aspect_ratios);
 
-  class BufferLists : public torch::nn::Module{
+  class BufferListsImpl : public torch::nn::Module{
     public:
-      BufferLists() = default;
+      BufferListsImpl() = default;
       int size();
       void extend(std::vector<torch::Tensor> buffers);
       torch::Tensor operator[](const int index);
   };
+
+  TORCH_MODULE(BufferLists);
 
   class AnchorGeneratorImpl : public torch::nn::Module{
     public:
@@ -36,6 +38,7 @@ namespace modeling{
       std::vector<std::vector<rcnn::structures::BoxList>> forward(rcnn::structures::ImageList image_list, std::deque<torch::Tensor> feature_maps);
       std::vector<torch::Tensor> GridAnchors(std::vector<std::pair<int64_t, int64_t>> grid_sizes);
       void AddVisibilityTo(rcnn::structures::BoxList& boxlist);
+      std::vector<int64_t> NumAnchorsPerLocation();
       
     private:
       BufferLists cell_anchors_;

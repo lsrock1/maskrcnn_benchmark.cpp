@@ -5,3 +5,4 @@
 #include "rpn/inference.h"
 #include "rpn/anchor_generator.h"
 #include "balanced_positive_negative_sampler.h"
+#include "box_coder.h"

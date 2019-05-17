@@ -71,24 +71,25 @@ namespace modeling{
     return torch::cat(repeated_scale_anchors, /*dim=*/0);
   }
 
-  int BufferLists::size(){
+  int BufferListsImpl::size(){
     return buffers().size();
   }
 
-  void BufferLists::extend(std::vector<torch::Tensor> buffers){
+  void BufferListsImpl::extend(std::vector<torch::Tensor> buffers){
     int offset = size();
     for(auto& buffer : buffers){
       register_buffer(std::to_string(offset++), buffer);
     }
   }
 
-  torch::Tensor BufferLists::operator[](const int index){
+  torch::Tensor BufferListsImpl::operator[](const int index){
     return named_buffers()[std::to_string(index)];
   }
 
   AnchorGeneratorImpl::AnchorGeneratorImpl(std::vector<int64_t> sizes, std::vector<float> aspect_ratios, std::vector<int64_t> anchor_strides, int straddle_thresh)
       :strides_(anchor_strides),
-       straddle_thresh_(straddle_thresh){
+       straddle_thresh_(straddle_thresh),
+       cell_anchors_(register_module("anchors", BufferLists())){
     std::vector<torch::Tensor> cell_anchors;
     if(anchor_strides.size() == 1){
       int64_t anchor_stride = anchor_strides[0];
@@ -101,7 +102,7 @@ namespace modeling{
         cell_anchors.push_back(GenerateAnchors(anchor_strides[i], size, aspect_ratios).toType(torch::kFloat64));
       }
     }
-    cell_anchors_.extend(cell_anchors);
+    cell_anchors_->extend(cell_anchors);
   }
 
   std::vector<torch::Tensor> AnchorGeneratorImpl::GridAnchors(std::vector<std::pair<int64_t, int64_t>> grid_sizes){
@@ -112,7 +113,7 @@ namespace modeling{
       grid_height = std::get<0>(grid_sizes[i]);
       grid_width = std::get<1>(grid_sizes[i]);
       stride = strides_[i];
-      base_anchors = cell_anchors_[i];
+      base_anchors = (*cell_anchors_)[i];
       
       torch::Tensor shifts_x = torch::arange(
         /*start=*/0, /*end=*/grid_width * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat64).device(base_anchors.device())
@@ -131,6 +132,13 @@ namespace modeling{
       );
     }
     return anchors;
+  }
+
+  std::vector<int64_t> AnchorGeneratorImpl::NumAnchorsPerLocation(){
+    std::vector<int64_t> num_anchors;
+    for(int i = 0; i < cell_anchors_->size(); ++i)
+      num_anchors.push_back((*cell_anchors_)[i].size(0));
+    return num_anchors;
   }
   
   std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::deque<torch::Tensor> feature_maps){
