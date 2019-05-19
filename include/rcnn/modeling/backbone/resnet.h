@@ -29,6 +29,7 @@ namespace modeling{
           int64_t width_per_group_;
       };
       ResNetImpl(StageSpec& stage_spec);
+      ResNetImpl(std::string conv_body_name);
       torch::Tensor forward(torch::Tensor x);
       std::vector<torch::Tensor> forward_fpn(torch::Tensor x);
       bool get_is_fpn();

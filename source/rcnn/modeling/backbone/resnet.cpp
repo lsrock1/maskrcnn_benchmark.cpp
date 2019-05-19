@@ -42,6 +42,9 @@ int ResNetImpl::StageSpec::get_freeze_at(){
   return this->freeze_at_;
 }
 
+ResNetImpl::ResNetImpl(std::string conv_body_name)
+            : ResNetImpl(ResBackbonesMap().find(conv_body_name)->second){}
+            
 ResNetImpl::ResNetImpl(StageSpec& stage_spec)
             : groups_(stage_spec.get_groups()),
               base_width_(stage_spec.get_width_per_group()),
