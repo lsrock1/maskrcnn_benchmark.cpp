@@ -47,9 +47,9 @@ at::Tensor ROIAlign_backward(const at::Tensor& grad,
   AT_ERROR("Not implemented on the CPU");
 }
 
-class ROIAlign : torch::nn::Module {
+class ROIAlignImpl : public torch::nn::Module {
   public:
-    ROIAlign(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio);
+    ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio);
     torch::Tensor forward(const at::Tensor& x, at::Tensor rois);
 
   private:
@@ -58,6 +58,8 @@ class ROIAlign : torch::nn::Module {
     float spatial_scale_;
     int sampling_ratio_;
 };
+
+TORCH_MODULE(ROIAlign);
 
 struct ROIAlignBackward : public torch::autograd::Function{
   torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;

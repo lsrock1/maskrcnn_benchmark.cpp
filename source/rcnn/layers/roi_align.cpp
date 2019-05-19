@@ -33,13 +33,13 @@ void ROIAlignBackward::release_variables(){
   rois_.reset_grad_function();
 }
 
-ROIAlign::ROIAlign(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio)
+ROIAlignImpl::ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio)
                 : pooled_height_(std::get<0>(output_size)),
                   pooled_width_(std::get<1>(output_size)),
                   spatial_scale_(spatial_scale),
                   sampling_ratio_(sampling_ratio){}
 
-torch::Tensor ROIAlign::forward(const torch::Tensor& x, torch::Tensor rois){
+torch::Tensor ROIAlignImpl::forward(const torch::Tensor& x, torch::Tensor rois){
   const auto& x_ = torch::autograd::as_variable_ref(x);
   auto& rois_ = torch::autograd::as_variable_ref(rois);
   auto result = torch::autograd::as_variable(ROIAlign_forward(x_.data(), rois_.data(), spatial_scale_, pooled_height_, pooled_width_, sampling_ratio_));

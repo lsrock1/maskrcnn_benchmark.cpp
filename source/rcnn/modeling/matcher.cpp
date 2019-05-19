@@ -36,9 +36,9 @@ void Matcher::SetLowQualityMatches(torch::Tensor& matches, torch::Tensor& all_ma
 
   highest_quality_foreach_gt = std::get<0>(match_quality_matrix.max(/*dim=*/1));
   gt_pred_pairs_of_highest_quality = torch::nonzero(match_quality_matrix == highest_quality_foreach_gt.unsqueeze(1));
-  pred_inds_to_update = gt_pred_pairs_of_highest_quality.slice(/*dim=*/1, /*start=*/1, /*end=*/2);
+  pred_inds_to_update = gt_pred_pairs_of_highest_quality.slice(/*dim=*/1, /*start=*/1, /*end=*/2).unsqueeze(1);
 
-  matches.index_copy_(pred_inds_to_update, all_matches.index_select(pred_inds_to_update));
+  matches.index_copy_(0, pred_inds_to_update, all_matches.index_select(0, pred_inds_to_update));
 }
 
 }

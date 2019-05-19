@@ -20,9 +20,9 @@ class LevelMapper{
     float eps_;
 };
 
-class Pooler : public torch::nn::Module{
+class PoolerImpl : public torch::nn::Module{
   public:
-    Pooler(std::pair<int, int> output_size, std::vector<float> scales, int sampling_ratio);
+    PoolerImpl(std::pair<int, int> output_size, std::vector<float> scales, int sampling_ratio);
     torch::Tensor ConvertToROIFormat(std::vector<rcnn::structures::BoxList> boxes);
     torch::Tensor forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> boxes);
 
@@ -32,10 +32,9 @@ class Pooler : public torch::nn::Module{
     LevelMapper map_levels_;
 };
 
+TORCH_MODULE(Pooler);
+
 Pooler MakePooler(std::string head_name);
-  int resolution = rcnn::config::GetCFG<int>({"MODEL", head_name, "POOLER_RESOLUTION"});
-  std::vector<float> scales = rcnn::config::GetCFG<std::vector<float>>({"MODEL", head_name, "POOLER_SCALES"});
-  int sampling_ratio = cnn::config::GetCFG<int>({"MODEL", head_name, "POOLER_SAMPLING_RATIO"});
-  return Pooler(std::make_pair(resolution, resolution), scales, sampling_ratio);
+  
 }
 }
