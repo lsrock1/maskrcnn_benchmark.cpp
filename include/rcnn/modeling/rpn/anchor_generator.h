@@ -35,7 +35,7 @@ namespace modeling{
   class AnchorGeneratorImpl : public torch::nn::Module{
     public:
       AnchorGeneratorImpl(std::vector<int64_t> sizes, std::vector<float> aspect_ratios, std::vector<int64_t> anchor_strides, int straddle_thresh=0);
-      std::vector<std::vector<rcnn::structures::BoxList>> forward(rcnn::structures::ImageList image_list, std::deque<torch::Tensor> feature_maps);
+      std::vector<std::vector<rcnn::structures::BoxList>> forward(rcnn::structures::ImageList image_list, std::vector<torch::Tensor> feature_maps);
       std::vector<torch::Tensor> GridAnchors(std::vector<std::pair<int64_t, int64_t>> grid_sizes);
       void AddVisibilityTo(rcnn::structures::BoxList& boxlist);
       std::vector<int64_t> NumAnchorsPerLocation();

@@ -10,7 +10,7 @@ namespace modeling{
   class BackboneImpl : public torch::nn::Module{
     public:
       BackboneImpl(Backbone body);
-      std::deque<torch::Tensor> forward(torch::Tensor x);
+      std::vector<torch::Tensor> forward(torch::Tensor x);
     
     private:
       Backbone body_{nullptr};

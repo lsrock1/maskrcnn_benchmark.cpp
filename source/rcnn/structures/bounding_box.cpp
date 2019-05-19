@@ -1,5 +1,6 @@
 #include "bounding_box.h"
 #include "nms.h"
+#include "cat.h"
 #include <cassert>
 #include <algorithm>
 
@@ -38,13 +39,13 @@ BoxList BoxListCat(std::vector<BoxList> boxlists){
     cat_bbox.push_back(boxlist.get_bbox());
     assert(boxlist.get_size() == size && boxlist.get_mode() == mode && fields == compared_field);
   }
-  BoxList cat_boxlists = BoxList(torch::cat(cat_bbox, 0), size, mode);
+  BoxList cat_boxlists = BoxList(rcnn::layers::cat(cat_bbox, 0), size, mode);
   for(auto& field: fields){
     std::vector<torch::Tensor> cat_field;
     for(auto& boxlist: boxlists){
       cat_field.push_back(boxlist.GetField(field));
     }
-    cat_boxlists.AddField(field, torch::cat(cat_field, 0));
+    cat_boxlists.AddField(field, rcnn::layers::cat(cat_field, 0));
     cat_field.clear();
   }
   return cat_boxlists;

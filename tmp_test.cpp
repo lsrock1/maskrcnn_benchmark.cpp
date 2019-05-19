@@ -44,7 +44,7 @@ int main() {
 
   vector<int64_t> feature_sizes{128, 256, 512};
   rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();
-  deque<torch::Tensor> tmp_features;
+  vector<torch::Tensor> tmp_features;
   tmp_features.push_back(torch::randn({1, 1, 10, 10}));
   // tmp_features.push_back(torch::randn({1, 1, 15, 15}));
   anchorclass->forward(img_list, tmp_features);

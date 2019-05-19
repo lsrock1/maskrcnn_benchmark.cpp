@@ -18,15 +18,15 @@ namespace modeling{
   }
 
   template<typename Backbone, typename FPNType>
-  std::deque<torch::Tensor> BackboneImpl<Backbone, FPNType>::forward(torch::Tensor x){
+  std::vector<torch::Tensor> BackboneImpl<Backbone, FPNType>::forward(torch::Tensor x){
     
     if(fpn_){
       std::vector<torch::Tensor> body_results = body_->forward_fpn(x);
       return fpn_ -> forward(body_results);
     }
     else{
-      std::deque<torch::Tensor> results;
-      results.push_front(body_->forward(x));
+      std::vector<torch::Tensor> results;
+      results.push_back(body_->forward(x));
       return results;
     }
   }

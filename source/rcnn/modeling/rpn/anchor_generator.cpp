@@ -141,7 +141,7 @@ namespace modeling{
     return num_anchors;
   }
   
-  std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::deque<torch::Tensor> feature_maps){
+  std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::vector<torch::Tensor> feature_maps){
     std::vector<std::pair<int64_t, int64_t>> grid_sizes;
     std::vector<std::vector<rcnn::structures::BoxList>> anchors;
     for(auto i = 0; i < feature_maps.size(); ++i){

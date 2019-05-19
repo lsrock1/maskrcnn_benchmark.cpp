@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <deque>
 #include "conv2d.h"
 #include "make_layers.h"
 
@@ -13,7 +12,7 @@ namespace modeling{
       
     public:
       FPNImpl(const bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels);
-      std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
+      std::vector<torch::Tensor> forward(std::vector<torch::Tensor>& x);
   };
 
   TORCH_MODULE(FPN);
@@ -24,7 +23,7 @@ namespace modeling{
 
     public:
       FPNLastMaxPoolImpl(const bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels);
-      std::deque<torch::Tensor> forward(std::vector<torch::Tensor>& x);
+      std::vector<torch::Tensor> forward(std::vector<torch::Tensor>& x);
   };
 
   TORCH_MODULE(FPNLastMaxPool);
