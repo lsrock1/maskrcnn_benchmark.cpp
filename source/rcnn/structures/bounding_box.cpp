@@ -25,7 +25,7 @@ torch::Tensor BoxListIOU(BoxList a, BoxList b){
   return inter / (area_a.unsqueeze(1) + area_b - inter);
 }
 
-BoxList BoxListCat(std::vector<BoxList> boxlists){
+BoxList CatBoxList(std::vector<BoxList> boxlists){
   std::pair<Width, Height> size = boxlists[0].get_size();
   std::string mode = boxlists[0].get_mode();
   std::vector<std::string> fields = boxlists[0].Fields();

@@ -8,7 +8,7 @@ namespace modeling{
 
 class BalancedPositiveNegativeSampler{
   public:
-    BalancedPositiveNegativeSampler(int64_t batch_size_per_image, double positive_fraction);
+    BalancedPositiveNegativeSampler(int64_t batch_size_per_image, float positive_fraction);
     std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> operator()(std::vector<torch::Tensor> matched_idxs);
 
   private:

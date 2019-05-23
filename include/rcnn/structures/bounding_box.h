@@ -56,7 +56,7 @@ namespace structures{
     void set_mode(const char* mode);
     
     static torch::Tensor BoxListIOU(BoxList a, BoxList b);
-    static BoxList BoxListCat(std::vector<BoxList> boxlists);
+    static BoxList CatBoxList(std::vector<BoxList> boxlists);
 
   private:
     std::map<std::string, torch::Tensor> extra_fields_;

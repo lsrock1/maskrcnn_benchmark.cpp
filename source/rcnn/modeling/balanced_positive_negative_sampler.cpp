@@ -1,10 +1,10 @@
-#include <balanced_positive_negative_sampler.h>
+#include "balanced_positive_negative_sampler.h"
 
 
 namespace rcnn{
 namespace modeling{
 
-BalancedPositiveNegativeSampler::BalancedPositiveNegativeSampler(int64_t batch_size_per_image, double positive_fraction)
+BalancedPositiveNegativeSampler::BalancedPositiveNegativeSampler(int64_t batch_size_per_image, float positive_fraction)
     :num_pos_((int64_t) (batch_size_per_image * positive_fraction)),
      num_neg_(batch_size_per_image - num_pos_){}
 

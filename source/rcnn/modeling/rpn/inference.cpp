@@ -22,7 +22,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std:
   for(auto& gt_box: gt_boxes)
     gt_box.AddField("objectness", torch::ones(gt_box.Length(), torch::TensorOptions().device(device)));
   for(int i = 0; i < proposals.size(); ++i){
-    return_proposals.push_back(rcnn::structures::BoxList::BoxListCat(std::vector<rcnn::structures::BoxList> {proposals[i], gt_boxes[i]}));
+    return_proposals.push_back(rcnn::structures::BoxList::CatBoxList(std::vector<rcnn::structures::BoxList> {proposals[i], gt_boxes[i]}));
   }
   return return_proposals;
 }
@@ -86,7 +86,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
 
   std::vector<rcnn::structures::BoxList> return_boxlists;
   for(auto& boxlist: boxlists){
-    return_boxlists.push_back(rcnn::structures::BoxList::BoxListCat(boxlist));
+    return_boxlists.push_back(rcnn::structures::BoxList::CatBoxList(boxlist));
   }
 
   if(num_levels > 1){
