@@ -6,12 +6,13 @@
 namespace rcnn{
 namespace modeling{
   
-RPNPostProcessorImpl::RPNPostProcessorImpl(const int pre_nms_top_n, const int post_nms_top_n, const float nms_thresh, const int min_size, BoxCoder& box_coder, const int fpn_post_nms_top_n)
+RPNPostProcessorImpl::RPNPostProcessorImpl(const int64_t pre_nms_top_n, const int64_t post_nms_top_n, const float nms_thresh, const int64_t min_size, BoxCoder& box_coder, const int64_t fpn_post_nms_top_n,  const bool fpn_post_nms_per_batch)
                                 :pre_nms_top_n_(pre_nms_top_n),
                                  post_nms_top_n_(post_nms_top_n),
                                  nms_thresh_(nms_thresh),
                                  box_coder_(box_coder),
-                                 fpn_post_nms_top_n_(fpn_post_nms_top_n){}
+                                 fpn_post_nms_top_n_(fpn_post_nms_top_n),
+                                 fpn_post_nms_per_batch_(fpn_post_nms_per_batch){}
 
 std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets){
   auto device = proposals[0].get_bbox().device();
@@ -104,7 +105,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
 std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList> boxlists){
   int num_images = boxlists.size();
 
-  if(is_training()){
+  if(is_training() && fpn_post_nms_per_batch_){
     //to all images
     std::vector<torch::Tensor> objectness_vec;
     std::vector<int64_t> box_sizes;
@@ -149,13 +150,15 @@ RPNPostProcessor MakeRPNPostprocessor(BoxCoder& rpn_box_coder, bool is_train){
   int64_t fpn_post_nms_top_n = rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", (std::string("FPN_POST_NMS_TOP_N_") + phase).c_str()});
   int64_t pre_nms_top_n = rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", (std::string("PRE_NMS_TOP_N_") + phase).c_str()});
   int64_t post_nms_top_n = rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", (std::string("POST_NMS_TOP_N_") + phase).c_str()});
+
   return RPNPostProcessor(
     pre_nms_top_n,
     post_nms_top_n,
     rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", "NMS_THRESH"}),
     rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", "MIN_SIZE"}),
     rpn_box_coder,
-    fpn_post_nms_top_n
+    fpn_post_nms_top_n,
+    rcnn::config::GetCFG<bool>({"MODEL", "RPN", "FPN_POST_NMS_PER_BATCH"})
   );
 }
 

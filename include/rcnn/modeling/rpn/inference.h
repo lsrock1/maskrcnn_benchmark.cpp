@@ -9,7 +9,7 @@ namespace modeling{
 
 class RPNPostProcessorImpl : public torch::nn::Module{
   public:
-    RPNPostProcessorImpl(const int pre_nms_top_n, const int post_nms_top_n, const float nms_thresh, const int min_size, BoxCoder& box_coder, const int fpn_post_nms_top_n);
+    RPNPostProcessorImpl(const int64_t pre_nms_top_n, const int64_t post_nms_top_n, const float nms_thresh, const int64_t min_size, BoxCoder& box_coder, const int64_t fpn_post_nms_top_n, const bool fpn_post_nms_per_batch);
     std::vector<rcnn::structures::BoxList> AddGtProposals(std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets);
     std::vector<rcnn::structures::BoxList> ForwardForSingleFeatureMap(std::vector<rcnn::structures::BoxList> anchors, torch::Tensor objectness, torch::Tensor box_regression);
     std::vector<rcnn::structures::BoxList> SelectOverAllLayers(std::vector<rcnn::structures::BoxList> boxlists);
@@ -23,6 +23,7 @@ class RPNPostProcessorImpl : public torch::nn::Module{
     int64_t min_size_;
     BoxCoder box_coder_;
     int64_t fpn_post_nms_top_n_;
+    bool fpn_post_nms_per_batch_;
 };
 
 TORCH_MODULE(RPNPostProcessor);
