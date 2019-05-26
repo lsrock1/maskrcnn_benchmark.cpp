@@ -14,31 +14,31 @@ ResNetImpl::StageSpec::StageSpec(std::string block, std::initializer_list<int64_
                       freeze_at_(freeze_at)
                       {}
 
-std::string ResNetImpl::StageSpec::get_block(){
+std::string ResNetImpl::StageSpec::get_block() const{
   return this->block_;
 }
 
-std::initializer_list<int64_t> ResNetImpl::StageSpec::get_num_layers(){
+std::initializer_list<int64_t> ResNetImpl::StageSpec::get_num_layers() const{
   return this->num_layers_;
 }
 
-int ResNetImpl::StageSpec::get_stage_to(){
+int ResNetImpl::StageSpec::get_stage_to() const{
   return this->stage_to_;
 }
 
-bool ResNetImpl::StageSpec::get_is_fpn(){
+bool ResNetImpl::StageSpec::get_is_fpn() const{
   return this->is_fpn_;
 }
 
-int64_t ResNetImpl::StageSpec::get_groups(){
+int64_t ResNetImpl::StageSpec::get_groups() const{
   return this->groups_;
 }
 
-int64_t ResNetImpl::StageSpec::get_width_per_group(){
+int64_t ResNetImpl::StageSpec::get_width_per_group() const{
   return this->width_per_group_;
 }
 
-int ResNetImpl::StageSpec::get_freeze_at(){
+int ResNetImpl::StageSpec::get_freeze_at() const{
   return this->freeze_at_;
 }
 
@@ -70,43 +70,37 @@ ResNetImpl::ResNetImpl(StageSpec& stage_spec)
                     freeze_backbone(stage_spec.get_freeze_at());
               }
 
-
 bool ResNetImpl::get_is_fpn(){
   return is_fpn_;
 }
 
-int64_t ResNetImpl::get_bottom_channels(){
-  return rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES2_OUT_CHANNELS"});
-}
-
-int64_t ResNetImpl::get_out_channels(){
-  return rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "BACKBONE_OUT_CHANNELS"});
-}
-
-torch::Tensor ResNetImpl::forward(torch::Tensor x){
-    x = bn1_->forward(conv1_->forward(x)).relu_();
-    x = torch::max_pool2d(x, 3, 2, 1);
-    x = layer1_->forward(x);
-    x = layer2_->forward(x);
-    x = layer3_->forward(x);
-    if(layer4_)
-        x = layer4_->forward(x);
-    return x;
-}
-
-std::vector<torch::Tensor> ResNetImpl::forward_fpn(torch::Tensor x){
-  std::vector<torch::Tensor> fpn;
+std::vector<torch::Tensor> ResNetImpl::forward(torch::Tensor x){
+  std::vector<torch::Tensor> results;
   x = bn1_->forward(conv1_->forward(x)).relu_();
   x = torch::max_pool2d(x, 3, 2, 1);
   x = layer1_->forward(x);
-  fpn.push_back(x);
+  
+  if(is_fpn_)
+    results.push_back(x);
+  
   x = layer2_->forward(x);
-  fpn.push_back(x);
+  
+  if(is_fpn_)
+    results.push_back(x);
+  
   x = layer3_->forward(x);
-  fpn.push_back(x);
-  x = layer4_->forward(x);
-  fpn.push_back(x);
-  return fpn;
+  
+  if(is_fpn_)
+    results.push_back(x);
+
+  if(layer4_){
+    x = layer4_->forward(x);
+    results.push_back(x);
+  }
+  else{
+    results.push_back(x);
+  }
+  return results;
 }
 
 void ResNetImpl::freeze_backbone(int freeze_at){

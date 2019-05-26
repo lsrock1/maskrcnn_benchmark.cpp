@@ -5,6 +5,7 @@
 #include "modeling.h"
 #include "image_list.h"
 #include <torch/torch.h>
+#include "tovec.h"
 
 
 using namespace std;
@@ -12,23 +13,46 @@ using namespace rcnn;
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
+  rcnn::config::SetCFGFromFile("/root/maskrcnn/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+  auto name = rcnn::config::GetCFG<vector<float>>({"MODEL", "RPN", "ANCHOR_STRIDE"});
+  // auto n = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "ROI_BOX_HEAD", "PREDICTOR"});
+  // cout << n.get() << n.size() << endl;
+  cout << "anchor stride : " << name << endl;
+  auto pooler_scales = rcnn::config::GetCFG<vector<float>>({"MODEL", "ROI_BOX_HEAD", "POOLER_SCALES"});
+  cout << pooler_scales << endl;
+  rcnn::config::CFGS dataset_name = rcnn::config::GetCFG<rcnn::config::CFGS>({"DATASETS", "TRAIN"});
+  vector<string> tmp = rcnn::config::tovec(dataset_name.get());
+
+  cout << "train datasets : " <<  dataset_name.get() << endl;
+  cout << tmp << endl;
+
+  auto m = rcnn::modeling::BuildBackbone();
+  cout << "end build" << endl;
+  // cout << m << endl;
+  auto t = torch::randn({2, 3, 800, 800});
+  vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
+  cout << results[0].sizes() << endl;
+  cout << results[1].sizes() << endl;
+  cout << results[2].sizes() << endl;
+  cout << results[3].sizes() << endl;
+  cout << results[4].sizes() << endl;
+
 
   //to image list
-  auto toimagetest_first = torch::randn({1, 3, 10, 10});
-  auto toimagetest_second = torch::randn({1, 3, 11, 11});
-  vector<torch::Tensor> vectoimagetest;
-  vectoimagetest.push_back(toimagetest_first);
-  vectoimagetest.push_back(toimagetest_second);
-  auto img_list = rcnn::structures::ToImageList(vectoimagetest, 3);
+  // auto toimagetest_first = torch::randn({1, 3, 10, 10});
+  // auto toimagetest_second = torch::randn({1, 3, 11, 11});
+  // vector<torch::Tensor> vectoimagetest;
+  // vectoimagetest.push_back(toimagetest_first);
+  // vectoimagetest.push_back(toimagetest_second);
+  // auto img_list = rcnn::structures::ToImageList(vectoimagetest, 3);
   // cout << img_list.get_tensors() << endl;
   //
 
   //////////////////anchor generator
-  int64_t stride = 16;
-  vector<int64_t> anchor_sizes{8, 16, 32};
-  vector<float> aspect_ratios{0.5, 1, 2};
-  auto result_anchor = rcnn::modeling::GenerateAnchors(stride, anchor_sizes, aspect_ratios);
+  // int64_t stride = 16;
+  // vector<int64_t> anchor_sizes{8, 16, 32};
+  // vector<float> aspect_ratios{0.5, 1, 2};
+  // auto result_anchor = rcnn::modeling::GenerateAnchors(stride, anchor_sizes, aspect_ratios);
   // cout << result_anchor << endl;
 
   //original implementation result
@@ -42,12 +66,12 @@ int main() {
   //       [  2.5000,  -3.0000,  12.5000,  18.0000],
   //       [ -3.0000, -14.0000,  18.0000,  29.0000]], dtype=torch.float64)
 
-  vector<int64_t> feature_sizes{128, 256, 512};
-  rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();
-  vector<torch::Tensor> tmp_features;
-  tmp_features.push_back(torch::randn({1, 1, 10, 10}));
-  // tmp_features.push_back(torch::randn({1, 1, 15, 15}));
-  anchorclass->forward(img_list, tmp_features);
+  // vector<int64_t> feature_sizes{128, 256, 512};
+  // rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();
+  // vector<torch::Tensor> tmp_features;
+  // tmp_features.push_back(torch::randn({1, 1, 10, 10}));
+  // // tmp_features.push_back(torch::randn({1, 1, 15, 15}));
+  // anchorclass->forward(img_list, tmp_features);
   //////////////////
 
   //#####balanced sampler
@@ -74,21 +98,7 @@ int main() {
 //   cout << c << endl;
 //   auto t = torch::randn({2, 3, 800, 800});
 //   auto results = c->forward<deque<torch::Tensor>>(t);
-//   cout << results[0].sizes() << endl;
-//     cout << results[1].sizes() << endl;
-//   cout << results[2].sizes() << endl;
-//   cout << results[3].sizes() << endl;
-//   cout << results[4].sizes() << endl;
-  // YAML::Node* conf2 = rcnn::config::GetDefaultCFG();
-  // cout << (*conf2)["MODEL"] << endl;
-  // cout << (*conf)["MODEL"]<< endl;
-  // for(auto i = (*conf).begin(); i != (*conf).end(); ++i){
-  //   cout << i->second << endl;
-  // }
-  // for(auto i = conf.begin(); i != conf.end(); ++i){
-  //   cout << i->as<string>() << endl;
-  // }
-  // cout << conf << endl;
+  
   
   ////////////////bounding box
   //init bbox tensor size 2, 4

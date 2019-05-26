@@ -11,36 +11,32 @@ namespace modeling{
       class StageSpec{
         public:
           StageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group, int freeze_at);
-          int get_stage_to();
-          std::initializer_list<int64_t> get_num_layers();
-          bool get_is_fpn();
-          std::string get_block();
-          int64_t get_groups();
-          int64_t get_width_per_group();
-          int get_freeze_at();
+          int get_stage_to() const;
+          std::initializer_list<int64_t> get_num_layers() const;
+          std::string get_block() const;
+          int64_t get_groups() const;
+          bool get_is_fpn() const;
+          int64_t get_width_per_group() const;
+          int get_freeze_at() const;
 
         private:
           int freeze_at_;
+          bool is_fpn_;
           std::string block_;
           std::initializer_list<int64_t> num_layers_;
           int stage_to_;
-          bool is_fpn_;
           int64_t groups_;
           int64_t width_per_group_;
       };
       ResNetImpl(StageSpec& stage_spec);
       ResNetImpl(std::string conv_body_name);
-      torch::Tensor forward(torch::Tensor x);
-      std::vector<torch::Tensor> forward_fpn(torch::Tensor x);
+      std::vector<torch::Tensor> forward(torch::Tensor x);
       bool get_is_fpn();
-      int64_t get_bottom_channels();
-      int64_t get_out_channels();
 
     private:      
       torch::nn::Sequential MakeLayer(int64_t planes, int64_t blocks, int64_t stride=1);
       void initialize();
       void freeze_backbone(int freeze_at);
-
       std::string block_;
       bool is_fpn_;
       int64_t in_planes_;

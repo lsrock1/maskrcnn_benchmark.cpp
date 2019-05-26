@@ -23,7 +23,10 @@ namespace structures{
     static const int kFlipTopBottom = 1;
 
   public:
-    BoxList();
+    BoxList() = default;
+    ~BoxList() = default;
+    BoxList(const BoxList& b) = default;
+    BoxList& operator=(const BoxList& b) = default;
     BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, const char* mode="xyxy");
     BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode="xyxy");
     void AddField(const std::string field_name, torch::Tensor field_data);

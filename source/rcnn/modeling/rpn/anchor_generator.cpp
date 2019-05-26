@@ -1,7 +1,6 @@
 #include "rpn/anchor_generator.h"
 #include "defaults.h"
 #include <cassert>
-#include <iostream>
 
 
 namespace rcnn{

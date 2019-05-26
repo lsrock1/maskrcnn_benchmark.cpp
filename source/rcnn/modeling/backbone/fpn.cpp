@@ -1,13 +1,14 @@
 #include "backbone/fpn.h"
+#include <algorithm>
 
 
 namespace rcnn{
 namespace modeling{
 
-  FPNImpl::FPNImpl(bool use_relu, const std::vector<int64_t> in_channels_list, int64_t out_channels){
+  FPNImpl::FPNImpl(bool use_relu, const std::vector<int64_t> in_channels_list, int64_t out_channels, ConvFunction conv_block){
     for(int i = 0; i < in_channels_list.size(); ++i){
-      inner_blocks_.push_back(register_module("fpn_inner"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, in_channels_list[i], out_channels, 1)));
-      layer_blocks_.push_back(register_module("fpn_layers"+std::to_string(i+1), rcnn::layers::ConvWithKaimingUniform(use_relu, out_channels, out_channels, 3, 1)));
+      inner_blocks_.push_back(register_module("fpn_inner"+std::to_string(i+1), conv_block(use_relu, in_channels_list[i], out_channels, 1, 1, 1)));
+      layer_blocks_.push_back(register_module("fpn_layers"+std::to_string(i+1), conv_block(use_relu, out_channels, out_channels, 3, 1, 1)));
     }
   };
 
@@ -23,14 +24,14 @@ namespace modeling{
       last_inner = inner_top_down + inner_lateral;
       results.push_back(layer_blocks_[i]->forward(last_inner));
     }
-    std::rotate(results.rbegin(), results.rbegin() + 1, results.rend());
+    std::reverse(results.begin(), results.end());
     return results;
   }
 
-  FPNLastMaxPoolImpl::FPNLastMaxPoolImpl(bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels)
-                                        :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels))){};
+  FPNLastMaxPoolImpl::FPNLastMaxPoolImpl(bool use_relu, const std::vector<int64_t> in_channels_list, const int64_t out_channels, ConvFunction conv_block)
+                                        :fpn_(register_module("fpn", FPN(use_relu, in_channels_list, out_channels, conv_block))){};
   
-  std::vector<torch::Tensor> FPNLastMaxPoolImpl::forward(std::vector<torch::Tensor>& x){
+  std::vector<torch::Tensor> FPNLastMaxPoolImpl::forward(std::vector<torch::Tensor> x){
     std::vector<torch::Tensor> results = fpn_->forward(x);
     results.push_back(torch::max_pool2d(results.back(), 1, 2, 0));
     return results;

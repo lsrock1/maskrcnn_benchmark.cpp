@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include <vector>
+#include <cassert>
 
 
 namespace rcnn{
@@ -24,8 +25,8 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["INPUT"]["MAX_SIZE_TRAIN"], 1333);
   SetNode((*cfg)["INPUT"]["MIN_SIZE_TEST"], 800);
   SetNode((*cfg)["INPUT"]["MAX_SIZE_TEST"], 1333);
-  SetNode((*cfg)["INPUT"]["PIXEL_MEAN"], std::vector<float> {102.9801, 115.9465, 122.7717});
-  SetNode((*cfg)["INPUT"]["PIXEL_STD"], std::vector<float> {1., 1., 1.});
+  SetNode((*cfg)["INPUT"]["PIXEL_MEAN"], "(102.9801, 115.9465, 122.7717)");
+  SetNode((*cfg)["INPUT"]["PIXEL_STD"], "(1., 1., 1.)");
   SetNode((*cfg)["INPUT"]["TO_BGR255"], true);
 
   SetNode((*cfg)["INPUT"]["RIGHTNESS"], 0.0);
@@ -34,9 +35,9 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["INPUT"]["HUE"], 0.0);
 
   //DATASET
-  SetNode((*cfg)["DATASET"], YAML::Node());
-  SetNode((*cfg)["DATASET"]["TRAIN"], std::vector<std::string> {"COCO"});
-  SetNode((*cfg)["DATASET"]["TEST"], std::vector<std::string> {"COCO"});
+  SetNode((*cfg)["DATASETS"], YAML::Node());
+  SetNode((*cfg)["DATASETS"]["TRAIN"], "(COCO, )");
+  SetNode((*cfg)["DATASETS"]["TEST"], "(COCO, )");
   //DATALOADER
   SetNode((*cfg)["DATALOADER"], YAML::Node());
   SetNode((*cfg)["DATALOADER"]["NUM_WORKERS"], 4);
@@ -63,9 +64,9 @@ void SetCFGFromFile(const char*  file_path){
   //RPN
   SetNode((*cfg)["MODEL"]["RPN"], YAML::Node());
   SetNode((*cfg)["MODEL"]["RPN"]["USE_FPN"], false);
-  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_SIZES"], std::vector<int64_t> {32, 64, 128, 256, 512});
-  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_STRIDE"], std::vector<int64_t> {16});
-  SetNode((*cfg)["MODEL"]["RPN"]["ASPECT_RATIOS"], std::vector<float> {0.5, 1.0, 2.0});
+  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_SIZES"], "(32, 64, 128, 256, 512)");
+  SetNode((*cfg)["MODEL"]["RPN"]["ANCHOR_STRIDE"], "(16,)");
+  SetNode((*cfg)["MODEL"]["RPN"]["ASPECT_RATIOS"], "(0.5, 1.0, 2.0)");
   SetNode((*cfg)["MODEL"]["RPN"]["STRADDLE_THRESH"], 0);
   SetNode((*cfg)["MODEL"]["RPN"]["FG_IOU_THRESHOLD"], 0.7);
   SetNode((*cfg)["MODEL"]["RPN"]["BG_IOU_THRESHOLD"], 0.3);
@@ -87,7 +88,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["USE_FPN"], false);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["FG_IOU_THRESHOLD"], 0.5);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BG_IOU_THRESHOLD"], 0.5);
-  SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BBOX_REG_WEIGHTS"], std::vector<float>{10, 10., 5., 5.});
+  SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BBOX_REG_WEIGHTS"], "(10, 10., 5., 5.)");
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BATCH_SIZE_PER_IMAGE"], 512);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["POSITIVE_FRACTION"], 0.25);
   //only used on test mode
@@ -117,7 +118,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SAMPLING_RATIO"], 0);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SCALES"], 1.0 / 16.);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["MLP_HEAD_DIM"], 1024);
-  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["CONV_LAYERS"], std::vector<int64_t> {256, 256, 256, 256});
+  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["CONV_LAYERS"], "(256, 256, 256, 256)");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["SHARE_BOX_FEATURE_EXTRACTOR"], true);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POSTPROCESS_MASKS"], false);
@@ -149,7 +150,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["SOLVER"]["WEIGHT_DECAY"], 0.0005);
   SetNode((*cfg)["SOLVER"]["WEIGHT_DECAY_BIAS"], 0);
   SetNode((*cfg)["SOLVER"]["GAMMA"], 0.1);
-  SetNode((*cfg)["SOLVER"]["STEPS"], std::vector<int64_t> {30000});
+  SetNode((*cfg)["SOLVER"]["STEPS"], "(30000, )");
   SetNode((*cfg)["SOLVER"]["WARMUP_FACTOR"], 1.0 / 3.0);
   SetNode((*cfg)["SOLVER"]["WARMUP_ITERS"], 500);
   SetNode((*cfg)["SOLVER"]["WARMUP_METHOD"], "linear");
@@ -170,15 +171,15 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["DTYPE"], "float32");
 }
 
-CFGString::CFGString(std::string result)
+CFGS::CFGS(std::string result)
           :name_(result){};
 
-const char* CFGString::get(){
+const char* CFGS::get(){
   return name_.c_str();
 }
 
 template<typename T>
-const T GetCFG(std::initializer_list<const char*> node){
+T GetCFG(std::initializer_list<const char*> node){
   if(!cfg){
     throw "Set Config file first";
   }
@@ -189,17 +190,13 @@ const T GetCFG(std::initializer_list<const char*> node){
   return tmp.back().as<T>();
 }
 
-template const std::vector<int> GetCFG<std::vector<int>>(std::initializer_list<const char*> node);
-template const std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node);
-template const std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node);
+template bool GetCFG<bool>(std::initializer_list<const char*> node);
+template int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
+template int GetCFG<int>(std::initializer_list<const char*> node);
+template float GetCFG<float>(std::initializer_list<const char*> node);
 
-template const bool GetCFG<bool>(std::initializer_list<const char*> node);
-template const int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
-template const int GetCFG<int>(std::initializer_list<const char*> node);
-template const float GetCFG<float>(std::initializer_list<const char*> node);
-
-
-template<> const CFGString GetCFG<CFGString>(std::initializer_list<const char*> node){
+template<>
+CFGS GetCFG<CFGS>(std::initializer_list<const char*> node){
   if(!cfg){
     throw "Set Config file first";
   }
@@ -207,7 +204,66 @@ template<> const CFGString GetCFG<CFGString>(std::initializer_list<const char*> 
   for(auto i = node.begin(); i != node.end(); ++i){
     tmp.push_back(tmp.back()[*i]);
   }
-  return CFGString(tmp.back().as<std::string>());
+  return CFGS(tmp.back().as<std::string>());
+}
+
+template<>
+std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node){
+  if(!cfg){
+    throw "Set Config file first";
+  }
+  std::vector<YAML::Node> tmp{*cfg};
+  for(auto i = node.begin(); i != node.end(); ++i){
+    tmp.push_back(tmp.back()[*i]);
+  }
+  std::string svalue = tmp.back().as<std::string>();
+  std::vector<float> elements;
+  size_t pos = 0;
+  //remove white spaces
+  std::string::iterator end_pos = std::remove(svalue.begin(), svalue.end(), ' ');
+  svalue.erase(end_pos, svalue.end());
+  //remove ( and )
+  svalue = svalue.substr(1, svalue.size()-2);
+  std::string token;
+  while ((pos = svalue.find(",")) != std::string::npos) {
+    token = svalue.substr(0, pos);
+    elements.push_back(std::stof(token));
+    svalue.erase(0, pos + 1);
+  }
+  if(svalue.size() > 1){
+    elements.push_back(std::stof(svalue));
+  }
+  return elements;
+}
+
+template<>
+std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node){
+  if(!cfg){
+    throw "Set Config file first";
+  }
+  std::vector<YAML::Node> tmp{*cfg};
+  for(auto i = node.begin(); i != node.end(); ++i){
+    tmp.push_back(tmp.back()[*i]);
+  }
+  std::string svalue = tmp.back().as<std::string>();
+  std::vector<int64_t> elements;
+  size_t pos = 0;
+  //remove white spaces
+  std::string::iterator end_pos = std::remove(svalue.begin(), svalue.end(), ' ');
+  svalue.erase(end_pos, svalue.end());
+  //remove ( and )
+  svalue = svalue.substr(1, svalue.size()-2);
+  
+  std::string token;
+  while ((pos = svalue.find(",")) != std::string::npos) {
+    token = svalue.substr(0, pos);
+    elements.push_back(std::stoi(token));
+    svalue.erase(0, pos + 1);
+  }
+  if(svalue.size() > 1){
+    elements.push_back(std::stoi(svalue));
+  }
+  return elements;
 }
 
 }//mrcn

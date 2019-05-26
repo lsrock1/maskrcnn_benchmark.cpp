@@ -1,48 +1,46 @@
 #include "backbone/backbone.h"
+#include "make_layers.h"
+#include "registry.h"
+
 
 namespace rcnn{
 namespace modeling{
 
-template<typename Backbone, typename FPNType>
-BackboneImpl<Backbone, FPNType>::BackboneImpl(Backbone body){
-  body_ = register_module("body", body);
-  //base net must implement
-  //get bottom channels
-  //get out channels
-  int64_t bottom_channels = body_->get_bottom_channels();
-  if(body_ -> get_is_fpn()){
-    //this part is hard coded from resnet
-    std::vector<int64_t> vec{bottom_channels, bottom_channels*2, bottom_channels*4, bottom_channels*8};
-    fpn_ = register_module("fpn", FPNType(/*use_relu*/rcnn::config::GetCFG<bool>({"MODEL", "FPN", "USE_RELU"}), vec, body_->get_out_channels()));
-  }
+torch::nn::Sequential BuildResnetBackbone(){
+  torch::nn::Sequential model;
+  rcnn::config::CFGS backbone_name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
+  auto body = ResNet(backbone_name.get());
+  model->push_back(body);
+  return model;
 }
 
-template<typename Backbone, typename FPNType>
-std::vector<torch::Tensor> BackboneImpl<Backbone, FPNType>::forward(torch::Tensor x){
-  
-  if(fpn_){
-    std::vector<torch::Tensor> body_results = body_->forward_fpn(x);
-    return fpn_ -> forward(body_results);
-  }
-  else{
-    std::vector<torch::Tensor> results;
-    results.push_back(body_->forward(x));
-    return results;
-  }
+torch::nn::Sequential BuildResnetFPNBackbone(){
+  torch::nn::Sequential model;
+  rcnn::config::CFGS backbone_name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
+  auto body = ResNet(backbone_name.get());
+  int64_t in_channels_stage2 = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES2_OUT_CHANNELS"});
+  int64_t out_channels = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "BACKBONE_OUT_CHANNELS"});
+  model->push_back(body);
+  model->push_back(
+    FPNLastMaxPool(
+      rcnn::config::GetCFG<bool>({"MODEL", "FPN", "USE_RELU"}), 
+      std::vector<int64_t>{
+        in_channels_stage2,
+        in_channels_stage2 * 2,
+        in_channels_stage2 * 4,
+        in_channels_stage2 * 8
+      }, 
+      out_channels, 
+      rcnn::layers::ConvWithKaimingUniform
+    )
+  );
+  return model;
 }
   
 torch::nn::Sequential BuildBackbone(){
-  torch::nn::Sequential result;
-  rcnn::config::CFGString backbone_name_wrapper = rcnn::config::GetCFG<rcnn::config::CFGString>({"MODEL", "BACKBONE", "CONV_BODY"});
-  std::string backbone_name = backbone_name_wrapper.get();
-  if(rcnn::modeling::ResBackbonesMap().count(backbone_name)){
-    auto body = ResNet(rcnn::modeling::ResBackbonesMap().find(backbone_name)->second);
-    result->push_back(ResBackbone(body));
-  }
-  else{
-    throw "Backbone not found";
-  }
-  return result;
+  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
+  torch::nn::Sequential model = rcnn::utils::BACKBONES(name.get())();
+  return model;
 }
 
 }
