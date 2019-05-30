@@ -1,4 +1,5 @@
 #pragma once
+#include "roi_heads/box_head/roi_box_feature_extractors.h"
 #include "backbone/backbone.h"
 #include "backbone/resnet.h"
 #include "backbone/fpn.h"
@@ -10,3 +11,4 @@
 #include "balanced_positive_negative_sampler.h"
 #include "box_coder.h"
 #include "matcher.h"
+#include "poolers.h"

@@ -1,6 +1,5 @@
 #pragma once
 #include <torch/torch.h>
-#include <torch/nn/modules/conv.h>
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/VariableTypeUtils.h>
 

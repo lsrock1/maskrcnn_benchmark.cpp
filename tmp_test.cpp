@@ -2,7 +2,8 @@
 #include <typeinfo>
 #include <cassert>
 #include "defaults.h"
-#include "modeling.h"
+// #include "modeling.h"
+#include "roi_heads/box_head/roi_box_feature_extractors.h"
 #include "image_list.h"
 #include <torch/torch.h>
 #include "tovec.h"
@@ -22,10 +23,12 @@ int main() {
   // auto body = rcnn::modeling::ResNet(conv_body);
   // model->push_back(body);
   // }
-  torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
-  for(auto& i: m->named_parameters())
-    cout << i.key() << "\n";
-  
+
+  // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
+  // for(auto& i: m->named_parameters())
+  //   cout << i.key() << "\n";
+  auto roi_box_extractor = rcnn::modeling::MakeROIBoxFeatureExtractor(256);
+  cout << roi_box_extractor << endl;
   // cout << m << endl;
   auto t = torch::randn({2, 3, 800, 800});
   // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
@@ -73,15 +76,15 @@ int main() {
   //////////////////
 
   //#####balanced sampler
-  auto sampler = rcnn::modeling::BalancedPositiveNegativeSampler(6, 0.5);
-  vector<torch::Tensor> vec;
-  auto first = torch::tensor({0, 0, 0, 0, 0, 0}, torch::TensorOptions().dtype(torch::kInt8));
-  vec.push_back(first);
-  auto second = torch::tensor({1, 1, 1, 0, 0, 0}, torch::TensorOptions().dtype(torch::kInt8));
-  vec.push_back(second);
-  auto third = torch::tensor({1, 1, 1, 1, 1, 1}, torch::TensorOptions().dtype(torch::kInt8));
-  vec.push_back(third);
-  auto result = sampler(vec);
+  // auto sampler = rcnn::modeling::BalancedPositiveNegativeSampler(6, 0.5);
+  // vector<torch::Tensor> vec;
+  // auto first = torch::tensor({0, 0, 0, 0, 0, 0}, torch::TensorOptions().dtype(torch::kInt8));
+  // vec.push_back(first);
+  // auto second = torch::tensor({1, 1, 1, 0, 0, 0}, torch::TensorOptions().dtype(torch::kInt8));
+  // vec.push_back(second);
+  // auto third = torch::tensor({1, 1, 1, 1, 1, 1}, torch::TensorOptions().dtype(torch::kInt8));
+  // vec.push_back(third);
+  // auto result = sampler(vec);
   //######
 
   // cout << rcnn::config::GetCFG<std::vector<int>>({"MODEL", "ROI_MASK_HEAD", "CONV_LAYERS"})[0] <<endl;
@@ -100,13 +103,13 @@ int main() {
   
   ////////////////bounding box
   //init bbox tensor size 2, 4
-  torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 5, 5, 50, 50, 10, 10, 80, 80, 10, 10, 30, 30, 4, 4, 30, 30, 3, 3}).reshape({-1, 4}).to(torch::kF32);
-  torch::Tensor scores = torch::tensor({0.7, 0.6, 0.8, 0.9, 0.9, 0.5}).to(torch::kF32);
-  //init boxlist class
-  structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xywh");
-  bb.AddField("scores", scores);
-  cout << bb.nms(0.5) << endl;
-  cout << bb.RemoveSmallBoxes(5) << endl;
+  // torch::Tensor box = torch::tensor({1, 1, 4, 4, 10, 10, 5, 5, 50, 50, 10, 10, 80, 80, 10, 10, 30, 30, 4, 4, 30, 30, 3, 3}).reshape({-1, 4}).to(torch::kF32);
+  // torch::Tensor scores = torch::tensor({0.7, 0.6, 0.8, 0.9, 0.9, 0.5}).to(torch::kF32);
+  // //init boxlist class
+  // structures::BoxList bb = structures::BoxList(box, make_pair(100, 120), "xywh");
+  // bb.AddField("scores", scores);
+  // cout << bb.nms(0.5) << endl;
+  // cout << bb.RemoveSmallBoxes(5) << endl;
   // cout << bb << endl;
   // //add label and score (dummy)
   // bb.AddField("labels", torch::tensor({1, 1}));

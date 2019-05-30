@@ -2,7 +2,6 @@
 #include "defaults.h"
 #include <cassert>
 #include <cmath>
-#include <iostream>
 
 
 namespace rcnn{
@@ -258,6 +257,7 @@ ResNetHeadImpl::ResNetHeadImpl(
         )//make stage
       )//register module
     );//push back
+    stride = 0;
   }
   out_channels_ = out_channels;
 }

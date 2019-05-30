@@ -19,7 +19,7 @@ backbone BACKBONES(std::string conv_body){
   assert(backbone_builder_map.count(conv_body));
   return backbone_builder_map.find(conv_body)->second;
 }
-//hard code
+
 }
 }
 
