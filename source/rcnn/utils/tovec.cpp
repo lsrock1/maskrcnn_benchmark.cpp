@@ -4,7 +4,7 @@
 
 namespace rcnn{
 namespace config{
-  
+
 std::vector<std::string> tovec(const char* name){
   std::vector<std::string> splitted;
   std::string svalue(name);

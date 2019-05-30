@@ -1,92 +1,78 @@
 #pragma once
 #include "conv2d.h"
 #include "batch_norm.h"
-#include "defaults.h"
+
 
 namespace rcnn{
 namespace modeling{
-  
-  class ResNetImpl : public torch::nn::Module{
-    public:
-      class StageSpec{
-        public:
-          StageSpec(std::string block, std::initializer_list<int64_t> num_layers, int stage_to, bool is_fpn, int64_t groups, int64_t width_per_group, int freeze_at);
-          int get_stage_to() const;
-          std::initializer_list<int64_t> get_num_layers() const;
-          std::string get_block() const;
-          int64_t get_groups() const;
-          bool get_is_fpn() const;
-          int64_t get_width_per_group() const;
-          int get_freeze_at() const;
 
-        private:
-          int freeze_at_;
-          bool is_fpn_;
-          std::string block_;
-          std::initializer_list<int64_t> num_layers_;
-          int stage_to_;
-          int64_t groups_;
-          int64_t width_per_group_;
-      };
-      ResNetImpl(StageSpec& stage_spec);
-      ResNetImpl(std::string conv_body_name);
-      std::vector<torch::Tensor> forward(torch::Tensor x);
-      bool get_is_fpn();
-
-    private:      
-      torch::nn::Sequential MakeLayer(int64_t planes, int64_t blocks, int64_t stride=1);
-      void initialize();
-      void freeze_backbone(int freeze_at);
-      std::string block_;
-      bool is_fpn_;
-      int64_t in_planes_;
-      int64_t groups_;
-      int64_t base_width_;
-      int64_t expansion_;
-      rcnn::layers::Conv2d conv1_;
-      rcnn::layers::FrozenBatchNorm2d bn1_;
-      torch::nn::Sequential layer1_{nullptr}, layer2_{nullptr}, layer3_{nullptr}, layer4_{nullptr};
-  };
-
-  TORCH_MODULE(ResNet);
-
-  class BasicBlockImpl : public torch::nn::Module{    
-    public:
-      BasicBlockImpl(int64_t in_planes, int64_t out_planes, torch::nn::Sequential downsample, int64_t stride=1, int64_t groups=1, int64_t base_width=64/*c++ frontend only has batch norm*/);
-      BasicBlockImpl(int64_t in_planes, int64_t out_planes, int64_t stride=1, int64_t groups=1, int64_t base_width=64/*c++ frontend only has batch norm*/);
+class BottleneckImpl : public torch::nn::Module{
+  public:
+      BottleneckImpl(int64_t in_channels, int64_t bottleneck_channels, int64_t out_channels, int64_t num_groups, bool stride_in_1x1, int64_t stride, int64_t dilation/*, norm_func , dcn_config*/);
       torch::Tensor forward(torch::Tensor x);
-      const static int64_t kExpansion = 1;
+  
+  private:
+    rcnn::layers::Conv2d conv1_{nullptr}, conv2_{nullptr}, conv3_{nullptr};
+    rcnn::layers::FrozenBatchNorm2d bn1_{nullptr}, bn2_{nullptr}, bn3_{nullptr};
+    torch::nn::Sequential downsample_{nullptr};
+};
 
-    private:
-      int64_t width_;
-      int64_t stride_;
-      rcnn::layers::Conv2d conv1_, conv2_;
-      rcnn::layers::FrozenBatchNorm2d bn1_, bn2_;
-      torch::nn::Sequential downsample_{nullptr};
-  };
+TORCH_MODULE(Bottleneck);
 
-  TORCH_MODULE(BasicBlock);
+class BaseStemImpl : public torch::nn::Module{
+  public:
+    BaseStemImpl();
+    torch::Tensor forward(torch::Tensor& x);
 
-  class BottleneckImpl : public torch::nn::Module{
-    public:
-        BottleneckImpl(int64_t in_planes, int64_t out_planes, torch::nn::Sequential downsample, int64_t stride=1, int64_t groups=1, int64_t base_width=64);
-        BottleneckImpl(int64_t in_planes, int64_t out_planes, int64_t stride=1, int64_t groups=1, int64_t base_width=64/*c++ frontend only has batch norm*/);
-        torch::Tensor forward(torch::Tensor x);
-        const static int64_t kExpansion = 4;
-    
-    private:
-      int64_t stride_;
-      int64_t width_;
-      rcnn::layers::Conv2d conv1_, conv2_, conv3_;
-      rcnn::layers::FrozenBatchNorm2d bn1_, bn2_, bn3_;
-      torch::nn::Sequential downsample_{nullptr};
-  };
+  private:
+    rcnn::layers::Conv2d conv1_{nullptr};
+    rcnn::layers::FrozenBatchNorm2d bn1_{nullptr};
+};
 
-  TORCH_MODULE(Bottleneck);
+TORCH_MODULE(BaseStem);
 
-  rcnn::layers::Conv2d Conv3x3(int64_t in_planes, int64_t out_planes, int64_t stride=1, int64_t groups=1);
-  rcnn::layers::Conv2d Conv1x1(int64_t in_planes, int64_t out_planes, int64_t stride=1);
-  std::map<std::string, ResNetImpl::StageSpec> ResBackbonesMap();
+class ResNetImpl : public torch::nn::Module{
+  public:
+    struct StageSpec{
+      StageSpec(int index, int block_count, bool return_features);
+      int index_;
+      int block_count_;
+      bool return_features_;
+    };
 
-}//namespace resnet
-}//namespace model
+    ResNetImpl();
+    std::vector<torch::Tensor> forward(torch::Tensor x);
+
+  private:
+    void freeze_backbone(int freeze_at);
+    BaseStem stem_{nullptr};
+    std::vector<torch::nn::Sequential> stages_;
+    std::vector<bool> return_features_;
+};
+
+TORCH_MODULE(ResNet);
+
+class ResNetHeadImpl : public torch::nn::Module{
+  public:
+    ResNetHeadImpl(/*std::string block_module, */std::vector<ResNetImpl::StageSpec> stages, int64_t num_groups=1, int64_t width_per_groups=64, bool stride_in_1x1=true, int64_t stride_init=0, int64_t res2_out_channels=256, int64_t dilation=1);
+    torch::Tensor forward(torch::Tensor x);
+    int64_t out_channels_;
+
+  private:
+    std::vector<torch::nn::Sequential> stages_;
+};
+
+TORCH_MODULE(ResNetHead);
+
+torch::nn::Sequential MakeStage(/*transformation_module, */int64_t in_channels, int64_t bottleneck_channels, int64_t out_channels, int64_t block_count, int64_t num_groups, bool stride_in_1x1, int64_t first_stride, int64_t dilation=1);
+
+}//namespace modeling
+
+namespace registry{
+
+// const _STEM_MODULES
+std::vector<rcnn::modeling::ResNetImpl::StageSpec> STAGE_SPECS(std::string name);
+}
+
+}//namespace rcnn
+

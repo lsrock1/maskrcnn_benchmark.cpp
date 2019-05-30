@@ -4,7 +4,7 @@
 #include <cassert>
 
 namespace rcnn{
-namespace utils{
+namespace registry{
 
 backbone BACKBONES(std::string conv_body){
   std::map<std::string, backbone> backbone_builder_map{

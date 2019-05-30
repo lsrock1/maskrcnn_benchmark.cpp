@@ -22,12 +22,13 @@ void SetNode(YAML::Node parent, T value){
 class CFGS{
   private:
     std::string name_;
+    const char* name_c_;
 
   public:
     CFGS(std::string name);
+    ~CFGS();
     const char* get();
 };
-
 //TODO
 //std::string argument occurs undefined reference error
 //so seperate get cfg char

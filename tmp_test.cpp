@@ -13,29 +13,27 @@ using namespace rcnn;
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("/root/maskrcnn/e2e_faster_rcnn_R_50_FPN_1x.yaml");
-  auto name = rcnn::config::GetCFG<vector<float>>({"MODEL", "RPN", "ANCHOR_STRIDE"});
-  // auto n = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "ROI_BOX_HEAD", "PREDICTOR"});
-  // cout << n.get() << n.size() << endl;
-  cout << "anchor stride : " << name << endl;
-  auto pooler_scales = rcnn::config::GetCFG<vector<float>>({"MODEL", "ROI_BOX_HEAD", "POOLER_SCALES"});
-  cout << pooler_scales << endl;
-  rcnn::config::CFGS dataset_name = rcnn::config::GetCFG<rcnn::config::CFGS>({"DATASETS", "TRAIN"});
-  vector<string> tmp = rcnn::config::tovec(dataset_name.get());
+  rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
 
-  cout << "train datasets : " <<  dataset_name.get() << endl;
-  cout << tmp << endl;
-
-  auto m = rcnn::modeling::BuildBackbone();
-  cout << "end build" << endl;
+  // torch::nn::Sequential model;
+  // {
+  // rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
+  // std::string conv_body(name.get());
+  // auto body = rcnn::modeling::ResNet(conv_body);
+  // model->push_back(body);
+  // }
+  torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
+  for(auto& i: m->named_parameters())
+    cout << i.key() << "\n";
+  
   // cout << m << endl;
   auto t = torch::randn({2, 3, 800, 800});
-  vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
-  cout << results[0].sizes() << endl;
-  cout << results[1].sizes() << endl;
-  cout << results[2].sizes() << endl;
-  cout << results[3].sizes() << endl;
-  cout << results[4].sizes() << endl;
+  // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
+  // cout << results[0].sizes() << endl;
+  // cout << results[1].sizes() << endl;
+  // cout << results[2].sizes() << endl;
+  // cout << results[3].sizes() << endl;
+  // cout << results[4].sizes() << endl;
 
 
   //to image list

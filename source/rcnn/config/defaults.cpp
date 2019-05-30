@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include <vector>
+#include <cstring>
 #include <cassert>
 
 
@@ -172,10 +173,15 @@ void SetCFGFromFile(const char*  file_path){
 }
 
 CFGS::CFGS(std::string result)
-          :name_(result){};
+          :name_(result),
+          name_c_(strdup(result.c_str())){};
+
+CFGS::~CFGS(){
+  delete[] name_c_;
+}
 
 const char* CFGS::get(){
-  return name_.c_str();
+  return name_c_;
 }
 
 template<typename T>

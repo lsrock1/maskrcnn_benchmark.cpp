@@ -18,5 +18,9 @@ torch::Tensor FrozenBatchNorm2dImpl::forward(torch::Tensor x){
   return x * scale + bias;
 };
 
+FrozenBatchNorm2d BatchNorm(int64_t channels){
+  return FrozenBatchNorm2d(channels);
+}
+
 }//layers
 }//rcnn

@@ -3,6 +3,7 @@
 
 namespace rcnn{
 namespace layers{
+
 class FrozenBatchNorm2dImpl : public torch::nn::Module {
   public:
     FrozenBatchNorm2dImpl(int64_t dimension);
@@ -13,6 +14,8 @@ class FrozenBatchNorm2dImpl : public torch::nn::Module {
 };
 
 TORCH_MODULE(FrozenBatchNorm2d);
+
+FrozenBatchNorm2d BatchNorm(int64_t channels);
 
 }//layers
 }//rcnn
