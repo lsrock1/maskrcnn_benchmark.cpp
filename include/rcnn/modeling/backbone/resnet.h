@@ -56,9 +56,10 @@ class ResNetHeadImpl : public torch::nn::Module{
   public:
     ResNetHeadImpl(/*std::string block_module, */std::vector<ResNetImpl::StageSpec> stages, int64_t num_groups=1, int64_t width_per_groups=64, bool stride_in_1x1=true, int64_t stride_init=0, int64_t res2_out_channels=256, int64_t dilation=1);
     torch::Tensor forward(torch::Tensor x);
-    int64_t out_channels_;
+    int64_t out_channels() const;
 
   private:
+    int64_t out_channels_;
     std::vector<torch::nn::Sequential> stages_;
 };
 

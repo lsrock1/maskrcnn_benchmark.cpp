@@ -1,13 +1,18 @@
 #pragma once
 #include "roi_heads/box_head/roi_box_feature_extractors.h"
+#include "roi_heads/box_head/roi_box_predictors.h"
+#include "roi_heads/box_head/inference.h"
+
 #include "backbone/backbone.h"
 #include "backbone/resnet.h"
 #include "backbone/fpn.h"
+
 #include "rpn/inference.h"
 #include "rpn/anchor_generator.h"
 #include "rpn/utils.h"
 #include "rpn/loss.h"
 #include "rpn/rpn.h"
+
 #include "balanced_positive_negative_sampler.h"
 #include "box_coder.h"
 #include "matcher.h"

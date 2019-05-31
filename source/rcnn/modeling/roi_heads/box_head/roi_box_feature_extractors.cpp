@@ -8,8 +8,8 @@ namespace rcnn{
 namespace modeling{
 
 ResNet50Conv5ROIFeatureExtractorImpl::ResNet50Conv5ROIFeatureExtractorImpl(int64_t in_channels)
-  :pooler_(MakePooler("ROI_BOX_HEAD")),
-  head_(
+  :pooler_(register_module("pooler", MakePooler("ROI_BOX_HEAD"))),
+  head_(register_module("head",
     ResNetHead(
       std::vector<ResNetImpl::StageSpec>{ResNetImpl::StageSpec(4, 3, false)},
       rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "NUM_GROUPS"}),
@@ -19,8 +19,8 @@ ResNet50Conv5ROIFeatureExtractorImpl::ResNet50Conv5ROIFeatureExtractorImpl(int64
       rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES2_OUT_CHANNELS"}),
       rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES5_DILATION"})
     )
-  ),
-  out_channels(head_->out_channels_){}
+  )),
+  out_channels_(head_->out_channels()){}
 
 torch::Tensor ResNet50Conv5ROIFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
   torch::Tensor output = pooler_(x, proposals);
@@ -28,17 +28,21 @@ torch::Tensor ResNet50Conv5ROIFeatureExtractorImpl::forward(std::vector<torch::T
   return output;
 }
 
+int64_t ResNet50Conv5ROIFeatureExtractorImpl::out_channels() const{
+  return out_channels_;
+}
+
 FPN2MLPFeatureExtractorImpl::FPN2MLPFeatureExtractorImpl(int64_t in_channels)
-  :pooler_(MakePooler("ROI_BOX_HEAD")),
-  fc6_(layers::MakeFC(
+  :pooler_(register_module("pooler", MakePooler("ROI_BOX_HEAD"))),
+  fc6_(register_module("fc6", layers::MakeFC(
       pow(in_channels * rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})
-    )),//fc6
-  fc7_(layers::MakeFC(
+    ))),//fc6
+  fc7_(register_module("fc7", layers::MakeFC(
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"}),
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})
-    )),//fc7
-  out_channels(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
+    ))),//fc7
+  out_channels_(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
 
 torch::Tensor FPN2MLPFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
   torch::Tensor output = pooler_(x, proposals);
@@ -46,6 +50,10 @@ torch::Tensor FPN2MLPFeatureExtractorImpl::forward(std::vector<torch::Tensor> x,
   output = fc6_(output).relu_();
   output = fc7_(output).relu_();
   return output;
+}
+
+int64_t FPN2MLPFeatureExtractorImpl::out_channels() const{
+  return out_channels_;
 }
 
 torch::nn::Sequential FPNXconv1fcFeatureExtractorImpl::make_xconvs(int64_t in_channels){
@@ -74,13 +82,13 @@ torch::nn::Sequential FPNXconv1fcFeatureExtractorImpl::make_xconvs(int64_t in_ch
 }
 
 FPNXconv1fcFeatureExtractorImpl::FPNXconv1fcFeatureExtractorImpl(int64_t in_channels)
-  :pooler_(MakePooler("ROI_BOX_HEAD")),
-  xconvs_(make_xconvs(in_channels)),
-  fc6_(layers::MakeFC(
+  :pooler_(register_module("pooler", MakePooler("ROI_BOX_HEAD"))),
+  xconvs_(register_module("xconvx", make_xconvs(in_channels))),
+  fc6_(register_module("fc6", layers::MakeFC(
       pow(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "CONV_HEAD_DIM"}) * rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})
-    )),
-  out_channels(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
+    ))),
+  out_channels_(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
 
 torch::Tensor FPNXconv1fcFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
   torch::Tensor output = pooler_(x, proposals);
@@ -88,6 +96,10 @@ torch::Tensor FPNXconv1fcFeatureExtractorImpl::forward(std::vector<torch::Tensor
   output = output.reshape({output.size(0), -1});
   output = fc6_(output).relu_();
   return output;
+}
+
+int64_t FPNXconv1fcFeatureExtractorImpl::out_channels() const{
+  return out_channels_;
 }
 
 torch::nn::Sequential MakeROIBoxFeatureExtractor(int64_t in_channels){

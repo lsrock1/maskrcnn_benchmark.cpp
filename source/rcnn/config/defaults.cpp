@@ -89,7 +89,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["USE_FPN"], false);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["FG_IOU_THRESHOLD"], 0.5);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BG_IOU_THRESHOLD"], 0.5);
-  SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BBOX_REG_WEIGHTS"], std::vector<float>{10., 10., 5., 5.});
+  SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BBOX_REG_WEIGHTS"], "(10., 10., 5., 5.)");
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["BATCH_SIZE_PER_IMAGE"], 512);
   SetNode((*cfg)["MODEL"]["ROI_HEADS"]["POSITIVE_FRACTION"], 0.25);
   //only used on test mode
@@ -103,7 +103,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["PREDICTOR"], "FastRCNNPredictor");
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SAMPLING_RATIO"], 0);
-  SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SCALES"], std::vector<float>{1.0 / 16.});
+  SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SCALES"], "(1.0 / 16.)");
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["NUM_CLASSES"], 81);
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["MLP_HEAD_DIM"], 1024);
   // SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["USE_GN"], false);
@@ -117,9 +117,9 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["PREDICTOR"], "MaskRCNNC4Predictor");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SAMPLING_RATIO"], 0);
-  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SCALES"], std::vector<float>{1.0 / 16.});
+  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SCALES"], "(1.0 / 16.)");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["MLP_HEAD_DIM"], 1024);
-  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["CONV_LAYERS"], std::vector<int64_t>{256, 256, 256, 256});
+  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["CONV_LAYERS"], "(256, 256, 256, 256)");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["SHARE_BOX_FEATURE_EXTRACTOR"], true);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POSTPROCESS_MASKS"], false);
@@ -151,7 +151,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["SOLVER"]["WEIGHT_DECAY"], 0.0005);
   SetNode((*cfg)["SOLVER"]["WEIGHT_DECAY_BIAS"], 0);
   SetNode((*cfg)["SOLVER"]["GAMMA"], 0.1);
-  SetNode((*cfg)["SOLVER"]["STEPS"], std::vector<int64_t>{30000});
+  SetNode((*cfg)["SOLVER"]["STEPS"], "(30000, )");
   SetNode((*cfg)["SOLVER"]["WARMUP_FACTOR"], 1.0 / 3.0);
   SetNode((*cfg)["SOLVER"]["WARMUP_ITERS"], 500);
   SetNode((*cfg)["SOLVER"]["WARMUP_METHOD"], "linear");

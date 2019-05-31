@@ -262,6 +262,10 @@ ResNetHeadImpl::ResNetHeadImpl(
   out_channels_ = out_channels;
 }
 
+int64_t ResNetHeadImpl::out_channels() const{
+  return out_channels_;
+}
+
 torch::Tensor ResNetHeadImpl::forward(torch::Tensor x){
   for(auto& stage: stages_)
     x = stage->forward(x);

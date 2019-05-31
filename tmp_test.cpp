@@ -3,7 +3,7 @@
 #include <cassert>
 #include "defaults.h"
 // #include "modeling.h"
-#include "roi_heads/box_head/roi_box_feature_extractors.h"
+#include "modeling.h"
 #include "image_list.h"
 #include <torch/torch.h>
 #include "tovec.h"
@@ -27,7 +27,7 @@ int main() {
   // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
   // for(auto& i: m->named_parameters())
   //   cout << i.key() << "\n";
-  auto roi_box_extractor = rcnn::modeling::MakeROIBoxFeatureExtractor(256);
+  torch::nn::Sequential roi_box_extractor = rcnn::modeling::MakeROIBoxPredictor(256);
   cout << roi_box_extractor << endl;
   // cout << m << endl;
   auto t = torch::randn({2, 3, 800, 800});
