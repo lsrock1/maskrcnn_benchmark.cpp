@@ -8,7 +8,7 @@ namespace modeling{
 class FastRCNNPredictorImpl : public torch::nn::Module{
   public:
     FastRCNNPredictorImpl(int64_t in_channels);
-    std::vector<torch::Tensor> forward(torch::Tensor x);
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x);
 
   private:
     torch::nn::Linear cls_score_;
@@ -20,7 +20,7 @@ TORCH_MODULE(FastRCNNPredictor);
 class FPNPredictorImpl : public torch::nn::Module{
   public:
     FPNPredictorImpl(int64_t in_channels);
-    std::vector<torch::Tensor> forward(torch::Tensor x);
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x);
 
   private:
     torch::nn::Linear cls_score_;
