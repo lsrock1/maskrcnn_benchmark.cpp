@@ -2,6 +2,8 @@
 #include "roi_heads/box_head/roi_box_feature_extractors.h"
 #include "roi_heads/box_head/roi_box_predictors.h"
 #include "roi_heads/box_head/inference.h"
+#include "roi_heads/box_head/loss.h"
+#include "roi_heads/box_head/box_head.h"
 
 #include "backbone/backbone.h"
 #include "backbone/resnet.h"

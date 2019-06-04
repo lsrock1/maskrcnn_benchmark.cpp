@@ -2,7 +2,6 @@
 #include <typeinfo>
 #include <cassert>
 #include "defaults.h"
-// #include "modeling.h"
 #include "modeling.h"
 #include "image_list.h"
 #include <torch/torch.h>
@@ -15,7 +14,7 @@ using namespace rcnn;
 int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
-
+  cout << "load complete" << endl;
   // torch::nn::Sequential model;
   // {
   // rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
@@ -27,8 +26,8 @@ int main() {
   // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
   // for(auto& i: m->named_parameters())
   //   cout << i.key() << "\n";
-  torch::nn::Sequential roi_box_extractor = rcnn::modeling::MakeROIBoxPredictor(256);
-  cout << roi_box_extractor << endl;
+  auto head = rcnn::modeling::BuildROIBoxHead(256);
+  cout << head << endl;
   // cout << m << endl;
   auto t = torch::randn({2, 3, 800, 800});
   // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);

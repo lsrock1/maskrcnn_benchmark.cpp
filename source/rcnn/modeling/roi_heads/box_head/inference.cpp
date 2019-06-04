@@ -34,7 +34,7 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   concat_boxes = torch::cat(concat_boxes_vec, /*dim=*/0);
   
   if(cls_agnostic_bbox_reg_)
-    box_regression = cls_agnostic_bbox_reg.slice(/*dim=*/1, /*start=*/-4);
+    box_regression = box_regression.slice(/*dim=*/1, /*start=*/-4);
 
   torch::Tensor proposals = box_coder_.decode(box_regression.view({std::accumulate(boxes_per_image.begin(), boxes_per_image.end(), 0), -1}), concat_boxes);
   if(cls_agnostic_bbox_reg_)
@@ -47,8 +47,8 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   
   std::vector<rcnn::structures::BoxList> results;
 
-  for(size_t i = 0; i < proposals_per_img.size(0); ++i){
-    rcnn::structures::BoxList boxlist = self.prepare_boxlist(proposals[i], class_prob[i], image_shapes[i]);
+  for(size_t i = 0; i < proposals_per_img.size(); ++i){
+    rcnn::structures::BoxList boxlist = prepare_boxlist(proposals[i], class_prob[i], image_shapes[i]);
     boxlist = boxlist.ClipToImage(false);
     if(!bbox_aug_enabled_)
       boxlist = filter_results(boxlist, num_classes);
@@ -59,36 +59,35 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   return results;
 }
 
-rcnn::structures::BoxList PostProcessorImpl::prepare_boxlist(torch::Tensor boxes, torch::Tensor socres, std::pair<int64_t, int64_t> image_shape){
+rcnn::structures::BoxList PostProcessorImpl::prepare_boxlist(torch::Tensor boxes, torch::Tensor scores, std::pair<int64_t, int64_t> image_shape){
   boxes = boxes.reshape({-1, 4});
   scores = scores.reshape({-1});
-  boxlist = rcnn::structures::BoxList(boxes, image_shape, "xyxy");
+  rcnn::structures::BoxList boxlist = rcnn::structures::BoxList(boxes, image_shape, "xyxy");
   boxlist.AddField("scores", scores);
   return boxlist;
 }
 
-rcnn::structures::BoxList filter_results(rcnn::structures::BoxList boxlist, int num_classes){
+rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::BoxList boxlist, int num_classes){
   torch::Tensor boxes = boxlist.get_bbox().reshape({-1, num_classes * 4});
   torch::Tensor scores = boxlist.GetField("scores").reshape({-1, num_classes});
 
   auto device = scores.device();
   std::vector<rcnn::structures::BoxList> results_vec;
-  rcnn::structures::BoxList results;
 
   torch::Tensor inds_all = scores > score_thresh_;
   for(size_t i = 1; i < num_classes; ++i){
     torch::Tensor inds = inds_all.select(1, i).squeeze(1);
     torch::Tensor scores_i = scores.index_select(0, inds).select(1, i);
-    torch::Tensor boxees_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
+    torch::Tensor boxes_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
     rcnn::structures::BoxList boxlist_for_class = rcnn::structures::BoxList(boxes_i, boxlist.get_size(), "xyxy");
     boxlist_for_class.AddField("scores", scores_i);
     boxlist_for_class = boxlist_for_class.nms(nms_);
     int64_t num_labels = boxlist_for_class.Length();
-    boxlist_for_class.AddField("labels", torch::full({num_labels}, i, torch::TensorOptions().dtype(torch::kInt64).device(device)));
+    boxlist_for_class.AddField("labels", torch::full({num_labels}, (int)i, torch::TensorOptions().dtype(torch::kInt64).device(device)));
     results_vec.push_back(boxlist_for_class);
   }
 
-  results = rcnn::structures::BoxList::CatBoxList(results_vec);
+  rcnn::structures::BoxList results = rcnn::structures::BoxList::CatBoxList(results_vec);
   int64_t number_of_detections = results.Length();
 
   if(number_of_detections > detections_per_img_ && number_of_detections > 0 && detections_per_img_ > 0){
@@ -112,8 +111,8 @@ PostProcessor MakeROIBoxPostProcessor(){
   float nms_thresh = rcnn::config::GetCFG<float>({"MODEL", "ROI_HEADS", "NMS"});
   int64_t detections_per_img = rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_HEADS", "DETECTIONS_PER_IMG"});
   bool cls_agnostic_bbox_reg = rcnn::config::GetCFG<bool>({"MODEL", "CLS_AGNOSTIC_BBOX_REG"});
-  bool bbox_aug_enabled = rcnn::config::GetCFG<bool>({"TEST", "ENABLED"});
-  postprocessor = PostProcessor(
+  bool bbox_aug_enabled = rcnn::config::GetCFG<bool>({"TEST", "BBOX_AUG", "ENABLED"});
+  PostProcessor postprocessor = PostProcessor(
         score_thresh,
         nms_thresh,
         detections_per_img,
@@ -121,7 +120,7 @@ PostProcessor MakeROIBoxPostProcessor(){
         cls_agnostic_bbox_reg,
         bbox_aug_enabled
     );
-  return postprocessor
+  return postprocessor;
 }
 
 }

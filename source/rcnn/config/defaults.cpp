@@ -103,7 +103,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["PREDICTOR"], "FastRCNNPredictor");
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SAMPLING_RATIO"], 0);
-  SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SCALES"], "(1.0 / 16.)");
+  SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["POOLER_SCALES"], "(1.0 / 16.,)");
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["NUM_CLASSES"], 81);
   SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["MLP_HEAD_DIM"], 1024);
   // SetNode((*cfg)["MODEL"]["ROI_BOX_HEAD"]["USE_GN"], false);
@@ -117,7 +117,7 @@ void SetCFGFromFile(const char*  file_path){
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["PREDICTOR"], "MaskRCNNC4Predictor");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_RESOLUTION"], 14);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SAMPLING_RATIO"], 0);
-  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SCALES"], "(1.0 / 16.)");
+  SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["POOLER_SCALES"], "(1.0 / 16.,)");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["MLP_HEAD_DIM"], 1024);
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["CONV_LAYERS"], "(256, 256, 256, 256)");
   SetNode((*cfg)["MODEL"]["ROI_MASK_HEAD"]["RESOLUTION"], 14);
@@ -160,11 +160,18 @@ void SetCFGFromFile(const char*  file_path){
 
   //TEST
   SetNode((*cfg)["TEST"], YAML::Node());
-  std::vector<int> expected_results;
-  SetNode((*cfg)["TEST"]["EXPECTED_RESULTS"], expected_results);
+  SetNode((*cfg)["TEST"]["EXPECTED_RESULTS"], "(,)");
   SetNode((*cfg)["TEST"]["EXPECTED_RESULTS_SIGMA_TOL"], 4);
   SetNode((*cfg)["TEST"]["IMS_PER_BATCH"], 8);
   SetNode((*cfg)["TEST"]["DETECTIONS_PER_IMG"], 100);
+
+  SetNode((*cfg)["TEST"]["BBOX_AUG"], YAML::Node());
+  SetNode((*cfg)["TEST"]["BBOX_AUG"]["ENABLED"], false);
+  SetNode((*cfg)["TEST"]["BBOX_AUG"]["H_FLIP"], false);
+  SetNode((*cfg)["TEST"]["BBOX_AUG"]["SCALES"], "(,)");
+  SetNode((*cfg)["TEST"]["BBOX_AUG"]["MAX_SIZE"], 4000);
+  SetNode((*cfg)["TEST"]["BBOX_AUG"]["SCALE_H_FLIP"], false);
+  
 
   //MISC OPTIONS
   SetNode((*cfg)["OUTPUT_DIR"], ".");
