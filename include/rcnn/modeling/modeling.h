@@ -5,6 +5,9 @@
 #include "roi_heads/box_head/loss.h"
 #include "roi_heads/box_head/box_head.h"
 
+#include "roi_heads/mask_head/roi_mask_feature_extractors.h"
+#include "roi_heads/mask_head/roi_mask_predictors.h"
+
 #include "backbone/backbone.h"
 #include "backbone/resnet.h"
 #include "backbone/fpn.h"

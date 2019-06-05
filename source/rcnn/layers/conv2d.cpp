@@ -23,14 +23,26 @@ torch::autograd::variable_list _NewEmptyTensorOpBackward::apply(torch::autograd:
 
 
 torch::Tensor Conv2dImpl::forward(const torch::Tensor& input){
-    if(input.numel() > 0){
-        return torch::nn::Conv2dImpl::forward(input);
-    }
-    int64_t height = (input.size(2) + 2 * options.padding_.size() - options.dilation_.size() * (options.kernel_size_.size() - 1) - 1) / options.stride_.size() + 1;
-    int64_t width = (input.size(3) + 2 * options.padding_.size() - options.dilation_.size() * (options.kernel_size_.size() - 1) - 1) / options.stride_.size() + 1;
-    torch::IntArrayRef shape = torch::IntArrayRef({input.size(0), weight.size(0), height, width});
-
-    return _NewEmptyTensorOp(input, shape);
+  if(input.numel() > 0){
+    return torch::nn::Conv2dImpl::forward(input);
+  }
+  int64_t stride = static_cast<torch::ArrayRef<int64_t>>(options.stride_).at(0),
+          padding = static_cast<torch::ArrayRef<int64_t>>(options.padding_).at(0), 
+          dilation = static_cast<torch::ArrayRef<int64_t>>(options.dilation_).at(0), 
+          output_padding = static_cast<torch::ArrayRef<int64_t>>(options.output_padding_).at(0),
+          kernel_size = static_cast<torch::ArrayRef<int64_t>>(options.kernel_size_).at(0);
+  torch::IntArrayRef shape;
+  if(options.transposed()){
+    int64_t height = (input.size(2) - 1) * stride - 2 * padding + (dilation * (kernel_size - 1) + 1) + output_padding;
+    int64_t width = (input.size(3) - 1) * stride - 2 * padding + (dilation * (kernel_size - 1) + 1) + output_padding;
+    shape = torch::IntArrayRef({input.size(0), bias.size(0), height, width});
+  }
+  else{
+    int64_t height = (input.size(2) + 2 *  padding - (dilation * (kernel_size - 1) + 1)) / stride + 1;
+    int64_t width = (input.size(3) + 2 * padding - (dilation * (kernel_size - 1) + 1)) / stride + 1;
+    shape = torch::IntArrayRef({input.size(0), weight.size(0), height, width});
+  }
+  return _NewEmptyTensorOp(input, shape);
 };
 
 
@@ -47,7 +59,7 @@ torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_sh
     set_history(torch::autograd::flatten_tensor_args( result ), grad_fn);
   }
   return result;
-};
+}
 
 }//layers
 }//rcnn

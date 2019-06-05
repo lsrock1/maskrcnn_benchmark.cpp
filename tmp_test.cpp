@@ -26,10 +26,15 @@ int main() {
   // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
   // for(auto& i: m->named_parameters())
   //   cout << i.key() << "\n";
-  auto head = rcnn::modeling::BuildROIBoxHead(256);
+  auto head = rcnn::modeling::MakeROIMaskPredictor(256);
   cout << head << endl;
+  head->to(torch::kCUDA);
   // cout << m << endl;
-  auto t = torch::randn({2, 3, 800, 800});
+  auto t = torch::randn({0, 256, 15, 15}).cuda();
+  auto m = torch::randn({1, 256, 15, 15}).cuda();
+  cout << head->forward(t).sizes() << endl;
+  cout << head->forward(m).sizes() << endl;
+  // cout << head->forward(t) << 
   // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
   // cout << results[0].sizes() << endl;
   // cout << results[1].sizes() << endl;

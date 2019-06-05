@@ -9,17 +9,17 @@ namespace layers{
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape);
 
 struct _NewEmptyTensorOpBackward : public torch::autograd::Function{
-    torch::IntArrayRef shape;
-
-    torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;
+  torch::IntArrayRef shape;
+  torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;
 };
 
 class Conv2dImpl : public torch::nn::Conv2dImpl{
-    public:
-        Conv2dImpl(torch::nn::Conv2dOptions conv2dOptions): torch::nn::Conv2dImpl(conv2dOptions){};
-        torch::Tensor forward(const Tensor& input);
+  public:
+    Conv2dImpl(torch::nn::Conv2dOptions conv2dOptions): torch::nn::Conv2dImpl(conv2dOptions){};
+    torch::Tensor forward(const Tensor& input);
 };
 
 TORCH_MODULE(Conv2d);
+
 }//layers
 }//rcnn

@@ -23,8 +23,8 @@ ResNet50Conv5ROIFeatureExtractorImpl::ResNet50Conv5ROIFeatureExtractorImpl(int64
   out_channels_(head_->out_channels()){}
 
 torch::Tensor ResNet50Conv5ROIFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
-  torch::Tensor output = pooler_(x, proposals);
-  output = head_(output);
+  torch::Tensor output = pooler_->forward(x, proposals);
+  output = head_->forward(output);
   return output;
 }
 
@@ -45,10 +45,10 @@ FPN2MLPFeatureExtractorImpl::FPN2MLPFeatureExtractorImpl(int64_t in_channels)
   out_channels_(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
 
 torch::Tensor FPN2MLPFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
-  torch::Tensor output = pooler_(x, proposals);
+  torch::Tensor output = pooler_->forward(x, proposals);
   output = output.reshape({output.size(0), -1});
-  output = fc6_(output).relu_();
-  output = fc7_(output).relu_();
+  output = fc6_->forward(output).relu_();
+  output = fc7_->forward(output).relu_();
   return output;
 }
 
@@ -91,10 +91,10 @@ FPNXconv1fcFeatureExtractorImpl::FPNXconv1fcFeatureExtractorImpl(int64_t in_chan
   out_channels_(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
 
 torch::Tensor FPNXconv1fcFeatureExtractorImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn::structures::BoxList> proposals){
-  torch::Tensor output = pooler_(x, proposals);
+  torch::Tensor output = pooler_->forward(x, proposals);
   output = xconvs_->forward(output);
   output = output.reshape({output.size(0), -1});
-  output = fc6_(output).relu_();
+  output = fc6_->forward(output).relu_();
   return output;
 }
 
