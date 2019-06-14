@@ -35,7 +35,7 @@ std::pair<torch::Tensor, torch::Tensor> ConcatBoxPredictionLayers(std::vector<to
     );
   }
 
-  std::make_pair(rcnn::layers::cat(box_cls_flattened, /*dim=*/1).reshape({-1, C}),
+  return std::make_pair(rcnn::layers::cat(box_cls_flattened, /*dim=*/1).reshape({-1, C}),
                  rcnn::layers::cat(box_regression_flattened, /*dim=*/1).reshape({-1, 4}));
 }
 

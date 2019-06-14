@@ -62,7 +62,7 @@ ImageList ToImageList(std::vector<torch::Tensor> tensors, int size_divisible){
     max_size_first = static_cast<int64_t>(std::ceil(max_size_first / static_cast<double>(stride)) * stride);
     max_size_second = static_cast<int64_t>(std::ceil(max_size_second / static_cast<double>(stride)) * stride);
   }
-  torch::Tensor batched_imgs = torch::full({tensors.size(), 3, max_size_first, max_size_second}, /*fill_value=*/0, torch::TensorOptions().dtype(tensors[0].dtype()).device(tensors[0].device()));
+  torch::Tensor batched_imgs = torch::full({static_cast<int64_t>(tensors.size()), 3, max_size_first, max_size_second}, /*fill_value=*/0, torch::TensorOptions().dtype(tensors[0].dtype()).device(tensors[0].device()));
   std::vector<std::pair<Height, Width>> image_sizes;
   for(int i = 0; i < tensors.size(); ++i){
     batched_imgs[i].narrow(/*dim=*/1, /*start=*/0, /*length=*/tensors[i].size(2))

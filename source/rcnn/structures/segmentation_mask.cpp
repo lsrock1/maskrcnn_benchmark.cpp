@@ -23,7 +23,7 @@ Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int
                    size_(size)
 {
   for(auto& poly : polygons){
-    torch::Tensor tmp = torch::empty({poly.size()}).to(torch::kF64);
+    torch::Tensor tmp = torch::empty({static_cast<int64_t>(poly.size())}).to(torch::kF64);
     double* data = tmp.data<double>();
     for(size_t i = 0; i < poly.size(); ++i){
       data[i] = poly[i];

@@ -3,7 +3,7 @@ if(CUDA_FOUND)
 else()
   file(GLOB sources "cpu/*.cpp" "*.cpp")
 endif()
-add_library(layers ${sources})
+add_library(layers STATIC ${sources})
 if(CUDA_FOUND)
   target_compile_definitions(layers PUBLIC WITH_CUDA=ON)
   target_include_directories(layers 

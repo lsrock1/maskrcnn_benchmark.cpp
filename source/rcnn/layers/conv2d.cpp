@@ -66,7 +66,7 @@ torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size/*, float 
     return torch::upsample_nearest2d(input, size);
   }
   else{
-    _NewEmptyTensorOp(input, {input.size(0), input.size(1), size[0], size[1]});
+    return _NewEmptyTensorOp(input, {input.size(0), input.size(1), size[0], size[1]});
   }
 }
 

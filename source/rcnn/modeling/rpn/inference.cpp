@@ -100,6 +100,8 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
   std::vector<rcnn::structures::BoxList> boxlists = forward(anchors, objectness, box_regression);
   if(is_training())
     return AddGtProposals(boxlists, targets);
+  else
+    return boxlists;
 }
 
 std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList> boxlists){

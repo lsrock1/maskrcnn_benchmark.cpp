@@ -28,7 +28,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNHeadImpl::f
     logits.push_back(cls_logits_->forward(t));
     bbox_reg.push_back(bbox_pred_->forward(t));
   }
-  std::make_pair(logits, bbox_reg);
+  return std::make_pair(logits, bbox_reg);
 }
 
 RPNModuleImpl::RPNModuleImpl(int64_t in_channels)
@@ -47,10 +47,10 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
   std::vector<std::vector<rcnn::structures::BoxList>> anchors = anchor_generator_(images, features);
 
   if(is_training()){
-    forward_train(anchors, objectness, rpn_box_regression, targets);
+    return forward_train(anchors, objectness, rpn_box_regression, targets);
   }
   else{
-    forward_test(anchors, objectness, rpn_box_regression);
+    return forward_test(anchors, objectness, rpn_box_regression);
   }
 }
 
