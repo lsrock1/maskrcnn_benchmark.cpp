@@ -5,11 +5,15 @@
 #include "modeling.h"
 #include "image_list.h"
 #include <torch/torch.h>
+#include "coco.h"
 #include "tovec.h"
+#include "coco_detection.h"
+#include "segmentation_mask.h"
 
 
 using namespace std;
 using namespace rcnn;
+using namespace coco;
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
@@ -27,13 +31,13 @@ int main() {
   // for(auto& i: m->named_parameters())
   //   cout << i.key() << "\n";
   auto head = rcnn::modeling::MakeROIMaskPredictor(256);
-  cout << head << endl;
-  head->to(torch::kCUDA);
+  // cout << head << endl;
+  // head->to(torch::kCUDA);
   // cout << m << endl;
-  auto t = torch::randn({0, 256, 15, 15}).cuda();
-  auto m = torch::randn({1, 256, 15, 15}).cuda();
-  cout << head->forward(t).sizes() << endl;
-  cout << head->forward(m).sizes() << endl;
+  // auto t = torch::randn({0, 256, 15, 15}).cuda();
+  // auto m = torch::randn({1, 256, 15, 15}).cuda();
+  // cout << head->forward(t).sizes() << endl;
+  // cout << head->forward(m).sizes() << endl;
   // cout << head->forward(t) << 
   // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
   // cout << results[0].sizes() << endl;
@@ -143,5 +147,19 @@ int main() {
   // cout << "scores over 0.5 : " <<endl;
   // cout << masked_bbox << endl;
   // cout << masked_bbox.get_bbox() << endl;
+
+  auto cc = rcnn::data::COCODetection("/home/ocrusr/datasets/MSCOCO/val2017", "/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
+  //COCO cc = COCO("/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
+  auto data = cc.get(0);
+  std::vector<std::vector<std::vector<double>>> results;
+  // data.target.segmentation
+  cout << data.data.sizes() << "\n";
+  for(auto& target : data.target)
+    results.push_back(target.segmentation);
+
+  auto seg = rcnn::structures::SegmentationMask(results, make_pair(data.data.size(3), data.data.size(2)), "poly");
+  cout <<seg.GetMaskTensor().sizes();
+  //   cout << "========\n";
+  // cout << data.target;
   return 0;
 }

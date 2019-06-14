@@ -1,5 +1,6 @@
 #pragma once
 #include <torch/torch.h>
+#include <string>
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/VariableTypeUtils.h>
 
@@ -20,6 +21,10 @@ class Conv2dImpl : public torch::nn::Conv2dImpl{
 };
 
 TORCH_MODULE(Conv2d);
+
+void check_size_scale_factor(int dim);
+torch::IntArrayRef output_size(int dim);
+torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size, float scale_factor, std::string mode, bool align_corners);
 
 }//layers
 }//rcnn

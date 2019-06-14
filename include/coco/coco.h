@@ -17,11 +17,13 @@ enum Crowd{
 
 struct Annotation{
   Annotation(const Value& value);
-  Annotation() = default;
-  int id;
+  Annotation();
+  int64_t id;
   int image_id;
   int category_id;
-  std::vector<std::vector<float>> segmentation;
+  std::vector<std::vector<double>> segmentation;
+  std::vector<int> counts;
+  std::pair<int, int> size;
   float area;
   std::vector<float> bbox;
   bool iscrowd;
@@ -29,39 +31,48 @@ struct Annotation{
 
 struct Image{
   Image(const Value& value);
-  Image() = default;
+  Image();
+  // ~Image();
+  // Image(const Image& other);
+  // Image(Image&& other);
+  // Image& operator=(const Image& other);
+  // Image& operator=(Image&& other);
   int id;
   int width;
   int height;
+  //char* file_name;
   std::string file_name;
 };
 
 struct Categories{
   Categories(const Value& value);
-  Categories() = default;
+  Categories();
+  ~Categories();
+  Categories(const Categories& other);
+  Categories(Categories&& other);
+  Categories& operator=(const Categories& other);
+  Categories& operator=(Categories&& other);
   int id;
-  std::string name;
-  std::string supercategory;
+  char* name;
+  char* supercategory;
 };
 
-class COCO{
-  public:
-    COCO(const std::string annotation_file);
-    COCO();
-    void CreateIndex();
-    std::vector<int> GetAnnIds(const std::vector<int> imgIds = std::vector<int>{}, const std::vector<int> catIds = std::vector<int>{}, const std::vector<float> areaRng = std::vector<float>{}, Crowd iscrowd=none);
-    //info
-    std::vector<int> GetCatIds(const std::vector<std::string> catNms = std::vector<std::string>{}, const std::vector<std::string> supNms = std::vector<std::string>{}, const std::vector<int> catIds = std::vector<int>{});
-    std::vector<Annotation> LoadAnns(std::vector<int> ids);
-    std::vector<Image> LoadImgs(std::vector<int> ids);
+struct COCO{
+  COCO(std::string annotation_file);
+  COCO();
+  void CreateIndex();
+  std::vector<int64_t> GetAnnIds(const std::vector<int> imgIds = std::vector<int>{}, const std::vector<int> catIds = std::vector<int>{}, const std::vector<float> areaRng = std::vector<float>{}, Crowd iscrowd=none);
+  //info
+  std::vector<int> GetCatIds(const std::vector<std::string> catNms = std::vector<std::string>{}, const std::vector<std::string> supNms = std::vector<std::string>{}, const std::vector<int> catIds = std::vector<int>{});
+  std::vector<Annotation> LoadAnns(std::vector<int64_t> ids);
+  std::vector<Image> LoadImgs(std::vector<int> ids);
 
-  private:
-    Document dataset;
-    std::map<int, Annotation> anns;
-    std::map<int, Image> imgs;
-    std::map<int, Categories> cats;
-    std::map<int, std::vector<Annotation>> imgToAnns;
-    std::map<int, std::vector<int>> catToImgs;
+  Document dataset;
+  std::map<int64_t, Annotation> anns;
+  std::map<int, Image> imgs;
+  std::map<int, Categories> cats;
+  std::map<int, std::vector<Annotation>> imgToAnns;
+  std::map<int, std::vector<int>> catToImgs;
 };
 
 }

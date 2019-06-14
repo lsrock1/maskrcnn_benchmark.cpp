@@ -48,6 +48,5 @@
 .history
 
 lib/libtorch
-lib/yaml-cpp
 # End of https://www.gitignore.io/api/c++,visualstudiocode
 build/

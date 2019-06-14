@@ -61,5 +61,14 @@ torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_sh
   return result;
 }
 
+torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size/*, float scale_factor, std::string mode, bool align_corners*/){
+  if(input.numel() > 0){
+    return torch::upsample_nearest2d(input, size);
+  }
+  else{
+    _NewEmptyTensorOp(input, {input.size(0), input.size(1), size[0], size[1]});
+  }
+}
+
 }//layers
 }//rcnn

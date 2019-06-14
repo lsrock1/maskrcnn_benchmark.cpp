@@ -10,6 +10,13 @@ set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libtorch)
 
 find_package(Torch REQUIRED)
 find_package(CUDA)
+find_package(OpenCV REQUIRED)
+
+if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
+  message("ABI SET 0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+endif()
+
 
 if(CUDA_FOUND)
   message("CUDA FOUND")
@@ -19,7 +26,7 @@ if(CUDA_FOUND)
   string(APPEND CMAKE_CUDA_FLAGS "-DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -std=c++11")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest/googletest/include)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest/googletest/include)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source)
 #can't test, issue https://github.com/pytorch/pytorch/issues/19353
@@ -28,4 +35,4 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source)
 add_executable(tmp.out
   tmp_test.cpp)
 
-target_link_libraries(tmp.out maskrcnn)
+target_link_libraries(tmp.out maskrcnn cocotool)

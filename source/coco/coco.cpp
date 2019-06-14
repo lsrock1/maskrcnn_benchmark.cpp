@@ -3,59 +3,185 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+#include <cstring>
+#include <iostream>
 
 
 namespace coco{
 
 Annotation::Annotation(const Value& value)
-                      :id(value["id"].GetInt()),
+                      :id(value["id"].GetDouble()),
                        image_id(value["image_id"].GetInt()),
                        category_id(value["category_id"].GetInt()),
                        area(value["area"].GetDouble()),
-                       iscrowd(iscrowd)
+                       iscrowd(value["iscrowd"].GetInt())
 {
-  for(auto& polygon : value["segmentation"].GetArray()){
-    std::vector<float> tmp;
-    for(auto& coord : polygon.GetArray())
-      tmp.push_back(coord.GetDouble());
-    segmentation.push_back(tmp);
+  if(iscrowd){
+    for(auto& coord : value["segmentation"]["counts"].GetArray())
+      counts.push_back(coord.GetInt());
+    size = std::make_pair(value["segmentation"]["size"][0].GetInt(), value["segmentation"]["size"][1].GetInt());
   }
-  std::vector<std::vector<float>> segmentation;
+  else{
+    for(auto& polygon : value["segmentation"].GetArray()){
+      std::vector<double> tmp;
+      for(auto& coord : polygon.GetArray())
+        tmp.push_back(coord.GetDouble());
+      segmentation.push_back(tmp);
+    }
+  }
+  
   for(auto& bbox_value : value["bbox"].GetArray())
     bbox.push_back(bbox_value.GetDouble());
 }
+
+Annotation::Annotation(): id(0), image_id(0), category_id(0), area(0), iscrowd(0){}
 
 Image::Image(const Value& value)
             :id(value["id"].GetInt()),
              width(value["width"].GetInt()),
              height(value["height"].GetInt()),
              file_name(value["file_name"].GetString()){}
+             //file_name(strdup(value["file_name"].GetString())){}
+
+// Image::~Image(){
+//   if(file_name)
+//     delete[] file_name;
+// }
+
+Image::Image(): id(0), width(0), height(0), file_name(""){}
+
+// Image::Image(const Image& other){
+//   id = other.id;
+//   width = other.width;
+//   height = other.height;
+//   if(file_name)
+//     delete[] file_name;
+//   file_name = new char[strlen(other.file_name) + 1];
+//   strcpy(file_name, other.file_name);
+// }
+
+// Image::Image(Image&& other){
+//   id = other.id;
+//   width = other.width;
+//   height = other.height;
+//   if(file_name)
+//     delete[] file_name;
+//   file_name = other.file_name;
+//   other.file_name = nullptr;
+// }
+
+// Image& Image::operator=(const Image& other){
+//   if(this != &other){
+//     id = other.id;
+//     width = other.width;
+//     height = other.height;
+//     if(file_name)
+//       delete[] file_name;
+//     file_name = new char[strlen(other.file_name)+1];
+//     strcpy(file_name, other.file_name);
+//   }
+//   return *this;
+// }
+
+// Image& Image::operator=(Image&& other){
+//   if(this != &other){
+//     id = other.id;
+//     width = other.width;
+//     height = other.height;
+//     if(file_name)
+//       delete[] file_name;
+//     file_name = other.file_name;
+//     other.file_name = nullptr;
+//   }
+//   return *this;
+// }
 
 Categories::Categories(const Value& value)
                       :id(value["id"].GetInt()),
-                       name(value["name"].GetString()),
-                       supercategory(value["supercategory"].GetString()){}
+                       name(strdup(value["name"].GetString())),
+                       supercategory(strdup(value["supercategory"].GetString())){}
 
-COCO::COCO(const std::string annotation_file){
+Categories::~Categories(){
+  if(supercategory)
+    delete[] supercategory;
+  if(name)
+    delete[] name;
+}
+
+Categories::Categories(): id(0), name(nullptr), supercategory(nullptr){}
+
+Categories::Categories(const Categories& other){
+  id = other.id;
+  if(name)
+    delete[] name;
+  name = new char[strlen(other.name) + 1];
+  if(supercategory)
+    delete[] supercategory;
+  supercategory = new char[strlen(other.supercategory) + 1];
+  strcpy(name, other.name);
+  strcpy(supercategory, other.supercategory);
+}
+
+Categories::Categories(Categories&& other){
+  id = other.id;
+  if(name)
+    delete[] name;
+  name = other.name;
+  other.name = nullptr;
+  if(supercategory)
+    delete[] supercategory;
+  supercategory = other.supercategory;
+  other.supercategory = nullptr;
+}
+
+Categories& Categories::operator=(const Categories& other){
+  if(this != &other){
+    id = other.id;
+    if(name)
+      delete[] name;
+    name = new char[strlen(other.name) + 1];
+    strcpy(name, other.name);
+    if(supercategory)
+      delete[] supercategory;
+    supercategory = new char[strlen(other.supercategory) + 1];
+    strcpy(supercategory, other.supercategory);
+  }
+  return *this;
+}
+
+Categories& Categories::operator=(Categories&& other){
+  if(this != &other){
+    id = other.id;
+    if(name)
+      delete[] name;
+    name = other.name;
+    other.name = nullptr;
+    if(supercategory)
+      delete[] supercategory;
+    supercategory = other.supercategory;
+    other.supercategory = nullptr;
+  }
+  return *this;
+}
+
+COCO::COCO(std::string annotation_file){
   std::ifstream ifs(annotation_file);
   IStreamWrapper isw(ifs);
   dataset.ParseStream(isw);
   assert(dataset.IsObject());
+  CreateIndex();
 }
 
 void COCO::CreateIndex(){
-  assert(dataset.IsObject());
   if(dataset.HasMember("annotations")){
     for(auto& ann : dataset["annotations"].GetArray()){
       if(imgToAnns.count(ann["image_id"].GetInt())){ // if it exists
         imgToAnns[ann["image_id"].GetInt()].emplace_back(ann);
       }
       else{
-        imgToAnns.insert(
-          {ann["image_id"].GetInt(), std::vector<Annotation> {Annotation(ann)}}
-        );
+        imgToAnns[ann["image_id"].GetInt()] = std::vector<Annotation> {Annotation(ann)};
       }
-      anns[ann["id"].GetInt()] = Annotation(ann);
+      anns[static_cast<int64_t>(ann["id"].GetDouble())] = Annotation(ann);
     }
   }
 
@@ -85,12 +211,12 @@ void COCO::CreateIndex(){
   }//ann and cat
 }
 
-std::vector<int> COCO::GetAnnIds(const std::vector<int> imgIds, 
+std::vector<int64_t> COCO::GetAnnIds(const std::vector<int> imgIds, 
                            const std::vector<int> catIds, 
                            const std::vector<float> areaRng, 
                            Crowd iscrowd)
 {
-  std::vector<int> returnAnns;
+  std::vector<int64_t> returnAnns;
   std::vector<Annotation> tmp_anns;
   if(imgIds.size() == 0 && catIds.size() == 0 && areaRng.size() == 0){
     for(auto& ann : dataset["annotations"].GetArray()){
@@ -180,7 +306,7 @@ std::vector<int> COCO::GetCatIds(const std::vector<std::string> catNms,
   
 }
 
-std::vector<Annotation> COCO::LoadAnns(std::vector<int> ids){
+std::vector<Annotation> COCO::LoadAnns(std::vector<int64_t> ids){
   std::vector<Annotation> returnAnns;
   for(auto& id : ids)
     returnAnns.push_back(anns[id]);

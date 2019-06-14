@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstring>
 #include <cassert>
+#include <algorithm>
 
 
 namespace rcnn{
@@ -183,11 +184,49 @@ CFGS::CFGS(std::string result)
           :name_(result),
           name_c_(strdup(result.c_str())){};
 
-CFGS::~CFGS(){
-  delete[] name_c_;
+CFGS::CFGS(const CFGS& other)
+    :name_(other.name_),
+     name_c_(new char[other.name_.size()+1])
+{
+  strcpy(name_c_, other.name_c_);
 }
 
-const char* CFGS::get(){
+CFGS::CFGS(CFGS&& other)
+    :name_c_(nullptr)
+{
+  name_ = other.name_;
+  name_c_ = other.name_c_;
+  other.name_c_ = nullptr;
+}
+
+CFGS& CFGS::operator=(const CFGS& other){
+  if(this != &other){
+    if(name_c_)
+      delete[] name_c_;
+    name_ = other.name_;
+    name_c_ = new char[other.name_.size()+1];
+    strcpy(name_c_, other.name_c_);
+  }
+  return *this;
+}
+
+CFGS& CFGS::operator=(CFGS&& other){
+  if(this != &other){
+    if(name_c_)
+      delete[] name_c_;
+    name_ = other.name_;
+    name_c_ = other.name_c_;
+    other.name_c_ = nullptr;
+  }
+  return *this;
+}
+
+CFGS::~CFGS(){
+  if(name_c_)
+    delete[] name_c_;
+}
+
+char* CFGS::get(){
   return name_c_;
 }
 

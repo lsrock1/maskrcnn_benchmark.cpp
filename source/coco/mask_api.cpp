@@ -1,6 +1,7 @@
 #include "mask_api.h"
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 
 
 namespace coco{
@@ -18,7 +19,7 @@ uint umax(uint a, uint b){
 void rleInit(RLE *R, siz h, siz w, siz m, uint *cnts) {
   R -> h = h;
   R -> w = w; 
-  R -> m = m; 
+  R -> m = m;
   R -> cnts = (m == 0) ? nullptr : new uint[m];
   siz j;
   if(cnts){
@@ -34,9 +35,10 @@ void rleFree(RLE *R) {
 
 void rlesInit(RLE **R, siz n) {
   siz i;
-  R = new RLE*[n];
-  for(i = 0; i < n; i++) 
+  *R = new RLE[n];
+  for(i = 0; i < n; i++){
     rleInit((*R) + i, 0, 0, 0, 0);
+  }
 }
 
 void rlesFree(RLE **R, siz n) {
@@ -71,12 +73,16 @@ void rleEncode(RLE *R, const byte *mask, siz h, siz w, siz n){
 }
 
 void rleDecode(const RLE *R, byte *M, siz n){
-  siz i, j, k; 
+  siz i, j, k;
+  int index = 0;
   for(i = 0; i < n; i++ ){
     byte v = 0; 
     for(j = 0; j < R[i].m; j++){
-      for(k = 0; k < R[i].cnts[j]; k++)
+      for(k = 0; k < R[i].cnts[j]; k++){
         *(M++) = v;
+        if(v != 1 && v != 0)
+          std::cout << "decode " << "\n";
+      }
       v = !v;
     }
   }
@@ -314,13 +320,30 @@ char* rleToString( const RLE *R ) {
   s[p]=0; return s;
 }
 
-void rleFrString( RLE *R, char *s, siz h, siz w ) {
+// void rleFrString( RLE *R, char *s, siz h, siz w ) {
+//   siz m=0, p=0, k; long x; int more; uint *cnts;
+//   while( s[m] ) m++; cnts = new uint[m]; m = 0;//malloc(sizeof(uint)*m); m=0;
+//   while( s[p] ) {
+//     x=0; k=0; more=1;
+//     while( more ) {
+//       char c=s[p]-48; x |= (c & 0x1f) << 5*k;
+//       more = c & 0x20; p++; k++;
+//       if(!more && (c & 0x10)) x |= -1 << 5*k;
+//     }
+//     if(m>2) x+=(long) cnts[m-2]; cnts[m++]=(uint) x;
+//   }
+//   rleInit(R, h, w, m, cnts); 
+//   delete[] cnts;//free(cnts);
+// }
+
+void rleFrString( RLE *R, std::string s, siz h, siz w ) {
   siz m=0, p=0, k; long x; int more; uint *cnts;
-  while( s[m] ) m++; cnts = new uint[m]; m = 0;//malloc(sizeof(uint)*m); m=0;
-  while( s[p] ) {
+  cnts = new uint[s.size()];
+  const char* str = s.c_str();
+  while(str[p]){
     x=0; k=0; more=1;
     while( more ) {
-      char c=s[p]-48; x |= (c & 0x1f) << 5*k;
+      char c=str[p]-48; x |= (c & 0x1f) << 5*k;
       more = c & 0x20; p++; k++;
       if(!more && (c & 0x10)) x |= -1 << 5*k;
     }

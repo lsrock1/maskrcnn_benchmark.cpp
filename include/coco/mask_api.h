@@ -6,13 +6,13 @@
 * Licensed under the Simplified BSD License [see coco/license.txt]
 **************************************************************************/
 #pragma once
-
+#include <string>
 
 namespace coco{
 
-using uint = unsigned int;
-using siz = unsigned long;
-using byte = unsigned char;
+using uint = int;
+using siz = int;
+using byte = char;
 using BB = double*;
 
 struct RLE{
@@ -32,7 +32,7 @@ void rlesFree(RLE **R, siz n);
 void rleEncode(RLE *R, const byte *mask, siz h, siz w, siz n);
 
 /* Decode binary masks encoded via RLE. */
-void rleDecode(const RLE *R, const byte *mask, siz n);
+void rleDecode(const RLE *R, byte *mask, siz n);
 
 /* Compute union or intersection of encoded masks. */
 void rleMerge(const RLE *R, RLE *M, siz n, int intersect);
@@ -65,6 +65,6 @@ void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w );
 char* rleToString( const RLE *R );
 
 /* Convert from compressed string representation of encoded mask. */
-void rleFrString( RLE *R, char *s, siz h, siz w );
+void rleFrString( RLE *R, std::string s, siz h, siz w );
 
 }
