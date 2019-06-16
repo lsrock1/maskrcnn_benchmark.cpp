@@ -166,10 +166,10 @@ namespace modeling{
     torch::Tensor anchors = boxlist.get_bbox();
     torch::Tensor inds_inside;
     if(straddle_thresh_ >= 0){
-      inds_inside = (anchors.slice(/*dim=*/1, /*start=*/0, /*end=*/1) >= -straddle_thresh_)
-      .__and__(anchors.slice(/*dim=*/1, /*start=*/1, /*end=*/2) >= -straddle_thresh_)
-      .__and__(anchors.slice(/*dim=*/1, /*start=*/2, /*end=*/3) >= (image_width + straddle_thresh_))
-      .__and__(anchors.slice(/*dim=*/1, /*start=*/3, /*end=*/4) >= (image_height + straddle_thresh_));
+      inds_inside = (anchors.select(/*dim=*/1, /*index=*/0) >= -straddle_thresh_)
+      .__and__(anchors.select(/*dim=*/1, /*index=*/1) >= -straddle_thresh_)
+      .__and__(anchors.select(/*dim=*/1, /*index=*/2) >= (image_width + straddle_thresh_))
+      .__and__(anchors.select(/*dim=*/1, /*index=*/3) >= (image_height + straddle_thresh_));
     }
     else{
       inds_inside = torch::ones(anchors.size(0), torch::TensorOptions().dtype(torch::kInt8).device(anchors.device()));

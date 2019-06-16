@@ -36,10 +36,10 @@ torch::Tensor BoxCoder::decode(torch::Tensor rel_codes, torch::Tensor boxes){
   torch::Tensor ctr_y = boxes.select(1, 1) + 0.5 * heights;
   
   auto length = rel_codes.size(1);
-  torch::Tensor dx = rel_codes.slice(1, 0, length, /*step=*/4) / weights_[0];
-  torch::Tensor dy = rel_codes.slice(1, 1, length, /*step=*/4) / weights_[1];
-  torch::Tensor dw = rel_codes.slice(1, 2, length, /*step=*/4) / weights_[2];
-  torch::Tensor dh = rel_codes.slice(1, 3, length, /*step=*/4) / weights_[3];
+  torch::Tensor dx = rel_codes.slice(1, 0, length+1, /*step=*/4) / weights_[0];
+  torch::Tensor dy = rel_codes.slice(1, 1, length+1, /*step=*/4) / weights_[1];
+  torch::Tensor dw = rel_codes.slice(1, 2, length+1, /*step=*/4) / weights_[2];
+  torch::Tensor dh = rel_codes.slice(1, 3, length+1, /*step=*/4) / weights_[3];
 
   dw = torch::clamp(dw, /*max=*/bbox_xform_clip_);
   dh = torch::clamp(dh, /*max=*/bbox_xform_clip_);
@@ -50,10 +50,10 @@ torch::Tensor BoxCoder::decode(torch::Tensor rel_codes, torch::Tensor boxes){
   torch::Tensor pred_h = torch::exp(dh) * heights.unsqueeze(1);
 
   torch::Tensor pred_boxes = torch::zeros_like(rel_codes);
-  pred_boxes.slice(1, 0, length, 4).copy_(pred_ctr_x - 0.5 * pred_w);
-  pred_boxes.slice(1, 1, length, 4).copy_(pred_ctr_y - 0.5 * pred_h);
-  pred_boxes.slice(1, 2, length, 4).copy_(pred_ctr_x + 0.5 * pred_w - 1);
-  pred_boxes.slice(1, 3, length, 4).copy_(pred_ctr_y + 0.5 * pred_h - 1);
+  pred_boxes.slice(1, 0, length+1, 4).copy_(pred_ctr_x - 0.5 * pred_w);
+  pred_boxes.slice(1, 1, length+1, 4).copy_(pred_ctr_y - 0.5 * pred_h);
+  pred_boxes.slice(1, 2, length+1, 4).copy_(pred_ctr_x + 0.5 * pred_w - 1);
+  pred_boxes.slice(1, 3, length+1, 4).copy_(pred_ctr_y + 0.5 * pred_h - 1);
 
   return pred_boxes;
 }

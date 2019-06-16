@@ -57,7 +57,7 @@ Polygons Polygons::Transpose(Flip method){
   }
   for(auto& poly : polygons_){
     torch::Tensor p = poly.clone();
-    p.slice(0, idx, -1, 2) = dim - poly.slice(0, idx, -1, 2) - 1;
+    p.slice(0, idx, static_cast<int64_t>(p.size(0)) + 1, 2) = dim - poly.slice(0, idx, static_cast<int64_t>(p.size(0)) + 1, 2) - 1;
     flipped_polygons.push_back(p);
   }
   return Polygons(flipped_polygons, size_, mode_);
@@ -71,8 +71,8 @@ Polygons Polygons::Crop(std::vector<int> box){
   std::vector<torch::Tensor> cropped_polygons;
   for(auto& poly : polygons_){
     torch::Tensor p = poly.clone();
-    p.slice(0, 0, -1, 2) = p.slice(0, 0, -1, 2) - box[0];
-    p.slice(0, 1, -1, 2) = p.slice(0, 1, -1, 2) - box[1];
+    p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) - box[0];
+    p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) - box[1];
     cropped_polygons.push_back(p);
   }
 
