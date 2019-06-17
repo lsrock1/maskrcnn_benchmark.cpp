@@ -35,5 +35,5 @@ RLEs _frString(std::vector<RLEs>& rleObjs);
 RLEstr merge(std::vector<RLEstr>& rleObjs, int intersect = 0);
 std::vector<RLEstr> frPoly(std::vector<std::vector<double>>& polygon, int h, int w);
 std::vector<RLEstr> encode(byte* mask, int h, int w, int n);
-byte* decode(RLEstr rleObjs);
+coco::Masks decode(RLEstr rleObjs);
 }

@@ -8,14 +8,15 @@
 namespace rcnn{
 namespace structures{
 
-torch::Tensor ArrayToTensor(char* mask, int h, int w, int n){
-  torch::Tensor mask_tensor = torch::empty({h * w * n});
+torch::Tensor ArrayToTensor(coco::Masks mask){
+  int shape = mask._h * mask._n * mask._w;
+  torch::Tensor mask_tensor = torch::empty({shape});
   float* data = mask_tensor.data<float>();
-  for(size_t i = 0; i < h * w * n; ++i){
-    data[i] = mask[i];
+  for(size_t i = 0; i < shape; ++i){
+    data[i] = static_cast<float>(mask._mask[i]);
   }
-  delete[] mask;
-  return mask_tensor.reshape({h, w, n}).permute({2, 0, 1});
+  delete[] mask._mask;
+  return mask_tensor.reshape({static_cast<int64_t>(mask._n), static_cast<int64_t>(mask._w), static_cast<int64_t>(mask._h)}).permute({2, 1, 0});//fortran order h, w, n
 }
 
 Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode)
@@ -108,12 +109,12 @@ torch::Tensor Polygons::GetMaskTensor(){
   for(auto& poly : polygons_){
     std::vector<double> inner;
     for(int i = 0; i < poly.size(0); ++i)
-      inner.push_back(poly.select(0, i).item<double>());  
+      inner.push_back(poly.select(0, i).item<double>());
     pl.push_back(inner);
   }
   std::vector<coco::RLEstr> rles = coco::frPoly(pl, height, width);
   coco::RLEstr rle = coco::merge(rles);
-  torch::Tensor mask = ArrayToTensor(coco::decode(rle), std::get<0>(rle.size), std::get<1>(rle.size), rles.size());
+  torch::Tensor mask = ArrayToTensor(coco::decode(rle));
   return mask;
 }
 

@@ -80,8 +80,6 @@ void rleDecode(const RLE *R, byte *M, siz n){
     for(j = 0; j < R[i].m; j++){
       for(k = 0; k < R[i].cnts[j]; k++){
         *(M++) = v;
-        if(v != 1 && v != 0)
-          std::cout << "decode " << "\n";
       }
       v = !v;
     }
@@ -89,70 +87,27 @@ void rleDecode(const RLE *R, byte *M, siz n){
 }
 
 void rleMerge(const RLE *R, RLE *M, siz n, int intersect) {
-  uint *cnts, c, ca, cb, cc, ct; 
-  int v, va, vb, vp;
-  siz i, a, b, h = R[0].h, w = R[0].w, m = R[0].m;
-  RLE A, B;
-  
-  if(n == 0){ 
-    rleInit(M, 0, 0, 0, 0); 
-    return; 
-  }
-  
-  if(n == 1){
-    rleInit(M, h, w, m, R[0].cnts);
-    return; 
-  }
-  cnts = new uint[h * w + 1];
-  for(a = 0; a < m; a++)
-    cnts[a] = R[0].cnts[a];
-
-  for(i = 1; i < n; i++ ){
-    B = R[i]; 
-    if(B.h != h || B.w != w){ 
-      h = w = m = 0; 
-      break; 
-    }
-
-    rleInit(&A, h, w, m, cnts);
-    ca = A.cnts[0];
-    cb = B.cnts[0];
-    v = va = vb = 0;
-    m = 0; 
-    a = b = 1; 
-    cc = 0; 
-    ct = 1;
-    while(ct > 0){
-      c = umin(ca, cb);
-      cc += c;
-      ct = 0;
-      ca -= c;
-      if(!ca && a < A.m){ 
-        ca = A.cnts[a++];
-        va =! va;
-      }
-      ct += ca;
-      cb -= c;
-      
-      if(!cb && b < B.m){ 
-        cb = B.cnts[b++];
-        vb =! vb;
-      }
-      ct += cb;
-      vp = v; 
-      if(intersect)
-        v = va && vb;
-      else
-        v = va || vb;
-      if(v != vp || ct == 0){
-        cnts[m++] = cc;
-        cc = 0;
-      }
+  uint *cnts, c, ca, cb, cc, ct; int v, va, vb, vp;
+  siz i, a, b, h=R[0].h, w=R[0].w, m=R[0].m; RLE A, B;
+  if(n==0) { rleInit(M,0,0,0,0); return; }
+  if(n==1) { rleInit(M,h,w,m,R[0].cnts); return; }
+  cnts = new uint[h*w+1];
+  // cnts = malloc(sizeof(uint)*(h*w+1));
+  for( a=0; a<m; a++ ) cnts[a]=R[0].cnts[a];
+  for( i=1; i<n; i++ ) {
+    B=R[i]; if(B.h!=h||B.w!=w) { h=w=m=0; break; }
+    rleInit(&A,h,w,m,cnts); ca=A.cnts[0]; cb=B.cnts[0];
+    v=va=vb=0; m=0; a=b=1; cc=0; ct=1;
+    while( ct>0 ) {
+      c=umin(ca,cb); cc+=c; ct=0;
+      ca-=c; if(!ca && a<A.m) { ca=A.cnts[a++]; va=!va; } ct+=ca;
+      cb-=c; if(!cb && b<B.m) { cb=B.cnts[b++]; vb=!vb; } ct+=cb;
+      vp=v; if(intersect) v=va&&vb; else v=va||vb;
+      if( v!=vp||ct==0 ) { cnts[m++]=cc; cc=0; }
     }
     rleFree(&A);
   }
-  rleInit(M, h, w, m, cnts);
-  delete[] cnts;
+  rleInit(M,h,w,m,cnts); delete[] cnts;//free(cnts);
 }
 
 void rleArea(const RLE *R, siz n, uint *a) {
@@ -290,7 +245,7 @@ void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w ) {
   k=m;
   a = new uint[k+1]; //malloc(sizeof(uint)*(k+1));
   for( j=0; j<k; j++ ) a[j]=(uint)(x[j]*(int)(h)+y[j]);
-  a[k++]=(uint)(h*w); 
+  a[k++]=(uint)(h*w);
   delete[] u; //free(u); free(v); free(x); free(y);
   delete[] v;
   delete[] x;
@@ -311,13 +266,15 @@ char* rleToString( const RLE *R ) {
   siz i, m=R->m, p=0; long x; int more;
   char *s = new char[m*6]; //malloc(sizeof(char)*m*6);
   for( i=0; i<m; i++ ) {
-    x=(long) R->cnts[i]; if(i>2) x-=(long) R->cnts[i-2]; more=1;
+    x=static_cast<long>( R->cnts[i]); if(i>2) x-= static_cast<long>(R->cnts[i-2]); more=1;
     while( more ) {
       char c=x & 0x1f; x >>= 5; more=(c & 0x10) ? x!=-1 : x!=0;
       if(more) c |= 0x20; c+=48; s[p++]=c;
     }
   }
-  s[p]=0; return s;
+  s[p]=0; 
+  // std::cout <<"\n" << s << "\n";
+  return s;
 }
 
 // void rleFrString( RLE *R, char *s, siz h, siz w ) {

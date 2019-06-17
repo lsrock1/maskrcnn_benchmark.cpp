@@ -10,9 +10,9 @@
 
 namespace coco{
 
-using uint = int;
-using siz = int;
-using byte = char;
+using uint = unsigned int;
+using siz = unsigned long;
+using byte = unsigned char;
 using BB = double*;
 
 struct RLE{

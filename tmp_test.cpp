@@ -153,11 +153,12 @@ int main() {
   auto data = cc.get(0);
   std::vector<std::vector<std::vector<double>>> results;
   // data.target.segmentation
-  cout << data.data.sizes() << "\n";
+  // cout << data.data.sizes() << "\n";
   for(auto& target : data.target)
     results.push_back(target.segmentation);
-
+  
   auto seg = rcnn::structures::SegmentationMask(results, make_pair(data.data.size(3), data.data.size(2)), "poly");
+  cout << "end seg \n";
   cout <<seg.GetMaskTensor().sizes();
   //   cout << "========\n";
   // cout << data.target;

@@ -94,7 +94,7 @@ std::vector<RLEstr> RLEs::toString(){
 }
 
 Masks::Masks(coco::siz h, coco::siz w, coco::siz n){
-  _mask = new char[h*w*n];
+  _mask = new coco::byte[h*w*n];
   _n = n;
   _h = h;
   _w = w;
@@ -129,13 +129,13 @@ std::vector<RLEstr> frPoly(std::vector<std::vector<double>>& polygon, int h, int
   return Rs.toString();
 }
 
-byte* decode(RLEstr rleObjs){
+Masks decode(RLEstr rleObjs){
   std::vector<RLEstr> rle_vec{rleObjs};
   RLEs Rs = _frString(rle_vec);
   siz h = Rs._R[0].h, w = Rs._R[0].w, n = Rs._n;
   Masks masks = Masks(h, w, n);
   coco::rleDecode(Rs._R, masks._mask, n);
-  return masks._mask;
+  return masks;
 }
 
 std::vector<RLEstr> encode(byte* mask, int h, int w, int n){

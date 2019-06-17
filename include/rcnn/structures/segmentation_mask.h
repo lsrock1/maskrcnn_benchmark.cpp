@@ -1,5 +1,6 @@
 #pragma once
 #include <torch/torch.h>
+#include "mask.h"
 // #include <opencv4/opencv.hpp>
 
 
@@ -11,7 +12,7 @@ enum Flip{
   FLIP_TOP_BOTTOM
 };
 
-torch::Tensor ArrayToTensor(char* mask, int h, int w, int n);
+torch::Tensor ArrayToTensor(coco::Masks mask);
 
 class Polygons{
 
