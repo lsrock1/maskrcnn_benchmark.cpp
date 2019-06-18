@@ -24,7 +24,7 @@ TORCH_MODULE(Conv2d);
 
 void check_size_scale_factor(int dim);
 torch::IntArrayRef output_size(int dim);
-torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size, float scale_factor, std::string mode, bool align_corners);
+torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size/* , float scale_factor, std::string mode, bool align_corners*/);
 
 }//layers
 }//rcnn

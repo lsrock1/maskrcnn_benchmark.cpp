@@ -16,7 +16,7 @@ torch::Tensor ArrayToTensor(coco::Masks mask){
     data[i] = static_cast<float>(mask._mask[i]);
   }
   delete[] mask._mask;
-  return mask_tensor.reshape({static_cast<int64_t>(mask._n), static_cast<int64_t>(mask._w), static_cast<int64_t>(mask._h)}).permute({2, 1, 0});//fortran order h, w, n
+  return mask_tensor.reshape({static_cast<int64_t>(mask._n), static_cast<int64_t>(mask._w), static_cast<int64_t>(mask._h)}).permute({2, 1, 0}).squeeze(2);//fortran order h, w, n
 }
 
 Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode)

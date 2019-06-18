@@ -66,21 +66,35 @@ BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::s
 
 //only supports tensor field data
 void BoxList::AddField(const std::string field_name, torch::Tensor field_data){
-    this->extra_fields_[field_name] = field_data;
+  extra_fields_[field_name] = field_data;
+  if(field_name.compare("mask") == 0)
+    rles_.clear();
 }
 
-torch::Tensor BoxList::GetField(const std::string field_name){
-    return this->extra_fields_.find(field_name)->second;
+void BoxList::AddField(const std::string field_name, std::vector<coco::RLEstr> rles){
+  rles_ = rles;
+  if(extra_fields_.count(field_name))
+    extra_fields_.erase(field_name);
+}
+
+template<>
+std::vector<coco::RLEstr> BoxList::GetField(const std::string field_name){
+  return rles_;
 }
 
 bool BoxList::HasField(const std::string field_name){
-    return this->extra_fields_.count(field_name) ? true : false;
+  if(field_name.compare("mask") == 0 && rles_.size() > 0)
+    return true;
+
+  return extra_fields_.count(field_name) ? true : false;
 }
 
 std::vector<std::string> BoxList::Fields(){
     std::vector<std::string> keys;
     for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
-        keys.push_back(i->first);
+      keys.push_back(i->first);
+    if(extra_fields_.count("mask") == 0 && rles_.size() > 0)
+      keys.push_back("mask");
     return keys;
 }
 
@@ -138,11 +152,13 @@ std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
 
 void BoxList::CopyExtraFields(const BoxList bbox){
     if(!bbox.get_extra_fields().empty()){
-        auto extra_field_src = bbox.get_extra_fields();
-        for(auto i = extra_field_src.begin(); i != extra_field_src.end(); ++i){
-            this->extra_fields_[i->first] = i->second;
-        }
+      auto extra_field_src = bbox.get_extra_fields();
+      for(auto i = extra_field_src.begin(); i != extra_field_src.end(); ++i){
+        extra_fields_[i->first] = i->second;
+      }
     }
+    if(bbox.get_rles().size() > 0)
+      rles_ = bbox.get_rles();
 }
 
 BoxList BoxList::Resize(const std::pair<Width, Height> size){
@@ -293,10 +309,10 @@ BoxList BoxList::CopyWithFields(const std::vector<std::string> fields, const boo
     BoxList bbox = BoxList(this->bbox_, this->size_, this->mode_);
     for(auto i = fields.begin(); i != fields.end(); ++i){
         if(this->HasField(*i)){
-            bbox.AddField(*i, this->GetField(*i));
+          bbox.AddField(*i, this->GetField(*i));
         }
         else if(!skip_missing){
-            throw std::invalid_argument("field is not found");
+          throw std::invalid_argument("field is not found");
         }
     }
     return bbox;
@@ -332,44 +348,49 @@ std::ostream& operator << (std::ostream& os, const BoxList& bbox){
 }
 
 std::map<std::string, torch::Tensor> BoxList::get_extra_fields() const {
-    return this->extra_fields_;
+  return extra_fields_;
+}
+
+std::vector<coco::RLEstr> BoxList::get_rles() const {
+  return rles_;
 }
 
 std::pair<Width, Height> BoxList::get_size() const {
-    return this->size_;
+  return size_;
 }
 
 torch::Device BoxList::get_device() const {
-    return this->device_;
+  return device_;
 }
 
 torch::Tensor BoxList::get_bbox() const {
-    return this->bbox_;
+  return bbox_;
 }
 
 std::string BoxList::get_mode() const {
-    return this->mode_;
+  return mode_;
 }
 
 void BoxList::set_size(const std::pair<Width, Height> size){
-    this->size_ = size;
+  size_ = size;
 }
 
 void BoxList::set_extra_fields(const std::map<std::string, torch::Tensor> fields){
-    this->extra_fields_ = fields;
+  extra_fields_ = fields;
 }
 
 void BoxList::set_bbox(const torch::Tensor bbox){
-    this->bbox_ = bbox;
-    this->device_ = bbox.device();
+  bbox_ = bbox;
+  device_ = bbox.device();
 }
 
 void BoxList::set_mode(const std::string mode){
-    this->mode_ = mode;
+  mode_ = mode;
 }
 
 void BoxList::set_mode(const char* mode){
-    this->mode_ = mode;
+  mode_ = mode;
 }
+
 }//structures
 }//rcnn
