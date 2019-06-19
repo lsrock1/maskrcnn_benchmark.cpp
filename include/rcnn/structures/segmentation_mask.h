@@ -19,8 +19,8 @@ class Polygons{
 public:
   Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode);
   Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size, std::string mode);
-  Polygons Transpose(Flip method);
-  Polygons Crop(std::vector<int> box);
+  Polygons Transpose(const Flip method);
+  Polygons Crop(const std::tuple<int, int, int, int> box);
   Polygons Resize(std::pair<int, int> size);
   // Polygons Convert(std::string mode);
   torch::Tensor GetMaskTensor();
@@ -39,13 +39,21 @@ class SegmentationMask{
 public:
   SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode);
   SegmentationMask(std::vector<Polygons> polygons, std::pair<int, int> size, std::string mode);
-  SegmentationMask Transpose(Flip method);
-  SegmentationMask Crop(std::vector<int> box);
+  SegmentationMask(const SegmentationMask& other) = default;
+  SegmentationMask(SegmentationMask&& other) = default;
+  SegmentationMask& operator=(const SegmentationMask& other) = default;
+  SegmentationMask& operator=(SegmentationMask&& other) = default;
+
+  SegmentationMask Transpose(const Flip method);
+  SegmentationMask Crop(const std::tuple<int, int, int, int> box);
+  SegmentationMask Crop(torch::Tensor box);
   SegmentationMask Resize(std::pair<int, int> size);
   SegmentationMask to();
+  int Length();
   torch::Tensor GetMaskTensor();
 
   SegmentationMask operator[](torch::Tensor item);
+  SegmentationMask operator[](const int64_t item);
 
 private:
   std::vector<Polygons> polygons_;

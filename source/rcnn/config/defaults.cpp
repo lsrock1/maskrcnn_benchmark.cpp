@@ -8,9 +8,7 @@
 namespace rcnn{
 namespace config{
 
-void SetCFGFromFile(const char*  file_path){
-  if(cfg)
-    return;
+void SetCFGFromFile(const std::string file_path){
   cfg = new YAML::Node(YAML::LoadFile(file_path));
   
   SetNode((*cfg)["MODEL"], YAML::Node());

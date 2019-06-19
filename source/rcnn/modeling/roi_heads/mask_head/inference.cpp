@@ -76,6 +76,11 @@ torch::Tensor PasteMaskInImage(torch::Tensor mask, torch::Tensor box, int64_t im
 
 Masker::Masker(float threshold, int padding) :threshold_(threshold), padding_(padding){}
 
+Masker::Masker(const Masker& other){
+  threshold_ = other.threshold_;
+  padding_ = other.padding_;
+}
+
 torch::Tensor Masker::ForwardSingleImage(torch::Tensor& masks, rcnn::structures::BoxList& boxes){
   boxes = boxes.Convert("xyxy");
   int64_t im_w, im_h;
@@ -110,6 +115,34 @@ MaskPostProcessorImpl::MaskPostProcessorImpl(Masker* masker) :masker_(masker){}
 MaskPostProcessorImpl::~MaskPostProcessorImpl(){
   if(masker_)
     delete masker_;
+}
+
+MaskPostProcessorImpl::MaskPostProcessorImpl(const MaskPostProcessorImpl& other){
+  if(masker_)
+    delete masker_;
+  masker_ = new Masker((*other.masker_));
+}
+
+MaskPostProcessorImpl::MaskPostProcessorImpl(MaskPostProcessorImpl&& other){
+  if(masker_)
+    delete masker_;
+  masker_ = other.masker_;
+  other.masker_ = nullptr;
+}
+
+MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(const MaskPostProcessorImpl& other){
+  if(masker_)
+    delete masker_;
+  masker_ = new Masker(*other.masker_);
+  return *this;
+}
+
+MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(MaskPostProcessorImpl&& other){
+  if(masker_)
+    delete masker_;
+  masker_ = other.masker_;
+  other.masker_ = nullptr;
+  return *this;
 }
 
 std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes){

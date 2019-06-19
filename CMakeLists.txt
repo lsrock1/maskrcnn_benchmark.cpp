@@ -33,10 +33,9 @@ if(CUDA_FOUND)
   string(APPEND CMAKE_CUDA_FLAGS "-DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -std=c++11")
 endif()
 
-# add_subdirectory(lib/yaml-cpp)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test/rcnn)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test/rcnn)
 add_executable(tmp.out
   tmp_test.cpp)
 

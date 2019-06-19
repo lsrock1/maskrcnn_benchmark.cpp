@@ -15,6 +15,7 @@ class Masker{
 
 public:
   Masker(float threshold = 0.5, int padding = 1);
+  Masker(const Masker& other);
   torch::Tensor ForwardSingleImage(torch::Tensor& masks, rcnn::structures::BoxList& boxes);
   std::vector<torch::Tensor> operator()(std::vector<torch::Tensor>& masks, std::vector<rcnn::structures::BoxList>& boxes);
 
@@ -29,6 +30,10 @@ public:
   MaskPostProcessorImpl(Masker* masker);
   MaskPostProcessorImpl();
   ~MaskPostProcessorImpl();
+  MaskPostProcessorImpl(const MaskPostProcessorImpl& other);
+  MaskPostProcessorImpl(MaskPostProcessorImpl&& other);
+  MaskPostProcessorImpl& operator=(const MaskPostProcessorImpl& other);
+  MaskPostProcessorImpl& operator=(MaskPostProcessorImpl&& other);
   std::vector<rcnn::structures::BoxList> forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes);
 
 private:

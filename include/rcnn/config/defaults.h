@@ -10,7 +10,7 @@ namespace{
   YAML::Node* cfg = nullptr;
 };
 
-void SetCFGFromFile(const char* file_path);
+void SetCFGFromFile(const std::string file_path);
 
 template<typename T>
 void SetNode(YAML::Node parent, T value){

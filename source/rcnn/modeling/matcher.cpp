@@ -30,6 +30,12 @@ torch::Tensor Matcher::operator()(torch::Tensor match_quality_matrix){
   return matches;
 }
 
+Matcher::Matcher(const Matcher& other){
+  high_threshold_ = other.high_threshold_;
+  low_threshold_ = other.low_threshold_;
+  allow_low_quality_matches_ = other.allow_low_quality_matches_;
+}
+
 void Matcher::SetLowQualityMatches(torch::Tensor& matches, torch::Tensor& all_matches, torch::Tensor& match_quality_matrix){
   //select highest predicted per gt additionally
   torch::Tensor highest_quality_foreach_gt, gt_pred_pairs_of_highest_quality, pred_inds_to_update;

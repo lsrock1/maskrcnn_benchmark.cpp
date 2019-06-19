@@ -5,43 +5,50 @@
 #include <vector>
 #include <torch/torch.h>
 #include <stdexcept>
+#include "segmentation_mask.h"
 #include "mask.h"
 
 
 namespace rcnn{
 namespace structures{
-  namespace{
-    using XMin = torch::Tensor;
-    using YMin = torch::Tensor;
-    using XMax = torch::Tensor;
-    using YMax = torch::Tensor;
-    using Width = int64_t;
-    using Height = int64_t;
-  }
+
+namespace{
+  using XMin = torch::Tensor;
+  using YMin = torch::Tensor;
+  using XMax = torch::Tensor;
+  using YMax = torch::Tensor;
+  using Width = int64_t;
+  using Height = int64_t;
+}
 
 class BoxList{
-  
-static const int kFlipLeftRight = 0;
-static const int kFlipTopBottom = 1;
+
 
 public:
-  BoxList() = default;
-  ~BoxList() = default;
-  BoxList(const BoxList& b) = default;
-  BoxList& operator=(const BoxList& b) = default;
+  BoxList();
+  ~BoxList();
+  BoxList(const BoxList& other);
+  BoxList& operator=(const BoxList& other);
+  BoxList(BoxList&& other);
+  BoxList& operator=(BoxList&& other);
+
   BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, const char* mode="xyxy");
   BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode="xyxy");
+  
   void AddField(const std::string field_name, torch::Tensor field_data);
   void AddField(const std::string field_name, std::vector<coco::RLEstr> rles);
+  void AddField(const std::string field_name, rcnn::structures::SegmentationMask* masks);
+
   template<typename T = torch::Tensor>
   T GetField(const std::string field_name){
     return extra_fields_.find(field_name)->second;
-  }
+  };
+  rcnn::structures::SegmentationMask* GetMasksField(const std::string field_name);
   bool HasField(const std::string field_name);
   std::vector<std::string> Fields();
   BoxList Convert(const std::string mode);
   BoxList Resize(const std::pair<Width, Height> size);
-  BoxList Transpose(const int flip_type);
+  BoxList Transpose(const Flip flip_type);
   BoxList Crop(const std::tuple<int64_t, int64_t, int64_t, int64_t> box);
   BoxList To(const torch::Device device);
   int64_t Length() const;
@@ -56,10 +63,13 @@ public:
   std::map<std::string, torch::Tensor> get_extra_fields() const;
   std::vector<coco::RLEstr> get_rles() const;
   std::pair<Width, Height> get_size() const;
+  SegmentationMask* get_masks() const;
   torch::Device get_device() const;
   torch::Tensor get_bbox() const;
   std::string get_mode() const;
+  void set_rles(const std::vector<coco::RLEstr> rles);
   void set_size(const std::pair<Width, Height> size);
+  void set_masks(SegmentationMask* masks);
   void set_extra_fields(const std::map<std::string, torch::Tensor> fields);
   void set_bbox(const torch::Tensor bbox);
   void set_mode(const std::string mode);
@@ -71,13 +81,16 @@ public:
 private:
   std::map<std::string, torch::Tensor> extra_fields_;
   std::vector<coco::RLEstr> rles_;
-  torch::Device device_;
+  rcnn::structures::SegmentationMask* masks_{nullptr};
+  torch::Device device_{nullptr};
   torch::Tensor bbox_;
   std::pair<int64_t, int64_t> size_;
   std::string mode_;
   void CopyExtraFields(const BoxList box);
   std::tuple<XMin, YMin, XMax, YMax> SplitIntoXYXY();
+
 friend std::ostream& operator << (std::ostream& os, const BoxList& bbox);
 };
+
 }
 }

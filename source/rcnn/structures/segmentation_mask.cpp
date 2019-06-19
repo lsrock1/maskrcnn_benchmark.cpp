@@ -3,7 +3,7 @@
 #include "conv2d.h"
 #include <algorithm>
 #include <cassert>
-#include <iostream>
+
 
 namespace rcnn{
 namespace structures{
@@ -44,7 +44,7 @@ Polygons::Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size
   mode_ = mode;
 }
 
-Polygons Polygons::Transpose(Flip method){
+Polygons Polygons::Transpose(const Flip method){
   std::vector<torch::Tensor> flipped_polygons;
   int width = std::get<0>(size_), height = std::get<1>(size_);
   int dim, idx;
@@ -64,16 +64,16 @@ Polygons Polygons::Transpose(Flip method){
   return Polygons(flipped_polygons, size_, mode_);
 }
 
-Polygons Polygons::Crop(std::vector<int> box){
-  int w = box[2] - box[0], h = box[3] - box[1];
+Polygons Polygons::Crop(const std::tuple<int, int, int, int> box){
+  int w = std::get<2>(box) - std::get<0>(box), h = std::get<3>(box) - std::get<1>(box);
   w = std::max(w, 1);
   h = std::max(h, 1);
 
   std::vector<torch::Tensor> cropped_polygons;
   for(auto& poly : polygons_){
     torch::Tensor p = poly.clone();
-    p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) - box[0];
-    p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) - box[1];
+    p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 0, static_cast<int64_t>(p.size(0)) + 1, 2) - std::get<0>(box);
+    p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) = p.slice(0, 1, static_cast<int64_t>(p.size(0)) + 1, 2) - std::get<1>(box);
     cropped_polygons.push_back(p);
   }
 
@@ -142,7 +142,7 @@ SegmentationMask::SegmentationMask(std::vector<Polygons> polygons, std::pair<int
   mode_ = mode;
 }
 
-SegmentationMask SegmentationMask::Transpose(Flip method){
+SegmentationMask SegmentationMask::Transpose(const Flip method){
   std::vector<Polygons> flipped;
   for(auto& poly : polygons_)
     flipped.push_back(poly.Transpose(method));
@@ -150,11 +150,20 @@ SegmentationMask SegmentationMask::Transpose(Flip method){
   return SegmentationMask(flipped, size_, mode_);
 }
 
-SegmentationMask SegmentationMask::Crop(std::vector<int> box){
-  int w = box[2] - box[0], h = box[3] - box[1];
+SegmentationMask SegmentationMask::Crop(const std::tuple<int, int, int, int> box){
+  int w = std::get<2>(box) - std::get<0>(box), h = std::get<3>(box) - std::get<1>(box);
   std::vector<Polygons> cropped;
   for(auto& poly : polygons_)
     cropped.push_back(poly.Crop(box));
+  return SegmentationMask(cropped, std::make_pair(w, h), mode_);
+}
+
+SegmentationMask SegmentationMask::Crop(torch::Tensor box){
+  assert(box.size(0) == 4);
+  int w = box.select(0, 2).item<int>() - box.select(0, 0).item<int>(), h = box.select(0, 3).item<int>() - box.select(0, 1).item<int>();
+  std::vector<Polygons> cropped;
+  for(auto& poly : polygons_)
+    cropped.push_back(poly.Crop(std::make_tuple(box.select(0, 0).item<int>(), box.select(0, 1).item<int>(), box.select(0, 2).item<int>(), box.select(0, 3).item<int>())));
   return SegmentationMask(cropped, std::make_pair(w, h), mode_);
 }
 
@@ -167,6 +176,10 @@ SegmentationMask SegmentationMask::Resize(std::pair<int, int> size){
 
 SegmentationMask SegmentationMask::to(){
   return *this;
+}
+
+int SegmentationMask::Length(){
+  return polygons_.size();
 }
 
 SegmentationMask SegmentationMask::operator[](torch::Tensor item){
@@ -184,10 +197,14 @@ SegmentationMask SegmentationMask::operator[](torch::Tensor item){
     //index_select
     int length = item.size(0);
     for(size_t i = 0; i < length; ++i){
-      selected_polygons.push_back(polygons_[item.select(0, i).item<int>()]);
+      selected_polygons.push_back(polygons_[item.select(0, i).item<int64_t>()]);
     }
     return SegmentationMask(selected_polygons, size_, mode_);
   }
+}
+
+SegmentationMask SegmentationMask::operator[](const int64_t item){
+  return SegmentationMask(std::vector<Polygons>{polygons_[item]}, size_, mode_);
 }
 
 torch::Tensor SegmentationMask::GetMaskTensor(){

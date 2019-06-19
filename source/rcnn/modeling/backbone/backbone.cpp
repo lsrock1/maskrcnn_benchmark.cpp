@@ -8,14 +8,25 @@
 namespace rcnn{
 namespace modeling{
 
-torch::nn::Sequential BuildResnetBackbone(){
+BackboneImpl::BackboneImpl(torch::nn::Sequential backbone, int64_t out_channels) : backbone_(register_module("backbone", backbone)), out_channels_(out_channels){};
+
+std::vector<torch::Tensor> BackboneImpl::forward(torch::Tensor x){
+  return backbone_->forward<std::vector<torch::Tensor>>(x);
+}
+
+int64_t BackboneImpl::get_out_channels(){
+  return out_channels_;
+}
+
+Backbone BuildResnetBackbone(){
   torch::nn::Sequential model;
   auto body = ResNet();
   model->push_back(body);
-  return model;
+  auto backbone = Backbone(model, rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "BACKBONE_OUT_CHANNELS"}));
+  return backbone;
 }
 
-torch::nn::Sequential BuildResnetFPNBackbone(){
+Backbone BuildResnetFPNBackbone(){
   torch::nn::Sequential model;
   ResNet body = ResNet();
   int64_t in_channels_stage2 = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES2_OUT_CHANNELS"});
@@ -34,13 +45,14 @@ torch::nn::Sequential BuildResnetFPNBackbone(){
       rcnn::layers::ConvWithKaimingUniform
     )
   );
-  return model;
+  auto backbone = Backbone(model, out_channels);
+  return backbone;
 }
   
-torch::nn::Sequential BuildBackbone(){
+Backbone BuildBackbone(){
   rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
   rcnn::registry::backbone build_function = rcnn::registry::BACKBONES(name.get());
-  torch::nn::Sequential model = build_function();
+  Backbone model = build_function();
   return model;
 }
 
