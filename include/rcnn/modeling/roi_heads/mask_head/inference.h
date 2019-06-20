@@ -24,7 +24,7 @@ private:
   int padding_;
 };
 
-class MaskPostProcessorImpl : torch::nn::Module{
+class MaskPostProcessorImpl : public torch::nn::Module{
 
 public:
   MaskPostProcessorImpl(Masker* masker);
@@ -42,7 +42,7 @@ private:
 
 TORCH_MODULE(MaskPostProcessor);
 
-class MaskPostProcessorCOCOFormatImpl : MaskPostProcessorImpl{
+class MaskPostProcessorCOCOFormatImpl : public MaskPostProcessorImpl{
 
 public:
   MaskPostProcessorCOCOFormatImpl(Masker* masker): MaskPostProcessorImpl(masker){};

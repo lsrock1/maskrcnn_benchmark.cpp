@@ -19,11 +19,11 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
-
-  auto z = torch::zeros({3, 3});
-  cout << z.index_select(1, torch::tensor({0., 1.}).to(torch::kInt64)).sizes() << "\n";
-
-  z.select(1, 0) = torch::ones({1});
+  auto model = rcnn::modeling::BuildDetectionModel();
+  model->to(torch::kCUDA);
+  auto input = torch::zeros({2, 3, 800, 800}).to(torch::kCUDA);
+  std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
+  cout << model_results << "\n";
   // cout << z << "\n";
   // torch::nn::Sequential model;
   // {

@@ -6,7 +6,7 @@
 namespace rcnn{
 namespace modeling{
 
-class BackboneImpl : torch::nn::Module{
+class BackboneImpl : public torch::nn::Module{
 
 public:
   explicit BackboneImpl(torch::nn::Sequential backbone, int64_t out_channels);

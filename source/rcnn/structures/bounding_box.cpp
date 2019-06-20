@@ -389,32 +389,32 @@ int64_t BoxList::Length() const {
 }
 
 BoxList BoxList::ClipToImage(const bool remove_empty){
-    int TO_REMOVE = 1;
-    torch::Tensor bbox_tensor = torch::cat({
-        this->bbox_.narrow(/*dim*/1, /*start*/0, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(this->size_) - TO_REMOVE),
-        this->bbox_.narrow(/*dim*/1, /*start*/1, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(this->size_) - TO_REMOVE),
-        this->bbox_.narrow(/*dim*/1, /*start*/2, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(this->size_) - TO_REMOVE),
-        this->bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(this->size_) - TO_REMOVE)}, 1);
-    if(remove_empty){
-        auto keep = (bbox_tensor.narrow(1, 3, 1) > bbox_tensor.narrow(1, 1, 1)).__and__((bbox_tensor.narrow(1, 2, 1) > bbox_tensor.narrow(1, 0, 1)));
-        return (*this)[keep];
-    }
-    return *this;
+  int TO_REMOVE = 1;
+  torch::Tensor bbox_tensor = torch::cat({
+    bbox_.narrow(/*dim*/1, /*start*/0, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE),
+    bbox_.narrow(/*dim*/1, /*start*/1, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE),
+    bbox_.narrow(/*dim*/1, /*start*/2, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE),
+    bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE)}, 1);
+  if(remove_empty){
+    auto keep = (bbox_tensor.narrow(1, 3, 1) > bbox_tensor.narrow(1, 1, 1)).__and__((bbox_tensor.narrow(1, 2, 1) > bbox_tensor.narrow(1, 0, 1)));
+    return (*this)[keep];
+  }
+  return *this;
 }
 
 torch::Tensor BoxList::Area(){
-    if(this->mode_.compare("xyxy") == 0){
-        int TO_REMOVE = 1;
-        torch::Tensor area = (this->bbox_.narrow(1, 2, 1) - this->bbox_.narrow(1, 0, 1) + TO_REMOVE) * (this->bbox_.narrow(1, 3, 1) - this->bbox_.narrow(1, 1, 1) + TO_REMOVE);
-        return area;
-    }
-    else if(this->mode_.compare("xywh") == 0){
-        torch::Tensor area = this->bbox_.narrow(1, 2, 1) * this->bbox_.narrow(1, 3, 1);
-        return area;
-    }
-    else{
-        throw std::invalid_argument("field is not found");
-    }
+  if(mode_.compare("xyxy") == 0){
+    int TO_REMOVE = 1;
+    torch::Tensor area = (bbox_.narrow(1, 2, 1) - bbox_.narrow(1, 0, 1) + TO_REMOVE) * (bbox_.narrow(1, 3, 1) - bbox_.narrow(1, 1, 1) + TO_REMOVE);
+    return area;
+  }
+  else if(mode_.compare("xywh") == 0){
+    torch::Tensor area = bbox_.narrow(1, 2, 1) * bbox_.narrow(1, 3, 1);
+    return area;
+  }
+  else{
+    throw std::invalid_argument("field is not found");
+  }
 }
 
 BoxList BoxList::CopyWithFields(const std::vector<std::string> fields, const bool skip_missing){
@@ -456,12 +456,12 @@ BoxList BoxList::RemoveSmallBoxes(const int min_size){
 }
 
 std::ostream& operator << (std::ostream& os, const BoxList& bbox){
-    os << "BoxList(";
-    os << "num_boxes=" << bbox.Length() << ", ";
-    os << "image_width=" << std::get<0>(bbox.get_size()) << ", ";
-    os << "image_height=" << std::get<1>(bbox.get_size()) << ", ";
-    os << "mode=" << bbox.get_mode() << ")" << std::endl;
-    return os;
+  os << "BoxList(";
+  os << "num_boxes=" << bbox.Length() << ", ";
+  os << "image_width=" << std::get<0>(bbox.get_size()) << ", ";
+  os << "image_height=" << std::get<1>(bbox.get_size()) << ", ";
+  os << "mode=" << bbox.get_mode() << ")" << std::endl;
+  return os;
 }
 
 std::map<std::string, torch::Tensor> BoxList::get_extra_fields() const {

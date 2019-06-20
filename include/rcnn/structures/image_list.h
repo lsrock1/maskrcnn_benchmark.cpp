@@ -22,8 +22,9 @@ class ImageList{
     std::vector<std::pair<Height, Width>> image_sizes_;
 };
 
-  ImageList ToImageList(torch::Tensor tensors, int size_divisible = 0);
-  ImageList ToImageList(ImageList tensors, int size_divisible = 0);
-  ImageList ToImageList(std::vector<torch::Tensor> tensors, int size_divisible = 0);
+ImageList ToImageList(torch::Tensor tensors, int size_divisible = 0);
+ImageList ToImageList(ImageList tensors, int size_divisible = 0);
+ImageList ToImageList(std::vector<torch::Tensor> tensors, int size_divisible = 0);
+
 }
 }
