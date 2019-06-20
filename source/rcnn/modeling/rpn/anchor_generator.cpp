@@ -1,6 +1,7 @@
 #include "rpn/anchor_generator.h"
 #include "defaults.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
@@ -143,20 +144,34 @@ namespace modeling{
   std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::vector<torch::Tensor> feature_maps){
     std::vector<std::pair<int64_t, int64_t>> grid_sizes;
     std::vector<std::vector<rcnn::structures::BoxList>> anchors;
+    std::cout << "start anchor generate\n";
+    std::cout << "feature map size : " << feature_maps.size() << "\n";
     for(auto i = 0; i < feature_maps.size(); ++i){
       grid_sizes.push_back(std::make_pair(feature_maps[i].size(2), feature_maps[i].size(3)));
     }
+    std::cout << "anchor size save\n";
     std::vector<torch::Tensor> anchors_over_all_feature_maps = GridAnchors(grid_sizes);
+    std::cout << "generate anchors" << anchors_over_all_feature_maps[0].sizes() << "\n";
     auto image_sizes = image_list.get_image_sizes();
+    std::cout << image_sizes << "\n";
     for(auto& image_size: image_sizes){
       std::vector<rcnn::structures::BoxList> anchors_in_image;
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
+        std::cout << "loop\n";
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");
+
+        rcnn::structures::BoxList test(boxlist);
+        std::cout << "start add visibi\n";
         AddVisibilityTo(boxlist);
+        std::cout << "end add visibi\n";
         anchors_in_image.push_back(boxlist);
+        std::cout << "end push back\n";
       }
+      std::cout << "push start\n";
       anchors.push_back(anchors_in_image);
+      std::cout << "push complete\n";
     }
+    std::cout << "start anchor generate end\n";
     return anchors;
   }
 

@@ -1,10 +1,14 @@
 #include "detector/generalized_rcnn.h"
+#include <iostream>
 
 
 namespace rcnn{
 namespace modeling{
 
-GeneralizedRCNNImpl::GeneralizedRCNNImpl() : backbone(BuildBackbone()), rpn(BuildRPN(backbone->get_out_channels())), roi_heads(BuildROIBoxHead(backbone->get_out_channels())){}
+GeneralizedRCNNImpl::GeneralizedRCNNImpl() 
+  :backbone(BuildBackbone()), 
+   rpn(BuildRPN(backbone->get_out_channels())),
+   roi_heads(BuildROIHeads(backbone->get_out_channels())){}
 
 template<>
 std::map<std::string, torch::Tensor> GeneralizedRCNNImpl::forward(std::vector<torch::Tensor> images, std::vector<rcnn::structures::BoxList> targets){
@@ -52,10 +56,9 @@ std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(std::vector<
   torch::Tensor x;
   rcnn::structures::ImageList imageList = rcnn::structures::ToImageList(images);
   std::map<std::string, torch::Tensor> proposal_losses, detector_losses, losses;
-
+  
   std::vector<torch::Tensor> features = backbone->forward(imageList.get_tensors());
   std::tie(proposals, proposal_losses) = rpn->forward(imageList, features);
-
   if(roi_heads)
     std::tie(x, result, detector_losses) = roi_heads->forward(features, proposals);
   else
@@ -70,10 +73,10 @@ std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(rcnn::struct
   torch::Tensor x;
   rcnn::structures::ImageList imageList = rcnn::structures::ToImageList(images);
   std::map<std::string, torch::Tensor> proposal_losses, detector_losses, losses;
-
+  
   std::vector<torch::Tensor> features = backbone->forward(imageList.get_tensors());
   std::tie(proposals, proposal_losses) = rpn->forward(imageList, features);
-
+  
   if(roi_heads)
     std::tie(x, result, detector_losses) = roi_heads->forward(features, proposals);
   else

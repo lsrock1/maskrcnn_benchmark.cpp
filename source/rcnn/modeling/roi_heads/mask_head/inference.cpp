@@ -202,7 +202,7 @@ MaskPostProcessor MakeRoiMaskPostProcessor(){
     return MaskPostProcessor(masker);
   }
   else
-    return MaskPostProcessor();
+    return MaskPostProcessor(nullptr);
 }
 
 }//modeling

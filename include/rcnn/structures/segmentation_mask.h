@@ -39,7 +39,7 @@ class SegmentationMask{
 public:
   SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode);
   SegmentationMask(std::vector<Polygons> polygons, std::pair<int, int> size, std::string mode);
-  SegmentationMask(const SegmentationMask& other) = default;
+  SegmentationMask(const SegmentationMask& other);
   SegmentationMask(SegmentationMask&& other) = default;
   SegmentationMask& operator=(const SegmentationMask& other) = default;
   SegmentationMask& operator=(SegmentationMask&& other) = default;

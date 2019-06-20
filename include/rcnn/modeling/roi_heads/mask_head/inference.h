@@ -28,7 +28,6 @@ class MaskPostProcessorImpl : public torch::nn::Module{
 
 public:
   MaskPostProcessorImpl(Masker* masker);
-  MaskPostProcessorImpl();
   ~MaskPostProcessorImpl();
   MaskPostProcessorImpl(const MaskPostProcessorImpl& other);
   MaskPostProcessorImpl(MaskPostProcessorImpl&& other);

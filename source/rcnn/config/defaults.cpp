@@ -13,6 +13,7 @@ void SetCFGFromFile(const std::string file_path){
   
   SetNode((*cfg)["MODEL"], YAML::Node());
   SetNode((*cfg)["MODEL"]["RPN_ONLY"], false);
+  SetNode((*cfg)["MODEL"]["MASK_ON"], false);
   SetNode((*cfg)["MODEL"]["RETINANET_ON"], false);
   SetNode((*cfg)["MODEL"]["KEYPOINT_ON"], false);
   SetNode((*cfg)["MODEL"]["DEVICE"], "cuda");

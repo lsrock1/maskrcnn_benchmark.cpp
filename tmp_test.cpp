@@ -17,11 +17,14 @@ using namespace coco;
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("/home/ocrusr/pytorch/maskrcnn_benchmark.cpp/e2e_faster_rcnn_R_50_C4_1x.yaml");
+  rcnn::config::SetCFGFromFile("../e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
+  // auto roi_head = rcnn::modeling::BuildROIMaskHead(14);
+  // cout << "end roi\n";
   auto model = rcnn::modeling::BuildDetectionModel();
-  model->to(torch::kCUDA);
-  auto input = torch::zeros({2, 3, 800, 800}).to(torch::kCUDA);
+  // model->to(torch::kCUDA);
+  model->eval();
+  std::vector<torch::Tensor> input{torch::zeros({1, 3, 224, 224}), torch::zeros({1, 3, 224, 224})};
   std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
   cout << model_results << "\n";
   // cout << z << "\n";
@@ -36,7 +39,7 @@ int main() {
   // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
   // for(auto& i: m->named_parameters())
   //   cout << i.key() << "\n";
-  auto head = rcnn::modeling::MakeROIMaskPredictor(256);
+  // auto head = rcnn::modeling::MakeROIMaskPredictor(256);
   // cout << head << endl;
   // head->to(torch::kCUDA);
   // cout << m << endl;
@@ -154,18 +157,18 @@ int main() {
   // cout << masked_bbox << endl;
   // cout << masked_bbox.get_bbox() << endl;
 
-  auto cc = rcnn::data::COCODetection("/home/ocrusr/datasets/MSCOCO/val2017", "/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
-  //COCO cc = COCO("/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
-  auto data = cc.get(0);
-  std::vector<std::vector<std::vector<double>>> results;
-  // data.target.segmentation
-  // cout << data.data.sizes() << "\n";
-  for(auto& target : data.target)
-    results.push_back(target.segmentation);
+  // auto cc = rcnn::data::COCODetection("/home/ocrusr/datasets/MSCOCO/val2017", "/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
+  // //COCO cc = COCO("/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
+  // auto data = cc.get(0);
+  // std::vector<std::vector<std::vector<double>>> results;
+  // // data.target.segmentation
+  // // cout << data.data.sizes() << "\n";
+  // for(auto& target : data.target)
+  //   results.push_back(target.segmentation);
   
-  auto seg = rcnn::structures::SegmentationMask(results, make_pair(data.data.size(3), data.data.size(2)), "poly");
-  cout << "end seg \n";
-  cout <<seg.GetMaskTensor().sizes();
+  // auto seg = rcnn::structures::SegmentationMask(results, make_pair(data.data.size(3), data.data.size(2)), "poly");
+  // cout << "end seg \n";
+  // cout <<seg.GetMaskTensor().sizes();
   //   cout << "========\n";
   // cout << data.target;
   return 0;

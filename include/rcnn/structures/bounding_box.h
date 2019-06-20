@@ -32,7 +32,6 @@ public:
   BoxList(BoxList&& other);
   BoxList& operator=(BoxList&& other);
 
-  BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, const char* mode="xyxy");
   BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode="xyxy");
   
   void AddField(const std::string field_name, torch::Tensor field_data);

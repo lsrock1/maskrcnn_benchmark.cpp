@@ -8,7 +8,7 @@ namespace modeling{
 GeneralizedRCNN BuildDetectionModel(){
   auto arch = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "META_ARCHITECTURE"});
   std::string arch_name(arch.get());
-  if(arch_name.compare("GeneralizedRCNN"))
+  if(arch_name.compare("GeneralizedRCNN") == 0)
     return GeneralizedRCNN();
 
   assert(false);

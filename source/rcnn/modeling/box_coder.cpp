@@ -6,7 +6,7 @@ namespace modeling{
   
 BoxCoder::BoxCoder(std::vector<float> weights, double bbox_xform_clip)
                   :weights_(weights),
-                    bbox_xform_clip_(bbox_xform_clip){}
+                   bbox_xform_clip_(bbox_xform_clip){}
 
 torch::Tensor BoxCoder::encode(torch::Tensor reference_boxes, torch::Tensor proposals){
   int TO_REMOVE = 1;

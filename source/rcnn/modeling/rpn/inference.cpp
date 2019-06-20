@@ -156,7 +156,7 @@ RPNPostProcessor MakeRPNPostprocessor(BoxCoder& rpn_box_coder, bool is_train){
   return RPNPostProcessor(
     pre_nms_top_n,
     post_nms_top_n,
-    rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", "NMS_THRESH"}),
+    rcnn::config::GetCFG<float>({"MODEL", "RPN", "NMS_THRESH"}),
     rcnn::config::GetCFG<int64_t>({"MODEL", "RPN", "MIN_SIZE"}),
     rpn_box_coder,
     fpn_post_nms_top_n,

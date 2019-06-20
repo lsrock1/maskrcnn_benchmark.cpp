@@ -7,7 +7,6 @@ namespace modeling{
 CombinedROIHeadsImpl::CombinedROIHeadsImpl(std::set<std::string> heads, int64_t in_channels){
   if(heads.count("mask"))
     mask = register_module("mask", BuildROIMaskHead(in_channels));
-  
   if(heads.count("box"))
     box = register_module("box", BuildROIBoxHead(in_channels));
 }
@@ -59,7 +58,7 @@ std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::
 
 CombinedROIHeads BuildROIHeads(int64_t out_channels){
   std::set<std::string> roi_heads;
-
+  
   if(!rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})){
     roi_heads.insert("box");
   }
@@ -68,7 +67,6 @@ CombinedROIHeads BuildROIHeads(int64_t out_channels){
   }
   if(rcnn::config::GetCFG<bool>({"MODEL", "MASK_ON"}))
     roi_heads.insert("mask");
-  
   return CombinedROIHeads(roi_heads, out_channels);
 }
 

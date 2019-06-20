@@ -54,12 +54,6 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
 BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"){}
 
 //size<width, height>
-BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, const char* mode)
-    : device_(bbox.device()),
-      size_(image_size),
-      bbox_(bbox),
-      mode_(mode){};
-
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
     : device_(bbox.device()),
       size_(image_size),
@@ -67,11 +61,14 @@ BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::s
       mode_(mode){};
 
 BoxList::~BoxList(){
+  std::cout << "delete\n";
   if(masks_)
     delete masks_;
 }
 
 BoxList::BoxList(const BoxList& other){
+  std::cout << "d1\n";
+
   if(masks_)
     delete masks_;
   device_ = other.device_;
@@ -84,19 +81,24 @@ BoxList::BoxList(const BoxList& other){
 }
 
 BoxList& BoxList::operator=(const BoxList& other){
-  if(masks_)
-    delete masks_;
-  device_ = other.device_;
-  size_ = other.size_;
-  bbox_ = other.bbox_;
-  mode_ = other.mode_;
-  extra_fields_ = other.extra_fields_;
-  rles_ = other.rles_;
-  masks_ = new SegmentationMask(*other.masks_);
+    std::cout << "delete2\n";
+  if(this != &other){
+    if(masks_)
+      delete masks_;
+    device_ = other.device_;
+    size_ = other.size_;
+    bbox_ = other.bbox_;
+    mode_ = other.mode_;
+    extra_fields_ = other.extra_fields_;
+    rles_ = other.rles_;
+    masks_ = new SegmentationMask(*other.masks_);
+  }
   return *this;
 }
 
 BoxList::BoxList(BoxList&& other){
+    std::cout << "delete3\n";
+
   if(masks_)
     delete masks_;
   device_ = other.device_;
@@ -110,16 +112,19 @@ BoxList::BoxList(BoxList&& other){
 }
 
 BoxList& BoxList::operator=(BoxList&& other){
-  if(masks_)
-    delete masks_;
-  device_ = other.device_;
-  size_ = other.size_;
-  bbox_ = other.bbox_;
-  mode_ = other.mode_;
-  extra_fields_ = other.extra_fields_;
-  rles_ = other.rles_;
-  masks_ = other.masks_;
-  other.masks_ = nullptr;
+    std::cout << "delete4\n";
+  if(this != &other){
+    if(masks_)
+      delete masks_;
+    device_ = other.device_;
+    size_ = other.size_;
+    bbox_ = other.bbox_;
+    mode_ = other.mode_;
+    extra_fields_ = other.extra_fields_;
+    rles_ = other.rles_;
+    masks_ = other.masks_;
+    other.masks_ = nullptr;
+  }
   return *this;
 }
 
@@ -223,6 +228,9 @@ std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
       splitted_box_coordinates.at(0) + (splitted_box_coordinates.at(2) - TO_REMOVE).clamp_min(0),
       splitted_box_coordinates.at(1) + (splitted_box_coordinates.at(3) - TO_REMOVE).clamp_min(0)
     );
+  }
+  else{
+    assert(false);
   }
 }
 
