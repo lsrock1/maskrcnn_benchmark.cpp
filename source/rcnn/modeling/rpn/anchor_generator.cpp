@@ -6,70 +6,69 @@
 
 namespace rcnn{
 namespace modeling{
-  namespace{
-    //anchor utils
-    //ratio_enum in original
-    torch::Tensor RepeatAnchorRatios(torch::Tensor anchor, torch::Tensor ratios){
-      torch::Tensor w, h, x, y;
-      std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
-      //ex) 32 * 32
-      torch::Tensor size = w * h;
-      //ex) (32 * 32 * 2, 32 * 32 * 1, 32 * 32 * 2)
-      torch::Tensor size_ratios = size / ratios;
-      torch::Tensor ws = torch::round(torch::sqrt(size_ratios));
-      torch::Tensor hs = torch::round(ws * ratios);
-      return MakeAnchors(ws, hs, x, y);
-    }
+//anchor utils
+//ratio_enum in original
+torch::Tensor RepeatAnchorRatios(torch::Tensor anchor, torch::Tensor ratios){
+  torch::Tensor w, h, x, y;
+  std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
+  //ex) 32 * 32
+  torch::Tensor size = w * h;
+  //ex) (32 * 32 * 2, 32 * 32 * 1, 32 * 32 * 2)
+  torch::Tensor size_ratios = size / ratios;
+  torch::Tensor ws = torch::round(torch::sqrt(size_ratios));
+  torch::Tensor hs = torch::round(ws * ratios);
+  return MakeAnchors(ws, hs, x, y);
+}
 
-    std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::Tensor anchor){
-      Width w = anchor[2] - anchor[0] + 1;
-      Height h = anchor[3] - anchor[1] + 1;
-      CoordCenterX x = anchor[0] + 0.5 * (w - 1);
-      CoordCenterY y = anchor[1] + 0.5 * (h - 1);
-      return std::make_tuple(w, h, x, y);
-    }
+std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::Tensor anchor){
+  Width w = anchor[2] - anchor[0] + 1;
+  Height h = anchor[3] - anchor[1] + 1;
+  CoordCenterX x = anchor[0] + 0.5 * (w - 1);
+  CoordCenterY y = anchor[1] + 0.5 * (h - 1);
+  return std::make_tuple(w, h, x, y);
+}
 
-    torch::Tensor MakeAnchors(Width ws, Height hs, CoordCenterX x, CoordCenterY y){
-      ws.unsqueeze_(1);
-      hs.unsqueeze_(1);
-      // (ratios, 4)
-      // 4: {xmin, ymin, xmax, ymax}
-      torch::Tensor anchors = torch::cat(
-        {
-          x - 0.5 * (ws - 1),
-          y - 0.5 * (hs - 1),
-          x + 0.5 * (ws - 1),
-          y + 0.5 * (hs - 1)
-        },
-        /*dim=*/1
-      );
-      return anchors;
-    }
+torch::Tensor MakeAnchors(Width ws, Height hs, CoordCenterX x, CoordCenterY y){
+  ws.unsqueeze_(1);
+  hs.unsqueeze_(1);
+  // (ratios, 4)
+  // 4: {xmin, ymin, xmax, ymax}
+  torch::Tensor anchors = torch::cat(
+    {
+      x - 0.5 * (ws - 1),
+      y - 0.5 * (hs - 1),
+      x + 0.5 * (ws - 1),
+      y + 0.5 * (hs - 1)
+    },
+    /*dim=*/1
+  );
+  return anchors;
+}
 
-    torch::Tensor RepeatAnchorScales(torch::Tensor anchor, torch::Tensor scales){
-      torch::Tensor w, h, x, y;
-      std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
-      torch::Tensor ws = w * scales, hs = h * scales;
-      return MakeAnchors(ws, hs, x, y);
-    }
+torch::Tensor RepeatAnchorScales(torch::Tensor anchor, torch::Tensor scales){
+  torch::Tensor w, h, x, y;
+  std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
+  torch::Tensor ws = w * scales, hs = h * scales;
+  return MakeAnchors(ws, hs, x, y);
+}
+  
+
+torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<float> aspect_ratios){
+  //ex) (0,5, 1, 2)
+  torch::Tensor aspect_ratios_tensor = torch::tensor(aspect_ratios).to(torch::kF32);
+  //ex) (32, 64, 128, 256, 512) / 16
+  torch::Tensor anchor_sizes_tensor = torch::tensor(anchor_sizes).to(torch::kF32) / base_size;
+  //(0, 0, base_size-1, base_size-1)
+  //base anchor: (0, 0) (base_size-1, base_size-1)
+  torch::Tensor anchor = torch::tensor({0., 0., (float) (base_size-1), (float) (base_size-1)}).to(torch::kF32);
+  torch::Tensor anchors = RepeatAnchorRatios(anchor, aspect_ratios_tensor);
+  std::vector<torch::Tensor> repeated_scale_anchors;
+  for(auto i = 0; i < anchors.size(0); ++i){
+    repeated_scale_anchors.push_back(RepeatAnchorScales(anchors[i], anchor_sizes_tensor));
   }
-
-  torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<float> aspect_ratios){
-    //ex) (0,5, 1, 2)
-    torch::Tensor aspect_ratios_tensor = torch::tensor(aspect_ratios).to(torch::kF32);
-    //ex) (32, 64, 128, 256, 512) / 16
-    torch::Tensor anchor_sizes_tensor = torch::tensor(anchor_sizes).to(torch::kF32) / base_size;
-    //(0, 0, base_size-1, base_size-1)
-    //base anchor: (0, 0) (base_size-1, base_size-1)
-    torch::Tensor anchor = torch::tensor({0., 0., (float) (base_size-1), (float) (base_size-1)}).to(torch::kF32);
-    torch::Tensor anchors = RepeatAnchorRatios(anchor, aspect_ratios_tensor);
-    std::vector<torch::Tensor> repeated_scale_anchors;
-    for(auto i = 0; i < anchors.size(0); ++i){
-      repeated_scale_anchors.push_back(RepeatAnchorScales(anchors[i], anchor_sizes_tensor));
-    }
-    
-    return torch::cat(repeated_scale_anchors, /*dim=*/0);
-  }
+  
+  return torch::cat(repeated_scale_anchors, /*dim=*/0);
+}
 
   int BufferListsImpl::size(){
     return buffers().size();
@@ -93,13 +92,13 @@ namespace modeling{
     std::vector<torch::Tensor> cell_anchors;
     if(anchor_strides.size() == 1){
       int64_t anchor_stride = anchor_strides[0];
-      cell_anchors.push_back(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat64));
+      cell_anchors.push_back(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat32));
     }
     else{
       assert(anchor_strides.size() == sizes.size());
       for(int i = 0; i < sizes.size(); ++i){
         std::vector<int64_t> size{sizes[i]};
-        cell_anchors.push_back(GenerateAnchors(anchor_strides[i], size, aspect_ratios).toType(torch::kFloat64));
+        cell_anchors.push_back(GenerateAnchors(anchor_strides[i], size, aspect_ratios).toType(torch::kFloat32));
       }
     }
     cell_anchors_->extend(cell_anchors);
@@ -116,10 +115,10 @@ namespace modeling{
       base_anchors = (*cell_anchors_)[i];
       
       torch::Tensor shifts_x = torch::arange(
-        /*start=*/0, /*end=*/grid_width * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat64).device(base_anchors.device())
+        /*start=*/0, /*end=*/grid_width * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat32).device(base_anchors.device())
       );
       torch::Tensor shifts_y = torch::arange(
-        /*start=*/0, /*end=*/grid_height * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat64).device(base_anchors.device())
+        /*start=*/0, /*end=*/grid_height * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat32).device(base_anchors.device())
       );
       auto meshxy = torch::meshgrid({shifts_y, shifts_x});
       torch::Tensor shift_y = meshxy[0], shift_x = meshxy[1];
@@ -144,34 +143,22 @@ namespace modeling{
   std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::vector<torch::Tensor> feature_maps){
     std::vector<std::pair<int64_t, int64_t>> grid_sizes;
     std::vector<std::vector<rcnn::structures::BoxList>> anchors;
-    std::cout << "start anchor generate\n";
-    std::cout << "feature map size : " << feature_maps.size() << "\n";
     for(auto i = 0; i < feature_maps.size(); ++i){
       grid_sizes.push_back(std::make_pair(feature_maps[i].size(2), feature_maps[i].size(3)));
     }
-    std::cout << "anchor size save\n";
     std::vector<torch::Tensor> anchors_over_all_feature_maps = GridAnchors(grid_sizes);
-    std::cout << "generate anchors" << anchors_over_all_feature_maps[0].sizes() << "\n";
     auto image_sizes = image_list.get_image_sizes();
-    std::cout << image_sizes << "\n";
     for(auto& image_size: image_sizes){
       std::vector<rcnn::structures::BoxList> anchors_in_image;
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
-        std::cout << "loop\n";
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");
 
         rcnn::structures::BoxList test(boxlist);
-        std::cout << "start add visibi\n";
         AddVisibilityTo(boxlist);
-        std::cout << "end add visibi\n";
         anchors_in_image.push_back(boxlist);
-        std::cout << "end push back\n";
       }
-      std::cout << "push start\n";
       anchors.push_back(anchors_in_image);
-      std::cout << "push complete\n";
     }
-    std::cout << "start anchor generate end\n";
     return anchors;
   }
 

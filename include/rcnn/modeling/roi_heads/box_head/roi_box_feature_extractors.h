@@ -53,7 +53,7 @@ class FPNXconv1fcFeatureExtractorImpl : public torch::nn::Module{
 
 TORCH_MODULE(FPNXconv1fcFeatureExtractor);
 
-torch::nn::Sequential MakeROIBoxFeatureExtractor(int64_t in_channels);
+std::pair<torch::nn::Sequential, int64_t> MakeROIBoxFeatureExtractor(int64_t in_channels);
 
 }
 }

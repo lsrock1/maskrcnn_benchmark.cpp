@@ -5,10 +5,14 @@ namespace rcnn{
 namespace modeling{
 
 ROIBoxHeadImpl::ROIBoxHeadImpl(int64_t in_channels)
-                              :feature_extractor_(register_module("feature_extractor", MakeROIBoxFeatureExtractor(in_channels))),
-                               predictor_(register_module("predictor", MakeROIBoxPredictor(in_channels))),
-                               post_processor_(MakeROIBoxPostProcessor()),
-                               loss_evaluator_(MakeROIBoxLossEvaluator()){}
+                              :post_processor_(MakeROIBoxPostProcessor()),
+                               loss_evaluator_(MakeROIBoxLossEvaluator())
+{
+  int64_t out_channels;
+  std::tie(feature_extractor_, out_channels) = MakeROIBoxFeatureExtractor(in_channels);
+  feature_extractor_ = register_module("feature_extractor", feature_extractor_);
+  predictor_ = register_module("predictor", MakeROIBoxPredictor(out_channels));
+}
 
 std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector<torch::Tensor> features, 
                                                                      std::vector<rcnn::structures::BoxList> proposals, 

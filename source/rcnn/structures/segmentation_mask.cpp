@@ -31,18 +31,14 @@ Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int
     }
     polygons_.push_back(tmp);
   }
-  size_ = size;
-  mode_ = mode;
 }
 
 Polygons::Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size, std::string mode)
                   :mode_(mode),
-                   size_(size)
-{
-  polygons_ = polygons;
-  size_ = size;
-  mode_ = mode;
-}
+                   size_(size),
+                   polygons_(polygons){}
+
+Polygons::Polygons(const Polygons& other) :polygons_(other.polygons_), size_(other.size_), mode_(other.mode_){}
 
 Polygons Polygons::Transpose(const Flip method){
   std::vector<torch::Tensor> flipped_polygons;
@@ -127,26 +123,15 @@ std::ostream& operator << (std::ostream& os, const Polygons& bml){
   return os;
 }
 
-SegmentationMask::SegmentationMask(const SegmentationMask& other){
-  polygons_ = other.polygons_;
-  size_ = other.size_;
-  mode_ = other.mode_;
-}
+SegmentationMask::SegmentationMask(const SegmentationMask& other) :polygons_(other.polygons_), size_(other.size_), mode_(other.mode_){}
 
-SegmentationMask::SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode){
+SegmentationMask::SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode) :size_(size), mode_(mode){
   for(auto& poly : polygons){
     polygons_.emplace_back(poly, size, mode);
   }
-
-  size_ = size;
-  mode_ = mode;
 }
 
-SegmentationMask::SegmentationMask(std::vector<Polygons> polygons, std::pair<int, int> size, std::string mode){
-  polygons_ = polygons;
-  size_ = size;
-  mode_ = mode;
-}
+SegmentationMask::SegmentationMask(std::vector<Polygons> polygons, std::pair<int, int> size, std::string mode) :polygons_(polygons), size_(size), mode_(mode){}
 
 SegmentationMask SegmentationMask::Transpose(const Flip method){
   std::vector<Polygons> flipped;

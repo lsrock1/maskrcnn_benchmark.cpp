@@ -78,7 +78,7 @@ ROIAlignImpl::ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale,
 torch::Tensor ROIAlignImpl::forward(const torch::Tensor& x, torch::Tensor rois){
   const auto& x_ = torch::autograd::as_variable_ref(x);
   auto& rois_ = torch::autograd::as_variable_ref(rois);
-  auto result = torch::autograd::as_variable(ROIAlign_forward(x_, rois_, spatial_scale_, pooled_height_, pooled_width_, sampling_ratio_));
+  auto result = ROIAlign_forward(x_, rois_, spatial_scale_, pooled_height_, pooled_width_, sampling_ratio_);
   if(x.requires_grad()){
     auto grad_fn = std::shared_ptr<ROIAlignBackward>(new ROIAlignBackward(), torch::autograd::deleteFunction);
     grad_fn -> set_next_edges(torch::autograd::collect_next_edges(x));

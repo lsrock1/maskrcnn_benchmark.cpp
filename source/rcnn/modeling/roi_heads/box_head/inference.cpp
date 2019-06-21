@@ -1,5 +1,6 @@
 #include "roi_heads/box_head/inference.h"
 #include "defaults.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -73,10 +74,9 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
 
   auto device = scores.device();
   std::vector<rcnn::structures::BoxList> results_vec;
-
   torch::Tensor inds_all = scores > score_thresh_;
   for(size_t i = 1; i < num_classes; ++i){
-    torch::Tensor inds = inds_all.select(1, i).squeeze(1);
+    torch::Tensor inds = inds_all.select(1, i).nonzero().squeeze(1);
     torch::Tensor scores_i = scores.index_select(0, inds).select(1, i);
     torch::Tensor boxes_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
     rcnn::structures::BoxList boxlist_for_class = rcnn::structures::BoxList(boxes_i, boxlist.get_size(), "xyxy");

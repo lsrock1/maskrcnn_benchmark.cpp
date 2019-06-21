@@ -19,6 +19,7 @@ class Polygons{
 public:
   Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode);
   Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size, std::string mode);
+  Polygons(const Polygons& other);
   Polygons Transpose(const Flip method);
   Polygons Crop(const std::tuple<int, int, int, int> box);
   Polygons Resize(std::pair<int, int> size);

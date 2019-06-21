@@ -1,6 +1,7 @@
 #include "roi_heads/box_head/roi_box_predictors.h"
 #include "defaults.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
@@ -27,7 +28,7 @@ FastRCNNPredictorImpl::FastRCNNPredictorImpl(int64_t in_channels)
 }
 
 std::pair<torch::Tensor, torch::Tensor> FastRCNNPredictorImpl::forward(torch::Tensor x){
-  x = torch::adaptive_avg_pool2d(x, {1});
+  x = torch::adaptive_avg_pool2d(x, {1, 1});
   x = x.reshape({x.size(0), -1});
   //cls_logit, bbox_pred
   return std::make_pair(cls_score_->forward(x), bbox_pred_->forward(x));

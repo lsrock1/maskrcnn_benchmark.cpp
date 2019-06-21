@@ -41,7 +41,12 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   int64_t pre_nms_top_n = std::min(pre_nms_top_n_, num_anchors);
   torch::Tensor topk_idx;
   std::tie(objectness, topk_idx) = objectness.topk(pre_nms_top_n, /*dim=*/1, /*largest=*/true, /*sorted=*/true);
-  box_regression = box_regression.index_select(/*dim=*/1, topk_idx);
+  std::vector<torch::Tensor> box_regression_vec;
+  for(int i = 0; i < topk_idx.size(0); ++i){
+    box_regression_vec.push_back(box_regression[i].index_select(0, topk_idx[i]));
+  }
+  box_regression = torch::stack(box_regression_vec);
+  // box_regression = box_regression.index_select(/*dim=*/1, topk_idx);
   
   std::vector<std::pair<int64_t, int64_t>> image_shapes;
   std::vector<torch::Tensor> concat_anchors_vec;
@@ -51,7 +56,12 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
     concat_anchors_vec.push_back(box.get_bbox());
   }
   
-  torch::Tensor concat_anchors = torch::cat(concat_anchors_vec, /*dim=*/0).reshape({N, -1, 4}).index_select(1, topk_idx);
+  torch::Tensor concat_anchors = torch::cat(concat_anchors_vec, /*dim=*/0).reshape({N, -1, 4});
+  concat_anchors_vec.clear();
+  for(int i = 0; i < topk_idx.size(0); ++i){
+    concat_anchors_vec.push_back(concat_anchors[i].index_select(0, topk_idx[i]));
+  }
+  concat_anchors = torch::stack(concat_anchors_vec);
   auto proposals = box_coder_.decode(box_regression.view({-1, 4}), concat_anchors.view({-1, 4}));
   proposals = proposals.view({N, -1, 4});
 

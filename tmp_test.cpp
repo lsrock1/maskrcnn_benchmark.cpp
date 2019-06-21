@@ -36,25 +36,6 @@ int main() {
   // model->push_back(body);
   // }
 
-  // torch::nn::Sequential m = rcnn::modeling::BuildBackbone();
-  // for(auto& i: m->named_parameters())
-  //   cout << i.key() << "\n";
-  // auto head = rcnn::modeling::MakeROIMaskPredictor(256);
-  // cout << head << endl;
-  // head->to(torch::kCUDA);
-  // cout << m << endl;
-  // auto t = torch::randn({0, 256, 15, 15}).cuda();
-  // auto m = torch::randn({1, 256, 15, 15}).cuda();
-  // cout << head->forward(t).sizes() << endl;
-  // cout << head->forward(m).sizes() << endl;
-  // cout << head->forward(t) << 
-  // vector<torch::Tensor> results = m->forward<vector<torch::Tensor>>(t);
-  // cout << results[0].sizes() << endl;
-  // cout << results[1].sizes() << endl;
-  // cout << results[2].sizes() << endl;
-  // cout << results[3].sizes() << endl;
-  // cout << results[4].sizes() << endl;
-
 
   //to image list
   // auto toimagetest_first = torch::randn({1, 3, 10, 10});
@@ -66,23 +47,6 @@ int main() {
   // cout << img_list.get_tensors() << endl;
   //
 
-  //////////////////anchor generator
-  // int64_t stride = 16;
-  // vector<int64_t> anchor_sizes{8, 16, 32};
-  // vector<float> aspect_ratios{0.5, 1, 2};
-  // auto result_anchor = rcnn::modeling::GenerateAnchors(stride, anchor_sizes, aspect_ratios);
-  // cout << result_anchor << endl;
-
-  //original implementation result
-  // tensor([[  2.2500,   5.0000,  12.7500,  10.0000],
-  //       [ -3.5000,   2.0000,  18.5000,  13.0000],
-  //       [-15.0000,  -4.0000,  30.0000,  19.0000],
-  //       [  4.0000,   4.0000,  11.0000,  11.0000],
-  //       [  0.0000,   0.0000,  15.0000,  15.0000],
-  //       [ -8.0000,  -8.0000,  23.0000,  23.0000],
-  //       [  5.2500,   2.5000,   9.7500,  12.5000],
-  //       [  2.5000,  -3.0000,  12.5000,  18.0000],
-  //       [ -3.0000, -14.0000,  18.0000,  29.0000]], dtype=torch.float64)
 
   // vector<int64_t> feature_sizes{128, 256, 512};
   // rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();

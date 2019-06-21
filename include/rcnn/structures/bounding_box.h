@@ -81,7 +81,7 @@ private:
   std::map<std::string, torch::Tensor> extra_fields_;
   std::vector<coco::RLEstr> rles_;
   rcnn::structures::SegmentationMask* masks_{nullptr};
-  torch::Device device_{nullptr};
+  torch::Device device_;
   torch::Tensor bbox_;
   std::pair<int64_t, int64_t> size_;
   std::string mode_;

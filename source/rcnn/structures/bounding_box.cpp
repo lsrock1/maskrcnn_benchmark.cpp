@@ -51,7 +51,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   return cat_boxlists;
 }
 
-BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"){}
+BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("CPU"){}
 
 //size<width, height>
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
@@ -61,27 +61,21 @@ BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::s
       mode_(mode){};
 
 BoxList::~BoxList(){
-  std::cout << "delete\n";
   if(masks_)
     delete masks_;
 }
 
-BoxList::BoxList(const BoxList& other){
-  std::cout << "d1\n";
-
-  if(masks_)
-    delete masks_;
-  device_ = other.device_;
+BoxList::BoxList(const BoxList& other) :device_(other.device_){
   size_ = other.size_;
   bbox_ = other.bbox_;
   mode_ = other.mode_;
   extra_fields_ = other.extra_fields_;
   rles_ = other.rles_;
-  masks_ = new SegmentationMask(*other.masks_);
+  if(other.masks_)
+    masks_ = new SegmentationMask(*other.masks_);
 }
 
 BoxList& BoxList::operator=(const BoxList& other){
-    std::cout << "delete2\n";
   if(this != &other){
     if(masks_)
       delete masks_;
@@ -91,28 +85,26 @@ BoxList& BoxList::operator=(const BoxList& other){
     mode_ = other.mode_;
     extra_fields_ = other.extra_fields_;
     rles_ = other.rles_;
-    masks_ = new SegmentationMask(*other.masks_);
+    if(other.masks_)
+      masks_ = new SegmentationMask(*other.masks_);
   }
   return *this;
 }
 
-BoxList::BoxList(BoxList&& other){
-    std::cout << "delete3\n";
-
-  if(masks_)
-    delete masks_;
+BoxList::BoxList(BoxList&& other) :device_(other.device_){
   device_ = other.device_;
   size_ = other.size_;
   bbox_ = other.bbox_;
   mode_ = other.mode_;
   extra_fields_ = other.extra_fields_;
   rles_ = other.rles_;
-  masks_ = other.masks_;
-  other.masks_ = nullptr;
+  if(other.masks_){
+    masks_ = other.masks_;
+    other.masks_ = nullptr;
+  }
 }
 
 BoxList& BoxList::operator=(BoxList&& other){
-    std::cout << "delete4\n";
   if(this != &other){
     if(masks_)
       delete masks_;
@@ -122,8 +114,10 @@ BoxList& BoxList::operator=(BoxList&& other){
     mode_ = other.mode_;
     extra_fields_ = other.extra_fields_;
     rles_ = other.rles_;
-    masks_ = other.masks_;
-    other.masks_ = nullptr;
+    if(other.masks_){
+      masks_ = other.masks_;
+      other.masks_ = nullptr;
+    }
   }
   return *this;
 }

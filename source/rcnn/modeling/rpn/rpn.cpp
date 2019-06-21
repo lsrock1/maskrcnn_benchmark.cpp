@@ -89,7 +89,7 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
 }
 
 std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward_test(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& rpn_box_regression){
-  std::vector<rcnn::structures::BoxList> boxes = box_selector_train_->forward(anchors, objectness, rpn_box_regression);
+  std::vector<rcnn::structures::BoxList> boxes = box_selector_test_->forward(anchors, objectness, rpn_box_regression);
   std::map<std::string, torch::Tensor> losses;
   if(rpn_only_){
     for(auto& box: boxes){

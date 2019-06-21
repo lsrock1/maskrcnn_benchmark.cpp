@@ -6,9 +6,9 @@ namespace rcnn{
 namespace modeling{
 
 GeneralizedRCNNImpl::GeneralizedRCNNImpl() 
-  :backbone(BuildBackbone()), 
-   rpn(BuildRPN(backbone->get_out_channels())),
-   roi_heads(BuildROIHeads(backbone->get_out_channels())){}
+  :backbone(register_module("backbone", BuildBackbone())), 
+   rpn(register_module("rpn", BuildRPN(backbone->get_out_channels()))),
+   roi_heads(register_module("roi_heads", BuildROIHeads(backbone->get_out_channels()))){}
 
 template<>
 std::map<std::string, torch::Tensor> GeneralizedRCNNImpl::forward(std::vector<torch::Tensor> images, std::vector<rcnn::structures::BoxList> targets){
