@@ -111,6 +111,8 @@ COCO::COCO(std::string annotation_file){
   CreateIndex();
 }
 
+COCO::COCO(){};
+
 void COCO::CreateIndex(){
   if(dataset.HasMember("annotations")){
     for(auto& ann : dataset["annotations"].GetArray()){
@@ -267,5 +269,26 @@ std::vector<Image> COCO::LoadImgs(std::vector<int> ids){
   return returnImgs;
 }
 
+// COCO COCO::LoadRes(std::string res_file){
+//   res = COCO();
+//   //it only supports json file
+//   std::ifstream ifs(res_file);
+//   IStreamWrapper isw(ifs);
+//   Document anno;
+//   anno.ParseStream(isw);
+
+//   std::vector<int> annsImgIds;
+//   for(auto& ann : anno.GetArray())
+//     annsImgIds.push_back(ann["image_id"].GetInt());
+
+//   //no caption implementation
+
+//   if(anno[0].HasMember("bbox") && !anno[0].Empty()){
+//     //res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
+//     for(int i = 0; i < anno.Size(); ++i)
+//       auto bb = anno[i]['bbox'];
+
+//   }
+// }
 
 }//coco namespace

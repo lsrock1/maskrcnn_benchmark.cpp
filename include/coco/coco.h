@@ -61,6 +61,7 @@ struct COCO{
   std::vector<int> GetCatIds(const std::vector<std::string> catNms = std::vector<std::string>{}, const std::vector<std::string> supNms = std::vector<std::string>{}, const std::vector<int> catIds = std::vector<int>{});
   std::vector<Annotation> LoadAnns(std::vector<int64_t> ids);
   std::vector<Image> LoadImgs(std::vector<int> ids);
+  COCO LoadRes(std::string res_file);
 
   Document dataset;
   std::map<int64_t, Annotation> anns;

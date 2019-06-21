@@ -17,7 +17,7 @@ struct RCNNData{
   rcnn::structures::BoxList target;
 };
 
-class COCODataset : public torch::data::datasets::Dataset<COCODetection, torch::data::Example<torch::Tensor, RCNNData>>{
+class COCODataset : public torch::data::datasets::Dataset<COCODataset, torch::data::Example<torch::Tensor, RCNNData>>{
 
 public:
   COCODataset(std::string annFile, std::string root, bool remove_images_without_annotations);
