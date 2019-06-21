@@ -24,6 +24,7 @@ int main() {
   auto model = rcnn::modeling::BuildDetectionModel();
   // model->to(torch::kCUDA);
   model->eval();
+  cout << model << "\n";
   std::vector<torch::Tensor> input{torch::zeros({1, 3, 224, 224}), torch::zeros({1, 3, 224, 224})};
   std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
   cout << model_results << "\n";

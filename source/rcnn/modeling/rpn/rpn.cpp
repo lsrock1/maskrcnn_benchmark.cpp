@@ -33,11 +33,11 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNHeadImpl::f
 }
 
 RPNModuleImpl::RPNModuleImpl(int64_t in_channels)
-  :anchor_generator_(MakeAnchorGenerator()),
-  head_(RPNHead(in_channels, anchor_generator_->NumAnchorsPerLocation()[0])),
+  :anchor_generator_(register_module("anchor_generator", MakeAnchorGenerator())),
+  head_(register_module("rpnhead", RPNHead(in_channels, anchor_generator_->NumAnchorsPerLocation()[0]))),
   rpn_box_coder_(BoxCoder(std::vector<float>{1.0, 1.0, 1.0, 1.0})),
-  box_selector_train_(MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/true)),
-  box_selector_test_(MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/false)),
+  box_selector_train_(register_module("box_selector_train", MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/true))),
+  box_selector_test_(register_module("box_selector_test", MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/false))),
   loss_evaluator_(MakeRPNLossEvaluator(rpn_box_coder_)),
   rpn_only_(rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})){}
 

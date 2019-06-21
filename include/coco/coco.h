@@ -47,14 +47,9 @@ struct Image{
 struct Categories{
   Categories(const Value& value);
   Categories();
-  ~Categories();
-  Categories(const Categories& other);
-  Categories(Categories&& other);
-  Categories& operator=(const Categories& other);
-  Categories& operator=(Categories&& other);
   int id;
-  char* name;
-  char* supercategory;
+  std::string name;
+  std::string supercategory;
 };
 
 struct COCO{
