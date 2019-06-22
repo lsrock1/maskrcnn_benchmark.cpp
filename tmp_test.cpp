@@ -17,25 +17,15 @@ using namespace coco;
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("../e2e_faster_rcnn_R_50_C4_1x.yaml");
+  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
-  // auto roi_head = rcnn::modeling::BuildROIMaskHead(14);
-  // cout << "end roi\n";
-  auto model = rcnn::modeling::BuildDetectionModel();
-  // model->to(torch::kCUDA);
-  model->eval();
-  cout << model << "\n";
-  std::vector<torch::Tensor> input{torch::zeros({1, 3, 224, 224}), torch::zeros({1, 3, 224, 224})};
-  std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
-  cout << model_results << "\n";
-  // cout << z << "\n";
-  // torch::nn::Sequential model;
-  // {
-  // rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
-  // std::string conv_body(name.get());
-  // auto body = rcnn::modeling::ResNet(conv_body);
-  // model->push_back(body);
-  // }
+  
+  // auto model = rcnn::modeling::BuildDetectionModel();
+  // model->eval();
+  // cout << model << "\n";
+  // std::vector<torch::Tensor> input{torch::zeros({1, 3, 224, 224}), torch::zeros({1, 3, 224, 224})};
+  // std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
+  // cout << model_results << "\n";
 
 
   //to image list
@@ -123,7 +113,9 @@ int main() {
   // cout << masked_bbox.get_bbox() << endl;
 
   // auto cc = rcnn::data::COCODetection("/home/ocrusr/datasets/MSCOCO/val2017", "/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
-  // //COCO cc = COCO("/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
+  COCO cc = COCO("../resource/instances_val2017.json");
+  cout << "end coco load\n";
+  auto cc_ = cc.LoadRes("../resource/instances_val2014_fakebbox.json");
   // auto data = cc.get(0);
   // std::vector<std::vector<std::vector<double>>> results;
   // // data.target.segmentation

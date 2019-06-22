@@ -10,7 +10,7 @@ using namespace rcnn::config;
 
 TEST(backbone, build)
 {
-  std::vector<std::string> cfg_files{"../e2e_faster_rcnn_R_50_C4_1x.yaml", "../e2e_faster_rcnn_R_50_FPN_1x.yaml"};
+  std::vector<std::string> cfg_files{"../resource/e2e_faster_rcnn_R_50_C4_1x.yaml", "../resource/e2e_faster_rcnn_R_50_FPN_1x.yaml"};
   
   for(auto& file : cfg_files){
     SetCFGFromFile(file);

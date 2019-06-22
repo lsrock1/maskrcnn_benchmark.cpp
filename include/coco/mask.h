@@ -7,6 +7,8 @@
 namespace coco{
 
 struct RLEstr{
+  RLEstr(std::pair<coco::siz, coco::siz> size_, std::string counts_) : size(size_), counts(counts_){};
+  RLEstr() :size(std::make_pair(0, 0)), counts(""){};
   std::pair<coco::siz, coco::siz> size;
   std::string counts;
 };
@@ -36,4 +38,6 @@ RLEstr merge(std::vector<RLEstr>& rleObjs, int intersect = 0);
 std::vector<RLEstr> frPoly(std::vector<std::vector<double>>& polygon, int h, int w);
 std::vector<RLEstr> encode(byte* mask, int h, int w, int n);
 coco::Masks decode(RLEstr rleObjs);
+std::vector<int64_t> area(std::vector<RLEstr>& rleObjs);
+std::vector<double> toBbox(std::vector<RLEstr>& rleObjs);
 }

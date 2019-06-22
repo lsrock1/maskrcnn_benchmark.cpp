@@ -1,4 +1,5 @@
 #include "coco.h"
+#include "mask.h"
 #include <rapidjson/istreamwrapper.h>
 #include <fstream>
 #include <cassert>
@@ -115,6 +116,7 @@ COCO::COCO(){};
 
 void COCO::CreateIndex(){
   if(dataset.HasMember("annotations")){
+    assert(dataset["annotations"].IsArray());
     for(auto& ann : dataset["annotations"].GetArray()){
       if(imgToAnns.count(ann["image_id"].GetInt())){ // if it exists
         imgToAnns[ann["image_id"].GetInt()].emplace_back(ann);
@@ -133,6 +135,7 @@ void COCO::CreateIndex(){
   }
 
   if(dataset.HasMember("categories")){
+    assert(dataset["categories"].IsArray());
     for(auto& cat : dataset["categories"].GetArray()){
       cats[cat["id"].GetInt()] = Categories(cat);
     }
@@ -269,26 +272,78 @@ std::vector<Image> COCO::LoadImgs(std::vector<int> ids){
   return returnImgs;
 }
 
-// COCO COCO::LoadRes(std::string res_file){
-//   res = COCO();
-//   //it only supports json file
-//   std::ifstream ifs(res_file);
-//   IStreamWrapper isw(ifs);
-//   Document anno;
-//   anno.ParseStream(isw);
+COCO COCO::LoadRes(std::string res_file){
+  COCO res = COCO();
+  res.dataset.SetObject();
+  //it only supports json file
+  std::ifstream ifs(res_file);
+  IStreamWrapper isw(ifs);
+  Document anno;
+  anno.ParseStream(isw);
 
-//   std::vector<int> annsImgIds;
-//   for(auto& ann : anno.GetArray())
-//     annsImgIds.push_back(ann["image_id"].GetInt());
+  std::vector<int> annsImgIds;
+  for(auto& ann : anno.GetArray())
+    annsImgIds.push_back(ann["image_id"].GetInt());
 
-//   //no caption implementation
+  //no caption implementation
 
-//   if(anno[0].HasMember("bbox") && !anno[0].Empty()){
-//     //res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
-//     for(int i = 0; i < anno.Size(); ++i)
-//       auto bb = anno[i]['bbox'];
+  if(anno[0].HasMember("bbox") && !anno[0]["bbox"].Empty()){
+    Document::AllocatorType& a = res.dataset.GetAllocator(); 
+    Value copied_categories(dataset["categories"], a);
+    res.dataset.AddMember("categories", copied_categories.Move(), a);
+    for(int i = 0; i < anno.Size(); ++i){
+      Value& bb = anno[i]["bbox"];
+      int x1 = bb[0].GetDouble(), x2 = bb[0].GetDouble() + bb[1].GetDouble(), y1 = bb[1].GetDouble(), y2 = bb[1].GetDouble() + bb[3].GetDouble();
+      if(!anno[i].HasMember("segmentation")){
+        Value seg(kArrayType);
+        Value coords(kArrayType);
+        coords.PushBack(x1, a).PushBack(y1, a)
+              .PushBack(x1, a).PushBack(y2, a)
+              .PushBack(x2, a).PushBack(y1, a)
+              .PushBack(x2, a).PushBack(y2, a);
+        
+        anno[i].AddMember("segmentation", seg.PushBack(coords, a).Move(), a);
+      }
+      anno[i].AddMember("area", bb[2].GetDouble() * bb[3].GetDouble(), a);
+      anno[i].AddMember("id", i+1, a);
+      anno[i].AddMember("iscrowd", 0, a);
+    }
+  }
+  else if(anno[0].HasMember("segmentation")){
+    Document::AllocatorType& a = res.dataset.GetAllocator(); 
+    Value copied_categories(dataset["categories"], a);
+    res.dataset.AddMember("categories", copied_categories.Move(), a);
+    for(int i = 0; i < anno.Size(); ++i){
+      std::vector<RLEstr> rlestr;
+      rlestr.emplace_back(
+        std::make_pair(anno[i]["segmentation"]["size"][0].GetInt(), anno[i]["segmentation"]["size"][1].GetInt()),
+        anno[i]["segmentation"]["counts"].GetString()
+      );
+      std::vector<int64_t> seg = coco::area(rlestr);
+      Value area(kArrayType);
+      for(auto& i : seg)
+        area.PushBack(i, a);
+      
+      if(!anno[i].HasMember("bbox")){
+        std::vector<double> bbox = coco::toBbox(rlestr);
+        Value bb(kArrayType);
+        for(auto& i : bbox)
+          bb.PushBack(i, a);
+        anno[i].AddMember("bbox", bb, a);
+      }
 
-//   }
-// }
+      anno[i].AddMember("area", area, a);
+      anno[i].AddMember("id", i+1, a);
+      anno[i].AddMember("iscrowd", 0, a);
+    }
+  }
+  //no keypoints
+
+  Document::AllocatorType& a = res.dataset.GetAllocator(); 
+  Value copied_annotations(dataset["annotations"], a);
+  res.dataset.AddMember("annotations", copied_annotations.Move(), a);
+  res.CreateIndex();
+  return res;
+}
 
 }//coco namespace

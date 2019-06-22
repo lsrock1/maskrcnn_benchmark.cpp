@@ -144,4 +144,31 @@ std::vector<RLEstr> encode(byte* mask, int h, int w, int n){
   return Rs.toString();
 }
 
+std::vector<int64_t> area(std::vector<RLEstr>& rleObjs){
+  RLEs Rs = _frString(rleObjs);
+  uint* _a = new uint[Rs._n];
+  rleArea(Rs._R, Rs._n, _a);
+  // cdef np.npy_intp shape[1]
+  // shape[0] = <np.npy_intp> Rs._n
+  // a = np.array((Rs._n, ), dtype=np.uint8)
+  // a = np.PyArray_SimpleNewFromData(1, shape, np.NPY_UINT32, _a)
+  // PyArray_ENABLEFLAGS(a, np.NPY_OWNDATA)
+  std::vector<int64_t> area;
+  for(size_t i = 0; i < Rs._n; ++i)
+    area.push_back(static_cast<int64_t>(_a[i]));
+  return area;
+}
+
+std::vector<double> toBbox(std::vector<RLEstr>& rleObjs){
+  RLEs Rs = _frString(rleObjs);
+  siz n = Rs._n;
+  BB _bb = new double[4*n]; //<BB> malloc(4*n* sizeof(double))
+  rleToBbox(Rs._R, _bb, n);
+  
+  std::vector<double> bbox;
+  for(size_t i = 0; i < 4*n; ++i)
+    bbox.push_back(_bb[i]);
+  return bbox;
+}
+
 }

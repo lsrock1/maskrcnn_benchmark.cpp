@@ -21,7 +21,7 @@ class COCODataset : public torch::data::datasets::Dataset<COCODataset, torch::da
 
 public:
   COCODataset(std::string annFile, std::string root, bool remove_images_without_annotations);
-  torch::data::Example<torch::Tensor, RCNNData> get(size_t index);
+  torch::data::Example<torch::Tensor, RCNNData> get(size_t index) override;
   torch::optional<size_t> size() const override;
   coco::Image get_img_info(int64_t index);
 
