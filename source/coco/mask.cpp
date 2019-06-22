@@ -151,6 +151,7 @@ std::vector<int64_t> area(std::vector<RLEstr>& rleObjs){
   std::vector<int64_t> area;
   for(size_t i = 0; i < Rs._n; ++i)
     area.push_back(static_cast<int64_t>(_a[i]));
+  delete[] _a;
   return area;
 }
 
@@ -163,6 +164,7 @@ std::vector<double> toBbox(std::vector<RLEstr>& rleObjs){
   std::vector<double> bbox;
   for(size_t i = 0; i < 4*n; ++i)
     bbox.push_back(_bb[i]);
+  delete[] _bb;
   return bbox;
 }
 
