@@ -17,18 +17,30 @@ Annotation::Annotation(const Value& value)
                        area(value["area"].GetDouble()),
                        iscrowd(value["iscrowd"].GetInt())
 {
-  if(iscrowd){
-    for(auto& coord : value["segmentation"]["counts"].GetArray())
-      counts.push_back(coord.GetInt());
-    size = std::make_pair(value["segmentation"]["size"][0].GetInt(), value["segmentation"]["size"][1].GetInt());
+  if(value["segmentation"].IsObject()){
+    if(value["segmentation"]["counts"].IsArray()){//uncompressed rle
+      for(auto& coord : value["segmentation"]["counts"].GetArray())
+        counts.push_back(coord.GetInt());
+      size = std::make_pair(value["segmentation"]["size"][0].GetInt(), value["segmentation"]["size"][1].GetInt());
+    }
+    else if(value["segmentation"]["counts"].IsString()){//compressed rle
+      compressed_rle = value["segmentation"]["counts"].GetString();
+      size = std::make_pair(value["segmentation"]["size"][0].GetInt(), value["segmentation"]["size"][1].GetInt());
+    }
+    else{
+      assert(false);
+    }
   }
-  else{
+  else if(value["segmentation"].IsArray()){
     for(auto& polygon : value["segmentation"].GetArray()){
       std::vector<double> tmp;
       for(auto& coord : polygon.GetArray())
         tmp.push_back(coord.GetDouble());
       segmentation.push_back(tmp);
     }
+  }
+  else{
+    assert(false);
   }
   
   for(auto& bbox_value : value["bbox"].GetArray())
@@ -42,60 +54,8 @@ Image::Image(const Value& value)
              width(value["width"].GetInt()),
              height(value["height"].GetInt()),
              file_name(value["file_name"].GetString()){}
-             //file_name(strdup(value["file_name"].GetString())){}
-
-// Image::~Image(){
-//   if(file_name)
-//     delete[] file_name;
-// }
 
 Image::Image(): id(0), width(0), height(0), file_name(""){}
-
-// Image::Image(const Image& other){
-//   id = other.id;
-//   width = other.width;
-//   height = other.height;
-//   if(file_name)
-//     delete[] file_name;
-//   file_name = new char[strlen(other.file_name) + 1];
-//   strcpy(file_name, other.file_name);
-// }
-
-// Image::Image(Image&& other){
-//   id = other.id;
-//   width = other.width;
-//   height = other.height;
-//   if(file_name)
-//     delete[] file_name;
-//   file_name = other.file_name;
-//   other.file_name = nullptr;
-// }
-
-// Image& Image::operator=(const Image& other){
-//   if(this != &other){
-//     id = other.id;
-//     width = other.width;
-//     height = other.height;
-//     if(file_name)
-//       delete[] file_name;
-//     file_name = new char[strlen(other.file_name)+1];
-//     strcpy(file_name, other.file_name);
-//   }
-//   return *this;
-// }
-
-// Image& Image::operator=(Image&& other){
-//   if(this != &other){
-//     id = other.id;
-//     width = other.width;
-//     height = other.height;
-//     if(file_name)
-//       delete[] file_name;
-//     file_name = other.file_name;
-//     other.file_name = nullptr;
-//   }
-//   return *this;
-// }
 
 Categories::Categories(const Value& value)
                       :id(value["id"].GetInt()),
@@ -113,6 +73,36 @@ COCO::COCO(std::string annotation_file){
 }
 
 COCO::COCO(){};
+
+COCO::COCO(const COCO& other) :anns(other.anns), imgs(other.imgs), cats(other.cats), imgToAnns(other.imgToAnns), catToImgs(other.catToImgs){
+  dataset.CopyFrom(other.dataset, dataset.GetAllocator());
+}
+
+COCO::COCO(COCO&& other) :anns(other.anns), imgs(other.imgs), cats(other.cats), imgToAnns(other.imgToAnns), catToImgs(other.catToImgs){
+  dataset.CopyFrom(other.dataset.Move(), dataset.GetAllocator());
+}
+
+COCO COCO::operator=(const COCO& other){
+  if(this != &other){
+    anns = other.anns;
+    imgs = other.imgs;
+    imgToAnns = other.imgToAnns;
+    catToImgs = other.catToImgs;
+    dataset.CopyFrom(other.dataset, dataset.GetAllocator());
+  }
+  return *this;
+}
+
+COCO COCO::operator=(COCO&& other){
+  if(this != &other){
+    anns = other.anns;
+    imgs = other.imgs;
+    imgToAnns = other.imgToAnns;
+    catToImgs = other.catToImgs;
+    dataset.CopyFrom(other.dataset.Move(), dataset.GetAllocator());
+  }
+  return *this;
+}
 
 void COCO::CreateIndex(){
   if(dataset.HasMember("annotations")){
@@ -281,12 +271,11 @@ COCO COCO::LoadRes(std::string res_file){
   Document anno;
   anno.ParseStream(isw);
 
-  std::vector<int> annsImgIds;
-  for(auto& ann : anno.GetArray())
-    annsImgIds.push_back(ann["image_id"].GetInt());
-
+  // std::vector<int> annsImgIds;
+  // for(auto& ann : anno.GetArray())
+  //   annsImgIds.push_back(ann["image_id"].GetInt());
+  //no image id check
   //no caption implementation
-
   if(anno[0].HasMember("bbox") && !anno[0]["bbox"].Empty()){
     Document::AllocatorType& a = res.dataset.GetAllocator(); 
     Value copied_categories(dataset["categories"], a);
@@ -319,10 +308,8 @@ COCO COCO::LoadRes(std::string res_file){
         std::make_pair(anno[i]["segmentation"]["size"][0].GetInt(), anno[i]["segmentation"]["size"][1].GetInt()),
         anno[i]["segmentation"]["counts"].GetString()
       );
+      
       std::vector<int64_t> seg = coco::area(rlestr);
-      Value area(kArrayType);
-      for(auto& i : seg)
-        area.PushBack(i, a);
       
       if(!anno[i].HasMember("bbox")){
         std::vector<double> bbox = coco::toBbox(rlestr);
@@ -332,7 +319,7 @@ COCO COCO::LoadRes(std::string res_file){
         anno[i].AddMember("bbox", bb, a);
       }
 
-      anno[i].AddMember("area", area, a);
+      anno[i].AddMember("area", seg[0], a);
       anno[i].AddMember("id", i+1, a);
       anno[i].AddMember("iscrowd", 0, a);
     }
@@ -340,8 +327,9 @@ COCO COCO::LoadRes(std::string res_file){
   //no keypoints
 
   Document::AllocatorType& a = res.dataset.GetAllocator(); 
-  Value copied_annotations(dataset["annotations"], a);
-  res.dataset.AddMember("annotations", copied_annotations.Move(), a);
+  Value copied_annotations(anno, a);
+  res.dataset.AddMember("annotations", copied_annotations, a);
+  
   res.CreateIndex();
   return res;
 }

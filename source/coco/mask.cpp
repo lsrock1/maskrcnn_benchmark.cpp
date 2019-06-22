@@ -148,11 +148,6 @@ std::vector<int64_t> area(std::vector<RLEstr>& rleObjs){
   RLEs Rs = _frString(rleObjs);
   uint* _a = new uint[Rs._n];
   rleArea(Rs._R, Rs._n, _a);
-  // cdef np.npy_intp shape[1]
-  // shape[0] = <np.npy_intp> Rs._n
-  // a = np.array((Rs._n, ), dtype=np.uint8)
-  // a = np.PyArray_SimpleNewFromData(1, shape, np.NPY_UINT32, _a)
-  // PyArray_ENABLEFLAGS(a, np.NPY_OWNDATA)
   std::vector<int64_t> area;
   for(size_t i = 0; i < Rs._n; ++i)
     area.push_back(static_cast<int64_t>(_a[i]));

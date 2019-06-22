@@ -113,9 +113,14 @@ int main() {
   // cout << masked_bbox.get_bbox() << endl;
 
   // auto cc = rcnn::data::COCODetection("/home/ocrusr/datasets/MSCOCO/val2017", "/home/ocrusr/datasets/MSCOCO/annotations/instances_val2017.json");
-  COCO cc = COCO("../resource/instances_val2017.json");
-  cout << "end coco load\n";
-  auto cc_ = cc.LoadRes("../resource/instances_val2014_fakebbox.json");
+  // COCO cc = COCO("../resource/instances_val2017.json");
+  // cout << "end coco load\n";
+  // auto cc_ = cc.LoadRes("../resource/instances_val2014_fakesegm.json");
+
+  // cout << cc_.anns[15].area << "\n";
+  // cout << cc_.anns[15].id << "\n";
+  // cout << cc_.anns[15].image_id << "\n";
+  // cout << cc_.anns[15].compressed_rle << "\n";
   // auto data = cc.get(0);
   // std::vector<std::vector<std::vector<double>>> results;
   // // data.target.segmentation

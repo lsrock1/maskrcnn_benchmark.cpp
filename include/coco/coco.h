@@ -23,6 +23,7 @@ struct Annotation{
   int category_id;
   std::vector<std::vector<double>> segmentation;
   std::vector<int> counts;
+  std::string compressed_rle;
   std::pair<int, int> size;
   float area;
   std::vector<float> bbox;
@@ -62,6 +63,10 @@ struct COCO{
   std::vector<Annotation> LoadAnns(std::vector<int64_t> ids);
   std::vector<Image> LoadImgs(std::vector<int> ids);
   COCO LoadRes(std::string res_file);
+  COCO(const COCO& other);
+  COCO(COCO&& other);
+  COCO operator=(const COCO& other);
+  COCO operator=(COCO&& other);
 
   Document dataset;
   std::map<int64_t, Annotation> anns;
