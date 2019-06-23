@@ -19,13 +19,6 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
-  
-  // auto model = rcnn::modeling::BuildDetectionModel();
-  // model->eval();
-  // cout << model << "\n";
-  // std::vector<torch::Tensor> input{torch::zeros({1, 3, 224, 224}), torch::zeros({1, 3, 224, 224})};
-  // std::vector<rcnn::structures::BoxList> model_results = model->forward(input);
-  // cout << model_results << "\n";
 
 
   //to image list
@@ -38,14 +31,6 @@ int main() {
   // cout << img_list.get_tensors() << endl;
   //
 
-
-  // vector<int64_t> feature_sizes{128, 256, 512};
-  // rcnn::modeling::AnchorGenerator anchorclass = rcnn::modeling::MakeAnchorGenerator();
-  // vector<torch::Tensor> tmp_features;
-  // tmp_features.push_back(torch::randn({1, 1, 10, 10}));
-  // // tmp_features.push_back(torch::randn({1, 1, 15, 15}));
-  // anchorclass->forward(img_list, tmp_features);
-  //////////////////
 
   //#####balanced sampler
   // auto sampler = rcnn::modeling::BalancedPositiveNegativeSampler(6, 0.5);

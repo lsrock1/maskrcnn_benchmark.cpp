@@ -50,3 +50,5 @@
 lib/libtorch
 # End of https://www.gitignore.io/api/c++,visualstudiocode
 build/
+
+*.pth

@@ -26,6 +26,18 @@ bool has_valid_annotation(std::vector<coco::Annotation> anno){
   return true;
 }
 
+template<typename Self>
+torch::optional<size_t> RCNNDataset<Self>::size() const{
+  assert(false);
+  return 0;
+}
+
+template<typename Self>
+torch::data::Example<torch::Tensor, RCNNData> RCNNDataset<Self>::get(size_t index){
+  assert(false);
+  return torch::data::Example<torch::Tensor, RCNNData> ();
+}
+
 COCODataset::COCODataset(std::string annFile, std::string root, bool remove_images_without_annotations) :coco_detection(root, annFile){
   std::sort(coco_detection.ids_.begin(), coco_detection.ids_.end());
   if(remove_images_without_annotations){
