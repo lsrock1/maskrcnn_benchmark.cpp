@@ -1,5 +1,6 @@
 #include "datasets/coco_datasets.h"
 #include <algorithm>
+#include <iostream>
 
 #include <bounding_box.h>
 #include <segmentation_mask.h>
@@ -110,6 +111,10 @@ torch::data::Example<torch::Tensor, RCNNData> COCODataset::get(size_t idx){
   rcnn_data.target = target;
   torch::data::Example<torch::Tensor, RCNNData> value{img, rcnn_data};
   return value;
+}
+
+torch::optional<size_t>  COCODataset::size() const{
+  return coco_detection.size();
 }
 
 coco::Image COCODataset::get_img_info(int64_t index){

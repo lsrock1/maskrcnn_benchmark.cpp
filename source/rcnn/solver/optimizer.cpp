@@ -1,4 +1,5 @@
 #include "optimizer.h"
+#include <torch/optim/serialize.h>
 #include <iostream>
 
 
@@ -47,6 +48,16 @@ torch::optim::SGD& ConcatOptimizer::get_weight_op(){
 
 torch::optim::SGD& ConcatOptimizer::get_bias_op(){
   return bias;
+}
+
+void ConcatOptimizer::save(torch::serialize::OutputArchive& archive) const{
+  torch::optim::serialize(archive, "weight_momentum_buffers", weight.momentum_buffers);
+  torch::optim::serialize(archive, "bias_momentum_buffers", bias.momentum_buffers);
+}
+
+void ConcatOptimizer::load(torch::serialize::InputArchive& archive){
+  torch::optim::serialize(archive, "weight_momentum_buffers", weight.momentum_buffers);
+  torch::optim::serialize(archive, "bias_momentum_buffers", bias.momentum_buffers);
 }
 
 }

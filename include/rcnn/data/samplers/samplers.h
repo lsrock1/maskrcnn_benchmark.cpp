@@ -30,7 +30,20 @@ private:
   int index_ = 0;
 };
 
+class IterationBasedBatchSampler : public torch::data::samplers::Sampler<>{
 
+public:
+  IterationBasedBatchSampler(std::shared_ptr<torch::data::samplers::Sampler<>> sampler, int num_iterations, int start_iter = 0);
+  void reset(torch::optional<size_t> new_size) override;
+  torch::optional<std::vector<size_t>> next(size_t batch_size) override;
+  void save(torch::serialize::OutputArchive& archive) const override;
+  void load(torch::serialize::InputArchive& archive) override;
+
+private:
+  std::shared_ptr<torch::data::samplers::Sampler<>> sampler_;
+  int num_iterations_;
+  int index_;
+};
 
 }
 }

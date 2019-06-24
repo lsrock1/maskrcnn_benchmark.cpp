@@ -15,6 +15,8 @@ public:
   void step();
   void set_weight_lr(double new_lr);
   void set_bias_lr(double new_lr);
+  void save(torch::serialize::OutputArchive& archive) const;
+  void load(torch::serialize::InputArchive& archive);
   
   torch::optim::SGD& get_weight_op();
   torch::optim::SGD& get_bias_op();

@@ -184,5 +184,54 @@ void GroupedBatchSampler::save(torch::serialize::OutputArchive& archive) const {
   );
 }
 
+IterationBasedBatchSampler::IterationBasedBatchSampler(std::shared_ptr<torch::data::samplers::Sampler<>> sampler, 
+                                                       int num_iterations, 
+                                                       int start_iter)
+                                                       :sampler_(sampler),
+                                                        num_iterations_(num_iterations),
+                                                        index_(start_iter){}
+
+void IterationBasedBatchSampler::reset(torch::optional<size_t> new_size){
+  index_ = 0;
+}
+
+torch::optional<std::vector<size_t>> IterationBasedBatchSampler::next(size_t batch_size){
+  if(index_ <= num_iterations_){
+    index_ += 1;
+    return sampler_->next(batch_size);
+  }
+  else
+    return torch::nullopt;
+}
+
+void IterationBasedBatchSampler::save(torch::serialize::OutputArchive& archive) const{
+  archive.write(
+      "num_iterations",
+      torch::tensor(static_cast<int64_t>(num_iterations_), torch::kI64),
+      true
+  );
+  archive.write(
+      "index_",
+      torch::tensor(static_cast<int64_t>(index_), torch::kI64),
+      true
+  );
+}
+
+void IterationBasedBatchSampler::load(torch::serialize::InputArchive& archive){
+  auto tensor = torch::empty(1, torch::kInt64);
+  archive.read(
+    "num_iterations",
+    tensor,
+    true);
+  num_iterations_ = tensor.item<int64_t>();
+
+  archive.read(
+    "index_",
+    tensor,
+    true
+  );
+  index_ = tensor.item<int64_t>();
+}
+
 }
 }

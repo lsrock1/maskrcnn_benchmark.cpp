@@ -51,7 +51,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   return cat_boxlists;
 }
 
-BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("CPU"){}
+BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("cpu"){}
 
 //size<width, height>
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
@@ -399,7 +399,8 @@ BoxList BoxList::ClipToImage(const bool remove_empty){
     bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE)}, 1);
   if(remove_empty){
     auto keep = (bbox_tensor.narrow(1, 3, 1) > bbox_tensor.narrow(1, 1, 1)).__and__((bbox_tensor.narrow(1, 2, 1) > bbox_tensor.narrow(1, 0, 1)));
-    return (*this)[keep];
+
+    return (*this)[keep.squeeze_(1)];
   }
   return *this;
 }
