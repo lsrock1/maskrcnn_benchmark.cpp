@@ -20,6 +20,7 @@ std::vector<int> _quantize(std::vector<float> x, std::vector<float> bins){
   std::vector<int> quantized;
   for(auto& i : x)
     quantized.push_back(static_cast<int>(rcnn::utils::bisect_right(bins, i)));
+  return quantized;
 }
 
 std::vector<float> _compute_aspect_ratios(COCODataset dataset){

@@ -1,8 +1,4 @@
 #include "coco_detection.h"
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-#include <iostream>
 
 
 namespace rcnn{
@@ -17,17 +13,15 @@ COCODetection::COCODetection(std::string root, std::string annFile)
     ids_.push_back(img.first);  
 }
 
-torch::data::Example<torch::Tensor, std::vector<coco::Annotation>> COCODetection::get(size_t index){
+torch::data::Example<cv::Mat, std::vector<coco::Annotation>> COCODetection::get(size_t index){
   int img_id = ids_.at(index);
   std::vector<int64_t> ann_ids = coco_.GetAnnIds(std::vector<int>{img_id});
   std::vector<coco::Annotation> target = coco_.LoadAnns(ann_ids);
   std::string path(coco_.LoadImgs(std::vector<int>{img_id})[0].file_name);
-  auto img = cv::imread(root_ + "/" + path, cv::IMREAD_COLOR);
+  cv::Mat img = cv::imread(root_ + "/" + path, cv::IMREAD_COLOR);
   
-  torch::Tensor tensor_image = torch::from_blob(img.data, {1, 3, img.rows, img.cols}, torch::kByte);
-  tensor_image = tensor_image.to(torch::kFloat);
 
-  torch::data::Example<torch::Tensor, std::vector<coco::Annotation>> value{tensor_image, target};
+  torch::data::Example<cv::Mat, std::vector<coco::Annotation>> value{img, target};
   return value;
 }
 

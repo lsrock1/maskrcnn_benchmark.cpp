@@ -27,17 +27,17 @@ bool has_valid_annotation(std::vector<coco::Annotation> anno){
   return true;
 }
 
-template<typename Self>
-torch::optional<size_t> RCNNDataset<Self>::size() const{
-  assert(false);
-  return 0;
-}
+// template<typename Self>
+// torch::optional<size_t> RCNNDataset<Self>::size() const{
+//   assert(false);
+//   return 0;
+// }
 
-template<typename Self>
-torch::data::Example<torch::Tensor, RCNNData> RCNNDataset<Self>::get(size_t index){
-  assert(false);
-  return torch::data::Example<torch::Tensor, RCNNData> ();
-}
+// template<typename Self>
+// torch::data::Example<torch::Tensor, RCNNData> RCNNDataset<Self>::get(size_t index){
+//   assert(false);
+//   return torch::data::Example<torch::Tensor, RCNNData> ();
+// }
 
 COCODataset::COCODataset(std::string annFile, std::string root, bool remove_images_without_annotations) :coco_detection(root, annFile){
   std::sort(coco_detection.ids_.begin(), coco_detection.ids_.end());
@@ -66,9 +66,9 @@ COCODataset::COCODataset(std::string annFile, std::string root, bool remove_imag
     id_to_img_map[i] = coco_detection.ids_[i];
 }
 
-torch::data::Example<torch::Tensor, RCNNData> COCODataset::get(size_t idx){
+torch::data::Example<cv::Mat, RCNNData> COCODataset::get(size_t idx){
   auto coco_data = coco_detection.get(idx);
-  torch::Tensor img = coco_data.data;
+  cv::Mat img = coco_data.data;
   std::vector<coco::Annotation> anno = coco_data.target;
   for(auto ann = anno.begin(); ann != anno.end();){
     if(ann->iscrowd)
@@ -90,7 +90,7 @@ torch::data::Example<torch::Tensor, RCNNData> COCODataset::get(size_t idx){
   }
 
   boxes_tensor = boxes_tensor.reshape({-1, 4});
-  rcnn::structures::BoxList target{boxes_tensor, std::make_pair(static_cast<int64_t>(img.size(3)), static_cast<int64_t>(img.size(2))), "xywh"};
+  rcnn::structures::BoxList target{boxes_tensor, std::make_pair(static_cast<int64_t>(img.cols), static_cast<int64_t>(img.rows)), "xywh"};
   target = target.Convert("xyxy");
   
   torch::Tensor classes = torch::zeros({static_cast<int64_t>(anno.size())}).to(torch::kF32);
@@ -102,14 +102,14 @@ torch::data::Example<torch::Tensor, RCNNData> COCODataset::get(size_t idx){
   std::vector<std::vector<std::vector<double>>> polys;
   for(auto& obj : anno)
     polys.push_back(obj.segmentation);
-  auto mask = new rcnn::structures::SegmentationMask(polys, std::make_pair(static_cast<int64_t>(img.size(3)), static_cast<int64_t>(img.size(2))), "poly");
+  auto mask = new rcnn::structures::SegmentationMask(polys, std::make_pair(static_cast<int64_t>(img.cols), static_cast<int64_t>(img.rows)), "poly");
   target.AddField("masks", mask);
 
   target = target.ClipToImage(true);
   RCNNData rcnn_data;
   rcnn_data.idx = idx;
   rcnn_data.target = target;
-  torch::data::Example<torch::Tensor, RCNNData> value{img, rcnn_data};
+  torch::data::Example<cv::Mat, RCNNData> value{img, rcnn_data};
   return value;
 }
 
