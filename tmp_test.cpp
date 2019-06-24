@@ -14,6 +14,8 @@
 #include "datasets/coco_datasets.h"
 #include "collate_batch.h"
 
+#include <torch/script.h>
+
 
 using namespace std;
 using namespace rcnn;
@@ -23,16 +25,24 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
+  // auto body = modeling::ResNet();
+  // torch::load(body, "../resource/resnet50.pth");
+  // auto module_ = torch::jit::load("../resource/resnet50.pth");
+  //cout << module_->get_modules()->get_parameters() << "\n";
+  // cout << module_->name() << "\n";
+  // for(auto& a : module_->get_modules())
+  //   cout << a->name() << "\n";
+  // module_->find_parameter("0")->value();
   // auto model = modeling::BuildDetectionModel();
   // auto concat = solver::ConcatOptimizer(model->named_parameters(), 0.1, 0.1, 0.1);
 
-  auto cd = data::COCODataset("instances_val2017.json", "/val2017", false)
-            .map(data::BatchCollator());;
-  auto test_loader =
-      torch::data::make_data_loader(std::move(cd), 2);
-  for (const auto& batch : *test_loader){
-    cout << get<0>(batch)[0].sizes() << "\n";
-  }
+  // auto cd = data::COCODataset("instances_val2017.json", "/val2017", false)
+  //           .map(data::BatchCollator());;
+  // auto test_loader =
+  //     torch::data::make_data_loader(std::move(cd), 2);
+  // for (const auto& batch : *test_loader){
+  //   cout << get<0>(batch)[0].sizes() << "\n";
+  // }
   //to image list
   // auto toimagetest_first = torch::randn({1, 3, 10, 10});
   // auto toimagetest_second = torch::randn({1, 3, 11, 11});

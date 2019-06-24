@@ -1,9 +1,10 @@
 #include "collate_batch.h"
-#include <iostream>
 
 
 namespace rcnn{
 namespace data{
+
+BatchCollator::BatchCollator(int size_divisible) :size_divisible_(size_divisible){}
 
 batch BatchCollator::apply_batch(std::vector<torch::data::Example<torch::Tensor, RCNNData>> examples)
 {
@@ -18,9 +19,9 @@ batch BatchCollator::apply_batch(std::vector<torch::data::Example<torch::Tensor,
     boxes.push_back(std::move(example.target.target));
     ids.push_back(std::move(example.target.idx));
   }
+  rcnn::structures::ImageList image_list = rcnn::structures::ToImageList(tensors, size_divisible_);
 
-
-  return std::make_tuple(tensors, boxes, ids);
+  return std::make_tuple(image_list, boxes, ids);
 }
 
 }

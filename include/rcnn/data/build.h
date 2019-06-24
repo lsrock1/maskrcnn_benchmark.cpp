@@ -7,8 +7,7 @@
 // namespace data{
 
 // void BuildDataset(std::vector<std::string> dataset_list, bool is_train=true);
-// torch::data::samplers::Sampler<> MakeDataSampler(bool shuffle, bool distrubuted);
-// std::vector<int> quantize(std::vector<int> x); //no bins, fixed 1
+// make_data_loader(bool is_train=true/*, is_distributed=false */, int start_iter=0);
 
 
 // }

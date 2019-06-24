@@ -10,8 +10,6 @@
 namespace rcnn{
 namespace solver{
 
-double bisect_right(std::vector<int> milestones, int element);
-
 template<typename Optimizer>
 class _LRScheduler{
 
@@ -36,7 +34,7 @@ public:
   }
 
 protected:
-  int last_epoch_ = 0;
+  int64_t last_epoch_ = 0;
   double base_lr;
   Optimizer optimizer_;
 };
@@ -46,12 +44,12 @@ class WarmupMultiStepLR : public _LRScheduler<torch::optim::SGD>{
 
 public:
   WarmupMultiStepLR(torch::optim::SGD& optimizer, 
-                    std::vector<int> milestones, 
+                    std::vector<int64_t> milestones, 
                     float gamma=0.1, 
-                    double warmup_factor=1.0/3, 
-                    int warmup_iters=500, 
+                    float warmup_factor=1.0/3, 
+                    int64_t warmup_iters=500, 
                     std::string warmup_method="linear", 
-                    int last_epoch=-1) 
+                    int64_t last_epoch=-1) 
                     :_LRScheduler<torch::optim::SGD>(optimizer, last_epoch),
                      milestones_(milestones),
                      gamma_(gamma),
@@ -63,10 +61,10 @@ public:
   double get_lr() override;
 
 private:
-  std::vector<int> milestones_;
+  std::vector<int64_t> milestones_;
   float gamma_;
-  double warmup_factor_;
-  int warmup_iters_;
+  float warmup_factor_;
+  int64_t warmup_iters_;
   std::string warmup_method_;
 
 };
@@ -75,12 +73,12 @@ class ConcatScheduler{
 
 public:
   ConcatScheduler(ConcatOptimizer& optimizer,
-                  std::vector<int> milestones, 
+                  std::vector<int64_t> milestones, 
                   float gamma=0.1, 
-                  double warmup_factor=1.0/3, 
-                  int warmup_iters=500, 
+                  float warmup_factor=1.0/3, 
+                  int64_t warmup_iters=500, 
                   std::string warmup_method="linear", 
-                  int last_epoch=-1);
+                  int64_t last_epoch=-1);
   void step();
 
 private:

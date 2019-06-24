@@ -1,21 +1,9 @@
 #include "lr_scheduler.h"
+#include "bisect.h"
 
 
 namespace rcnn{
 namespace solver{
-
-double bisect_right(std::vector<int> milestones, int element){
-  int index = 0;
-  for(auto& i : milestones){
-    if(element < i)
-      return index;
-    else if(element == i)
-      return index + 1;
-    else
-      index += 1;
-  }
-  return static_cast<double>(index);
-}
 
 double WarmupMultiStepLR::get_lr(){
   double warmup_factor = 1;
@@ -27,16 +15,16 @@ double WarmupMultiStepLR::get_lr(){
       warmup_factor = warmup_factor_ * (1. - alpha) + alpha;
     }
   }
-  return pow(_LRScheduler<torch::optim::SGD>::base_lr * warmup_factor * gamma_, bisect_right(milestones_, _LRScheduler<torch::optim::SGD>::last_epoch_)); 
+  return pow(_LRScheduler<torch::optim::SGD>::base_lr * warmup_factor * gamma_, rcnn::utils::bisect_right(milestones_, _LRScheduler<torch::optim::SGD>::last_epoch_)); 
 }
 
 ConcatScheduler::ConcatScheduler(ConcatOptimizer& optimizer,
-                                std::vector<int> milestones, 
+                                std::vector<int64_t> milestones, 
                                 float gamma, 
-                                double warmup_factor, 
-                                int warmup_iters, 
+                                float warmup_factor, 
+                                int64_t warmup_iters, 
                                 std::string warmup_method, 
-                                int last_epoch)
+                                int64_t last_epoch)
                                 :weight(
                                   WarmupMultiStepLR(
                                     optimizer.get_weight_op(),
