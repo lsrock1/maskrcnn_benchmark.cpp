@@ -124,6 +124,11 @@ void GroupedBatchSampler::reset(torch::optional<size_t> new_size){
   index_ = 0;
 }
 
+void GroupedBatchSampler::reset(){
+  _batches = _prepare_batches();
+  index_ = 0;
+}
+
 void GroupedBatchSampler::load(torch::serialize::InputArchive& archive){
   auto tensor = torch::empty(1, torch::kInt64);
   archive.read(
@@ -192,6 +197,10 @@ IterationBasedBatchSampler::IterationBasedBatchSampler(std::shared_ptr<torch::da
                                                         index_(start_iter){}
 
 void IterationBasedBatchSampler::reset(torch::optional<size_t> new_size){
+  index_ = 0;
+}
+
+void IterationBasedBatchSampler::reset(){
   index_ = 0;
 }
 

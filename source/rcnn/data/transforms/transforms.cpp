@@ -5,13 +5,14 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <memory>
 
 
 namespace rcnn{
 namespace data{
 
-Compose::Compose(std::vector<MatToMatTransform*> MtoMtransforms,
-                 std::vector<TensorToTensorTransform*> TtoTtransforms)
+Compose::Compose(std::vector<std::shared_ptr<MatToMatTransform>> MtoMtransforms,
+                 std::vector<std::shared_ptr<TensorToTensorTransform>> TtoTtransforms)
                  :MtoMtransforms_(MtoMtransforms),
                   to_tensor(),
                   TtoTtransforms_(TtoTtransforms){
@@ -95,7 +96,7 @@ torch::data::Example<torch::Tensor, RCNNData> ToTensor::operator()(torch::data::
   return torch::data::Example<torch::Tensor, RCNNData> {tensor_image, input.target};
 }
 
-Normalize::Normalize(torch::ArrayRef<double> mean, torch::ArrayRef<double> stddev, bool to_bgr255)
+Normalize::Normalize(torch::ArrayRef<float> mean, torch::ArrayRef<float> stddev, bool to_bgr255)
           : mean(torch::tensor(mean, torch::kFloat32)
                 .unsqueeze(/*dim=*/1)
                 .unsqueeze(/*dim=*/2)),

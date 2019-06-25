@@ -8,8 +8,9 @@ add_subdirectory(rcnn/modeling)
 add_subdirectory(rcnn/structures)
 add_subdirectory(rcnn/utils)
 add_subdirectory(rcnn/solver)
+add_subdirectory(rcnn/engine)
 
 # add_subdirectory(tools)
 
 add_library(${target} INTERFACE)
-target_link_libraries(${target} INTERFACE modeling config layers structures utils cocotool data solver)
+target_link_libraries(${target} INTERFACE modeling config layers structures utils cocotool data solver engine)

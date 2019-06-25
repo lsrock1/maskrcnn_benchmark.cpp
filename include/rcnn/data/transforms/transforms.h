@@ -66,7 +66,7 @@ public:
 class Normalize : public TensorToTensorTransform{
 
 public:
-  Normalize(torch::ArrayRef<double> mean, torch::ArrayRef<double> stddev, bool to_bgr255);
+  Normalize(torch::ArrayRef<float> mean, torch::ArrayRef<float> stddev, bool to_bgr255);
   torch::data::Example<torch::Tensor, RCNNData> operator()(torch::data::Example<torch::Tensor, RCNNData> input) override;
 
 private:
@@ -77,13 +77,14 @@ private:
 class Compose : public MatToTensorTransform{
 
 public:
-  Compose(std::vector<MatToMatTransform*> MtoMtransforms, std::vector<TensorToTensorTransform*> TtoTtransforms);
+  Compose(std::vector<std::shared_ptr<MatToMatTransform>> MtoMtransforms,
+                 std::vector<std::shared_ptr<TensorToTensorTransform>> TtoTtransforms);
   torch::data::Example<torch::Tensor, RCNNData> operator()(torch::data::Example<cv::Mat, RCNNData> input) override;
 
 private:
-  std::vector<MatToMatTransform*> MtoMtransforms_;
+  std::vector<std::shared_ptr<MatToMatTransform>> MtoMtransforms_;
   ToTensor to_tensor;
-  std::vector<TensorToTensorTransform*> TtoTtransforms_;
+  std::vector<std::shared_ptr<TensorToTensorTransform>> TtoTtransforms_;
 };
 
 }//data

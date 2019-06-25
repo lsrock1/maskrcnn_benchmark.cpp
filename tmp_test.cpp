@@ -15,6 +15,8 @@
 #include "collate_batch.h"
 
 #include <torch/script.h>
+#include "bisect.h"
+#include "trainer.h"
 
 
 using namespace std;
@@ -25,6 +27,10 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
+  engine::do_train(100, 50, torch::Device("cuda"));
+  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
+  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
+  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";
   // auto body = modeling::ResNet();
   // torch::load(body, "../resource/resnet50.pth");
   // auto module_ = torch::jit::load("../resource/resnet50.pth");

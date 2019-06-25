@@ -26,7 +26,7 @@ ConcatScheduler::ConcatScheduler(ConcatOptimizer& optimizer,
                                 std::string warmup_method, 
                                 int64_t last_epoch)
                                 :weight(
-                                  WarmupMultiStepLR(
+                                  new WarmupMultiStepLR(
                                     optimizer.get_weight_op(),
                                     milestones,
                                     gamma,
@@ -36,7 +36,7 @@ ConcatScheduler::ConcatScheduler(ConcatOptimizer& optimizer,
                                     last_epoch
                                 )),
                                  bias(
-                                   WarmupMultiStepLR(
+                                   new WarmupMultiStepLR(
                                     optimizer.get_bias_op(),
                                     milestones,
                                     gamma,
@@ -47,8 +47,8 @@ ConcatScheduler::ConcatScheduler(ConcatOptimizer& optimizer,
                                 )){}
 
 void ConcatScheduler::step(){
-  weight.step();
-  bias.step();
+  weight->step();
+  bias->step();
 }
 
 }

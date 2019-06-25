@@ -1,12 +1,13 @@
 #include "paths_catalog.h"
 #include <cassert>
+#include "defaults.h"
 
 
 namespace rcnn{
 namespace config{
 
 const std::string DatasetCatalog::DATA_DIR = "datasets";
-const std::map<std::string, args> DATASETS{
+const std::map<std::string, args> DatasetCatalog::DATASETS{
   {"coco_2017_train", 
     args{{"img_dir", "coco/train2017"}, {"ann_file", "coco/annotations/instances_train2017.json"}}},
   {"coco_2017_val", 
@@ -29,7 +30,7 @@ std::tuple<std::string, std::string, std::string> DatasetCatalog::operator[](std
 
 const std::string ModelCatalog::S3_C2_DETECTRON_URL = "https://dl.fbaipublicfiles.com/detectron";
 const std::string ModelCatalog::C2_DETECTRON_SUFFIX = "output/train/{}coco_2014_train%3A{}coco_2014_valminusminival/generalized_rcnn/model_final.pkl";
-const std::map<std::string, std::string> C2_IMAGENET_MODELS{
+const std::map<std::string, std::string> ModelCatalog::C2_IMAGENET_MODELS{
   {"MSRA/R-50", "ImageNetPretrained/MSRA/R-50.pkl"},
   {"MSRA/R-50-GN", "ImageNetPretrained/47261647/R-50-GN.pkl"},
   {"MSRA/R-101", "ImageNetPretrained/MSRA/R-101.pkl"},

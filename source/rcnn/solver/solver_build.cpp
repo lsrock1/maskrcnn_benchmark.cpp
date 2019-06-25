@@ -1,4 +1,5 @@
-#include "build.h"
+#include "solver_build.h"
+#include "defaults.h"
 
 
 namespace rcnn{

@@ -25,7 +25,7 @@ public:
 
   template<typename T>
   T forward(rcnn::structures::ImageList images, std::vector<rcnn::structures::BoxList> targets);
-  
+
   std::vector<rcnn::structures::BoxList> forward(std::vector<torch::Tensor> images);
   std::vector<rcnn::structures::BoxList> forward(rcnn::structures::ImageList images);
 
@@ -34,8 +34,15 @@ private:
   RPNModule rpn;
   CombinedROIHeads roi_heads;
 };
-
 TORCH_MODULE(GeneralizedRCNN);
+
+template<>
+std::map<std::string, torch::Tensor> GeneralizedRCNNImpl::forward(std::vector<torch::Tensor> images, std::vector<rcnn::structures::BoxList> targets);
+
+template<>
+std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(rcnn::structures::ImageList images, std::vector<rcnn::structures::BoxList> targets);
+
+
 
 }
 }

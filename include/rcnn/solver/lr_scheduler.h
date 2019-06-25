@@ -82,8 +82,8 @@ public:
   void step();
 
 private:
-  WarmupMultiStepLR weight;
-  WarmupMultiStepLR bias;
+  _LRScheduler<torch::optim::SGD>* weight;
+  _LRScheduler<torch::optim::SGD>* bias;
 };
 
 }

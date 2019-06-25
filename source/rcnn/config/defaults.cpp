@@ -245,6 +245,8 @@ template bool GetCFG<bool>(std::initializer_list<const char*> node);
 template int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
 template int GetCFG<int>(std::initializer_list<const char*> node);
 template float GetCFG<float>(std::initializer_list<const char*> node);
+template double GetCFG<double>(std::initializer_list<const char*> node);
+
 
 template<>
 CFGS GetCFG<CFGS>(std::initializer_list<const char*> node){

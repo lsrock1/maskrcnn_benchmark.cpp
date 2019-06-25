@@ -12,6 +12,7 @@ class GroupedBatchSampler : public torch::data::samplers::Sampler<>{
 public:
   GroupedBatchSampler(std::shared_ptr<torch::data::samplers::Sampler<>> sampler, std::vector<int> group_ids, int batch_size, bool drop_uneven=false);
   void reset(torch::optional<size_t> new_size) override;
+  void reset();
   torch::optional<std::vector<size_t>> next(size_t batch_size) override;
   void save(torch::serialize::OutputArchive& archive) const override;
   void load(torch::serialize::InputArchive& archive) override;
@@ -35,6 +36,7 @@ class IterationBasedBatchSampler : public torch::data::samplers::Sampler<>{
 public:
   IterationBasedBatchSampler(std::shared_ptr<torch::data::samplers::Sampler<>> sampler, int num_iterations, int start_iter = 0);
   void reset(torch::optional<size_t> new_size) override;
+  void reset();
   torch::optional<std::vector<size_t>> next(size_t batch_size) override;
   void save(torch::serialize::OutputArchive& archive) const override;
   void load(torch::serialize::InputArchive& archive) override;
