@@ -1,6 +1,5 @@
 #include "rpn/rpn.h"
 #include "defaults.h"
-#include <iostream>
 
 
 namespace rcnn{
@@ -101,7 +100,6 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
 }
 
 RPNModule BuildRPN(int64_t in_channels){
-  std::cout << "build rpn\n";
   return RPNModule(in_channels);
 }
 

@@ -1,5 +1,4 @@
 #include "detector/generalized_rcnn.h"
-#include <iostream>
 
 
 namespace rcnn{

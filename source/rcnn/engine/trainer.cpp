@@ -13,6 +13,7 @@
 #include <torch/torch.h>
 
 #include <ctime>
+#include <iostream>
 
 
 //TODO logger
@@ -30,43 +31,44 @@ using namespace std;
 void do_train(int checkpoint_period, int iteration, torch::Device device){
   //meters
   GeneralizedRCNN model = BuildDetectionModel();
+  cout << "build\n";
   int max_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   int start_iter = iteration;
   model->train();
   time_t start_training_time = time(0);
   time_t end = time(0);
   double data_time;
-
   ConcatOptimizer optimizer = MakeOptimizer(model);
+  cout << "build\n";
   ConcatScheduler scheduler = MakeLRScheduler(optimizer);
+  cout << "build\n";
   
   vector<string> dataset_list;
-  auto dataset = GetCFG<CFGS>({"DATASETS", "TRAIN"});
-  dataset_list = tovec(dataset.get());
+  auto dataset = GetCFG<std::vector<std::string>>({"DATASETS", "TRAIN"});
   Compose transforms = BuildTransforms(true);
+  cout << "build\n";
   BatchCollator collate = BatchCollator(GetCFG<int>({"DATALOADER", "SIZE_DIVISIBILITY"}));
   int images_per_batch = GetCFG<int64_t>({"SOLVER", "IMS_PER_BATCH"});
   COCODataset coco = BuildDataset(dataset_list, true);
+  cout << "build\n";
+
   auto data = coco.map(transforms).map(collate);
   std::shared_ptr<torch::data::samplers::Sampler<>> sampler = make_batch_data_sampler(coco, true, start_iter);
-
-
+  cout << "build\n";
   torch::data::DataLoaderOptions options(images_per_batch);
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
-  int num_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<IterationBasedBatchSampler*>(sampler.get()), options);
   for(auto& i : *data_loader){
     time(&end);
     data_time = difftime(time(0), end);
     iteration += 1;
-    
     scheduler.step();
     ImageList images = get<0>(i).to(device);
     vector<BoxList> targets = get<1>(i);
     // for(auto& i : )
     //   targets.push_back(i.target);
-
-    std::vector<rcnn::structures::BoxList> loss_map = model->forward<std::vector<rcnn::structures::BoxList>>(images, targets);
+    cout << "forward\n";
+    vector<BoxList> loss_map = model->forward<vector<BoxList>>(images, targets);
 
     // std::vector<torch::Tensor> losses;
     // for(auto i = loss_map.begin(); i != loss_map.end(); ++i)

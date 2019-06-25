@@ -22,7 +22,7 @@ const std::map<std::string, args> DatasetCatalog::DATASETS{
 
 std::tuple<std::string, std::string, std::string> DatasetCatalog::operator[](std::string name){
   if(name.find("coco") != std::string::npos){
-    return std::make_tuple("COCODataset", DATA_DIR + "/" + DATASETS.at(name).at("img_dir"), DATA_DIR + "/" + DATASETS.at(name).at("ann_file"));
+    return std::make_tuple("COCODataset", DATA_DIR + "/" + DatasetCatalog::DATASETS.at(name).at("img_dir"), DATA_DIR + "/" + DatasetCatalog::DATASETS.at(name).at("ann_file"));
   }
   //no voc
   assert(false);
@@ -63,7 +63,7 @@ std::string ModelCatalog::get_c2_imagenet_pretrained(std::string name){
   std::string prefix = "S3_C2_DETECTRON_URL";
   std::string image_net_prefix("ImageNetPretrained/");
   name = name.substr(image_net_prefix.size());
-  name = C2_IMAGENET_MODELS.at(name);
+  name = ModelCatalog::C2_IMAGENET_MODELS.at(name);
   return prefix + "/" + name;
 }
 

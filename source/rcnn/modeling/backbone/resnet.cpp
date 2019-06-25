@@ -13,8 +13,8 @@ ResNetImpl::StageSpec::StageSpec(int index, int block_count, bool return_feature
   return_features_(return_features){}
 
 ResNetImpl::ResNetImpl(){
-  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
-  std::vector<StageSpec> stage_specs = rcnn::registry::STAGE_SPECS(name.get());
+  std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "BACKBONE", "CONV_BODY"});
+  std::vector<StageSpec> stage_specs = rcnn::registry::STAGE_SPECS(name);
   stem_ = register_module("stem", BaseStem());
   int64_t num_groups = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "NUM_GROUPS"});
   int64_t width_per_group = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "WIDTH_PER_GROUP"});

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 
 namespace rcnn{
@@ -29,6 +30,7 @@ void SetCFGFromFile(const std::string file_path){
   SetNode((*cfg)["INPUT"]["PIXEL_MEAN"], "(102.9801, 115.9465, 122.7717)");
   SetNode((*cfg)["INPUT"]["PIXEL_STD"], "(1., 1., 1.)");
   SetNode((*cfg)["INPUT"]["TO_BGR255"], true);
+  SetNode((*cfg)["INPUT"]["VERTICAL_FLIP_PROB_TRAIN"], 0.0);
 
   SetNode((*cfg)["INPUT"]["RIGHTNESS"], 0.0);
   SetNode((*cfg)["INPUT"]["CONTRAST"], 0.0);
@@ -179,56 +181,6 @@ void SetCFGFromFile(const std::string file_path){
   SetNode((*cfg)["DTYPE"], "float32");
 }
 
-CFGS::CFGS(std::string result)
-          :name_(result),
-          name_c_(strdup(result.c_str())){};
-
-CFGS::CFGS(const CFGS& other)
-    :name_(other.name_),
-     name_c_(new char[other.name_.size()+1])
-{
-  strcpy(name_c_, other.name_c_);
-}
-
-CFGS::CFGS(CFGS&& other)
-    :name_c_(nullptr)
-{
-  name_ = other.name_;
-  name_c_ = other.name_c_;
-  other.name_c_ = nullptr;
-}
-
-CFGS& CFGS::operator=(const CFGS& other){
-  if(this != &other){
-    if(name_c_)
-      delete[] name_c_;
-    name_ = other.name_;
-    name_c_ = new char[other.name_.size()+1];
-    strcpy(name_c_, other.name_c_);
-  }
-  return *this;
-}
-
-CFGS& CFGS::operator=(CFGS&& other){
-  if(this != &other){
-    if(name_c_)
-      delete[] name_c_;
-    name_ = other.name_;
-    name_c_ = other.name_c_;
-    other.name_c_ = nullptr;
-  }
-  return *this;
-}
-
-CFGS::~CFGS(){
-  if(name_c_)
-    delete[] name_c_;
-}
-
-char* CFGS::get(){
-  return name_c_;
-}
-
 template<typename T>
 T GetCFG(std::initializer_list<const char*> node){
   if(!cfg){
@@ -246,24 +198,12 @@ template int64_t GetCFG<int64_t>(std::initializer_list<const char*> node);
 template int GetCFG<int>(std::initializer_list<const char*> node);
 template float GetCFG<float>(std::initializer_list<const char*> node);
 template double GetCFG<double>(std::initializer_list<const char*> node);
-
-
-template<>
-CFGS GetCFG<CFGS>(std::initializer_list<const char*> node){
-  if(!cfg){
-    throw "Set Config file first";
-  }
-  std::vector<YAML::Node> tmp{*cfg};
-  for(auto i = node.begin(); i != node.end(); ++i){
-    tmp.push_back(tmp.back()[*i]);
-  }
-  return CFGS(tmp.back().as<std::string>());
-}
+template std::string GetCFG<std::string>(std::initializer_list<const char*> node);
 
 template<>
 std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node){
   if(!cfg){
-    throw "Set Config file first";
+    assert(false);
   }
   std::vector<YAML::Node> tmp{*cfg};
   for(auto i = node.begin(); i != node.end(); ++i){
@@ -292,7 +232,7 @@ std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*>
 template<>
 std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node){
   if(!cfg){
-    throw "Set Config file first";
+    assert(false);
   }
   std::vector<YAML::Node> tmp{*cfg};
   for(auto i = node.begin(); i != node.end(); ++i){
@@ -317,6 +257,41 @@ std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const ch
     elements.push_back(std::stoi(svalue));
   }
   return elements;
+}
+
+template<>
+std::vector<std::string> GetCFG<std::vector<std::string>>(std::initializer_list<const char*> node){
+  if(!cfg){
+    throw "Set Config file first";
+  }
+  std::vector<YAML::Node> tmp{*cfg};
+  for(auto i = node.begin(); i != node.end(); ++i){
+    tmp.push_back(tmp.back()[*i]);
+  }
+  std::string svalue = tmp.back().as<std::string>();
+  std::vector<std::string> splitted;
+  // std::string svalue(name);
+  if(svalue.find("(") != std::string::npos && svalue.find(")") != std::string::npos && std::count(svalue.begin(), svalue.end(), ',') > 0){
+    
+    size_t pos = 0;
+    //remove white spaces
+    std::string::iterator end_pos = std::remove(svalue.begin(), svalue.end(), ' ');
+    svalue.erase(end_pos, svalue.end());
+    end_pos = std::remove(svalue.begin(), svalue.end(), '"');
+    svalue.erase(end_pos, svalue.end());
+    //remove ( and )
+    svalue = svalue.substr(1, svalue.size()-2);
+    std::string token;
+    while ((pos = svalue.find(",")) != std::string::npos) {
+      token = svalue.substr(0, pos);
+      splitted.push_back(token);
+      svalue.erase(0, pos + 1);
+    }
+    if(svalue.size() > 1){
+      splitted.push_back(svalue);
+    }
+  }
+  return splitted;
 }
 
 }//mrcn

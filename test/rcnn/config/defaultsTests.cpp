@@ -7,8 +7,8 @@ using namespace rcnn::config;
 TEST(defaults, SetCFGFromFile)
 {
   //check if default empty, yaml exists
-  CFGS model_weight = GetCFG<CFGS>({"MODEL", "WEIGHT"});
-  EXPECT_STREQ("catalog://ImageNetPretrained/MSRA/R-50", model_weight.get());
+  std::string model_weight = GetCFG<std::string>({"MODEL", "WEIGHT"});
+  EXPECT_EQ(std::string("catalog://ImageNetPretrained/MSRA/R-50"), model_weight);
 
   //check if default exists, yaml exists
   float lr = GetCFG<float>({"SOLVER", "BASE_LR"});

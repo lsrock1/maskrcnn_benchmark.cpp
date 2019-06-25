@@ -27,7 +27,9 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
-  engine::do_train(100, 50, torch::Device("cuda"));
+  auto arch = rcnn::config::GetCFG<std::string>({"MODEL", "META_ARCHITECTURE"});
+  cout << arch << "\n";
+  engine::do_train(100, 50, torch::Device("cpu"));
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";

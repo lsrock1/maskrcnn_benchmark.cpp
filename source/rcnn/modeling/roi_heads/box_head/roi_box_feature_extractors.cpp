@@ -105,19 +105,18 @@ int64_t FPNXconv1fcFeatureExtractorImpl::out_channels() const{
 std::pair<torch::nn::Sequential, int64_t> MakeROIBoxFeatureExtractor(int64_t in_channels){
   torch::nn::Sequential extractor;
   int64_t out_channels;
-  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "ROI_BOX_HEAD", "FEATURE_EXTRACTOR"});
-  std::string extractor_name = name.get();
-  if(extractor_name.compare("ResNet50Conv5ROIFeatureExtractor") == 0){
+  std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "ROI_BOX_HEAD", "FEATURE_EXTRACTOR"});
+  if(name.compare("ResNet50Conv5ROIFeatureExtractor") == 0){
     auto model = ResNet50Conv5ROIFeatureExtractor(in_channels);
     extractor->push_back(model);
     out_channels = model->out_channels();
   }
-  else if(extractor_name.compare("FPN2MLPFeatureExtractor") == 0){
+  else if(name.compare("FPN2MLPFeatureExtractor") == 0){
     auto model = FPN2MLPFeatureExtractor(in_channels);
     extractor->push_back(model);
     out_channels = model->out_channels();
   }
-  else if(extractor_name.compare("FPNXconv1fcFeatureExtractor") == 0){
+  else if(name.compare("FPNXconv1fcFeatureExtractor") == 0){
     auto model = FPNXconv1fcFeatureExtractor(in_channels);
     extractor->push_back(model);
     out_channels = model->out_channels();

@@ -49,8 +49,8 @@ Backbone BuildResnetFPNBackbone(){
 }
   
 Backbone BuildBackbone(){
-  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "BACKBONE", "CONV_BODY"});
-  rcnn::registry::backbone build_function = rcnn::registry::BACKBONES(name.get());
+  std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "BACKBONE", "CONV_BODY"});
+  rcnn::registry::backbone build_function = rcnn::registry::BACKBONES(name);
   Backbone model = build_function();
   return model;
 }

@@ -14,12 +14,11 @@ template<typename Optimizer>
 class _LRScheduler{
 
 public:
-  _LRScheduler(Optimizer& optimizer, int last_epoch=-1) :optimizer_(optimizer){
-    base_lr = optimizer.options.learning_rate();
+  _LRScheduler(Optimizer& optimizer, int last_epoch=-1) :optimizer_(optimizer), base_lr(optimizer.options.learning_rate()){
     if(last_epoch == -1)
-      step(0);
+      last_epoch_ = 0;
     else
-      step(last_epoch);
+      last_epoch_ = last_epoch;
   }
   //save
   //load
@@ -34,9 +33,9 @@ public:
   }
 
 protected:
+  Optimizer optimizer_;
   int64_t last_epoch_ = 0;
   double base_lr;
-  Optimizer optimizer_;
 };
 
 
@@ -56,7 +55,7 @@ public:
                      warmup_factor_(warmup_factor),
                      warmup_iters_(warmup_iters),
                      warmup_method_(warmup_method)
-  {assert(warmup_method.compare("linear") == 0 || warmup_method.compare("constant") == 0);}
+  {assert(warmup_method.compare("linear") == 0 || warmup_method.compare("constant") == 0); step(0);}
 
   double get_lr() override;
 
@@ -82,8 +81,8 @@ public:
   void step();
 
 private:
-  _LRScheduler<torch::optim::SGD>* weight;
-  _LRScheduler<torch::optim::SGD>* bias;
+  std::shared_ptr<_LRScheduler<torch::optim::SGD>> weight;
+  std::shared_ptr<_LRScheduler<torch::optim::SGD>> bias;
 };
 
 }

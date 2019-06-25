@@ -14,6 +14,8 @@ std::vector<std::string> tovec(const char* name){
     //remove white spaces
     std::string::iterator end_pos = std::remove(svalue.begin(), svalue.end(), ' ');
     svalue.erase(end_pos, svalue.end());
+    end_pos = std::remove(svalue.begin(), svalue.end(), '"');
+    svalue.erase(end_pos, svalue.end());
     //remove ( and )
     svalue = svalue.substr(1, svalue.size()-2);
     std::string token;

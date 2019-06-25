@@ -1,14 +1,16 @@
 #include "detector/detectors.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
 namespace modeling{
 
 GeneralizedRCNN BuildDetectionModel(){
-  auto arch = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "META_ARCHITECTURE"});
-  std::string arch_name(arch.get());
-  if(arch_name.compare("GeneralizedRCNN") == 0)
+  std::cout << "start\n";
+  auto arch = rcnn::config::GetCFG<std::string>({"MODEL", "META_ARCHITECTURE"});
+  std::cout << arch << "\n";
+  if(arch.compare("GeneralizedRCNN") == 0)
     return GeneralizedRCNN();
 
   assert(false);

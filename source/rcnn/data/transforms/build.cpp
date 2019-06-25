@@ -12,7 +12,7 @@ Compose BuildTransforms(bool is_train){
     min_size = rcnn::config::GetCFG<int>({"INPUT", "MIN_SIZE_TRAIN"});
     max_size = rcnn::config::GetCFG<int>({"INPUT", "MAX_SIZE_TRAIN"});
     flip_horizontal_prob = 0.5;
-    flip_vertical_prob = rcnn::config::GetCFG<int>({"INPUT", "VERTICAL_FLIP_PROB_TRAIN"});
+    flip_vertical_prob = rcnn::config::GetCFG<float>({"INPUT", "VERTICAL_FLIP_PROB_TRAIN"});
   }
   else{
     min_size = rcnn::config::GetCFG<int>({"INPUT", "MIN_SIZE_TEST"});

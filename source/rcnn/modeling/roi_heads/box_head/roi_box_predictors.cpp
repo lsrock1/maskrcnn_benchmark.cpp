@@ -64,13 +64,12 @@ std::pair<torch::Tensor, torch::Tensor> FPNPredictorImpl::forward(torch::Tensor 
 }
 
 torch::nn::Sequential MakeROIBoxPredictor(int64_t in_channels){
-  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "ROI_BOX_HEAD", "PREDICTOR"});
-  std::string predictor_name = name.get();
+  std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "ROI_BOX_HEAD", "PREDICTOR"});
   torch::nn::Sequential predictor;
-  if(predictor_name.compare("FastRCNNPredictor") == 0){
+  if(name.compare("FastRCNNPredictor") == 0){
     predictor->push_back(FastRCNNPredictor(in_channels));
   }
-  else if(predictor_name.compare("FPNPredictor") == 0){
+  else if(name.compare("FPNPredictor") == 0){
     predictor->push_back(FPNPredictor(in_channels));
   }
   else{

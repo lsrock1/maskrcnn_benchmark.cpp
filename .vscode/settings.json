@@ -76,6 +76,7 @@
         "valarray": "cpp",
         "variant": "cpp",
         "vector": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "future": "cpp"
     }
 }

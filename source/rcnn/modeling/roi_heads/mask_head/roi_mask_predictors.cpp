@@ -63,13 +63,12 @@ torch::Tensor MaskRCNNConv1x1PredictorImpl::forward(torch::Tensor x){
 }
 
 torch::nn::Sequential MakeROIMaskPredictor(int64_t in_channels){
-  rcnn::config::CFGS name = rcnn::config::GetCFG<rcnn::config::CFGS>({"MODEL", "ROI_MASK_HEAD", "PREDICTOR"});
-  std::string predictor_name = name.get();
+  std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "ROI_MASK_HEAD", "PREDICTOR"});
   torch::nn::Sequential predictor;
-  if(predictor_name.compare("MaskRCNNC4Predictor") == 0){
+  if(name.compare("MaskRCNNC4Predictor") == 0){
     predictor->push_back(MaskRCNNC4Predictor(in_channels));
   }
-  else if(predictor_name.compare("MaskRCNNConv1x1Predictor") == 0){
+  else if(name.compare("MaskRCNNConv1x1Predictor") == 0){
     predictor->push_back(MaskRCNNConv1x1Predictor(in_channels));
   }
   else{
