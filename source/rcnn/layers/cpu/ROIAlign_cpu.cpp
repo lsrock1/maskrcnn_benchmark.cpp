@@ -220,8 +220,8 @@ void ROIAlignForward_cpu_kernel(
   } // for n
 }
 
-at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
-                                const at::Tensor& rois,
+torch::Tensor ROIAlign_forward_cpu(const torch::Tensor& input,
+                                const torch::Tensor& rois,
                                 const float spatial_scale,
                                 const int pooled_height,
                                 const int pooled_width,
@@ -234,7 +234,7 @@ at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
   auto height = input.size(2);
   auto width = input.size(3);
 
-  auto output = at::empty({num_rois, channels, pooled_height, pooled_width}, input.options());
+  auto output = torch::empty({num_rois, channels, pooled_height, pooled_width}, input.options());
   auto output_size = num_rois * pooled_height * pooled_width * channels;
 
   if (output.numel() == 0) {

@@ -40,8 +40,10 @@ template<>
 std::map<std::string, torch::Tensor> GeneralizedRCNNImpl::forward(std::vector<torch::Tensor> images, std::vector<rcnn::structures::BoxList> targets);
 
 template<>
-std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(rcnn::structures::ImageList images, std::vector<rcnn::structures::BoxList> targets);
+std::map<std::string, torch::Tensor> GeneralizedRCNNImpl::forward(rcnn::structures::ImageList images, std::vector<rcnn::structures::BoxList> targets);
 
+template<>
+std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(rcnn::structures::ImageList images, std::vector<rcnn::structures::BoxList> targets);
 
 
 }

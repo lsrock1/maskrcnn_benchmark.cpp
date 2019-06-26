@@ -3,6 +3,7 @@
 #include "conv2d.h"
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{

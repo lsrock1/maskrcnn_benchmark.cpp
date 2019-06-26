@@ -31,7 +31,7 @@ torch::optional<size_t> COCODetection::size() const{
 
 std::ostream& operator << (std::ostream& os, const COCODetection& bml){
   os << "Dataset COCODetection\n";
-  os << "   Number of datapoints: " << bml.size() << "\n";
+  os << "   Number of datapoints: " << bml.size().value() << "\n";
   os << "   Root Location: " << bml.root_ << "\n";
   return os;
 }

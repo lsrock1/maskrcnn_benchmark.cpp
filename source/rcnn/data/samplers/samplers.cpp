@@ -1,4 +1,5 @@
 #include "samplers/samplers.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -31,12 +32,12 @@ std::vector<torch::Tensor> GroupedBatchSampler::_prepare_batches(){
     sampled_ids.push_back(i.value()[0]);
     i = sampler_->next(1);
   }
-  sampled_ids_ = torch::zeros({static_cast<int64_t>(sampled_ids.size())});
+  sampled_ids_ = torch::zeros({static_cast<int64_t>(sampled_ids.size())}).to(torch::kI64);
   for(int i = 0; i < sampled_ids.size(); ++i)
     sampled_ids_[i] = sampled_ids[i];
 
   torch::Tensor order = torch::full({dataset_size}, -1).to(torch::kI64);
-  order.index_copy_(0, sampled_ids_, torch::arange(sampled_ids_.size(0)));
+  order.index_copy_(0, sampled_ids_, torch::arange(sampled_ids_.size(0)).to(torch::kI64));
 
   torch::Tensor mask = order >= 0;
   std::vector<torch::Tensor> clusters;
@@ -48,7 +49,7 @@ std::vector<torch::Tensor> GroupedBatchSampler::_prepare_batches(){
   std::vector<torch::Tensor> relative_order;
   relative_order.reserve(clusters.size());
   for(auto& cluster: clusters)
-    clusters.push_back(order.index_select(0, cluster));
+    relative_order.push_back(order.masked_select(cluster));
 
   std::vector<torch::Tensor> permutation_ids;
   permutation_ids.reserve(relative_order.size());
@@ -91,7 +92,6 @@ std::vector<torch::Tensor> GroupedBatchSampler::_prepare_batches(){
   batches.reserve(permutation_order.size());
   for(auto& i : permutation_order)
     batches.push_back(merged[i]);
-
   if(drop_uneven_){
     for(auto i = batches.begin(); i != batches.end();){
       if(i->size(0) == batch_size_)
@@ -106,8 +106,7 @@ std::vector<torch::Tensor> GroupedBatchSampler::_prepare_batches(){
 torch::optional<std::vector<size_t>> GroupedBatchSampler::next(size_t batch_size){
   if(_batches.size() == 0)
     _batches = _prepare_batches();
-
-  if(index_ <= _batches.size()){
+  if(index_ < _batches.size()){
     std::vector<size_t> indices;
     auto indices_tensor = _batches[index_];
     for(int i = 0; i < indices_tensor.size(0); ++i)

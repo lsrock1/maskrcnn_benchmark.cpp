@@ -34,23 +34,19 @@ void do_train(int checkpoint_period, int iteration, torch::Device device){
   cout << "build\n";
   int max_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   int start_iter = iteration;
+  model->to(device);
   model->train();
   time_t start_training_time = time(0);
   time_t end = time(0);
   double data_time;
   ConcatOptimizer optimizer = MakeOptimizer(model);
-  cout << "build\n";
   ConcatScheduler scheduler = MakeLRScheduler(optimizer);
-  cout << "build\n";
   
-  vector<string> dataset_list;
-  auto dataset = GetCFG<std::vector<std::string>>({"DATASETS", "TRAIN"});
+  vector<string> dataset_list = GetCFG<std::vector<std::string>>({"DATASETS", "TRAIN"});
   Compose transforms = BuildTransforms(true);
-  cout << "build\n";
   BatchCollator collate = BatchCollator(GetCFG<int>({"DATALOADER", "SIZE_DIVISIBILITY"}));
   int images_per_batch = GetCFG<int64_t>({"SOLVER", "IMS_PER_BATCH"});
   COCODataset coco = BuildDataset(dataset_list, true);
-  cout << "build\n";
 
   auto data = coco.map(transforms).map(collate);
   std::shared_ptr<torch::data::samplers::Sampler<>> sampler = make_batch_data_sampler(coco, true, start_iter);
@@ -58,28 +54,31 @@ void do_train(int checkpoint_period, int iteration, torch::Device device){
   torch::data::DataLoaderOptions options(images_per_batch);
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<IterationBasedBatchSampler*>(sampler.get()), options);
+  cout << "build\n";
   for(auto& i : *data_loader){
     time(&end);
     data_time = difftime(time(0), end);
     iteration += 1;
     scheduler.step();
     ImageList images = get<0>(i).to(device);
-    vector<BoxList> targets = get<1>(i);
+    vector<BoxList> targets;
+    for(auto& target : get<1>(i))
+      targets.push_back(target.To(device));
     // for(auto& i : )
     //   targets.push_back(i.target);
     cout << "forward\n";
-    vector<BoxList> loss_map = model->forward<vector<BoxList>>(images, targets);
+    map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
 
-    // std::vector<torch::Tensor> losses;
-    // for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-    //   losses.push_back(i->second);
-    // torch::Tensor loss = torch::zeros({1});
-    // for(auto& i : losses)
-    //   loss = loss + i;
-    // optimizer.zero_grad();
-    // loss.backward();
-    // optimizer.step();
-    // cout << loss.item<double>() << "\n";
+    std::vector<torch::Tensor> losses;
+    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
+      losses.push_back(i->second);
+    torch::Tensor loss = torch::zeros({1}).to(device);
+    for(auto& i : losses)
+      loss = loss + i;
+    optimizer.zero_grad();
+    loss.backward();
+    optimizer.step();
+    cout << loss.item<double>() << "\n";
   }
   
 

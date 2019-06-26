@@ -11,11 +11,11 @@ FrozenBatchNorm2dImpl::FrozenBatchNorm2dImpl(int64_t dimension)
 
 torch::Tensor FrozenBatchNorm2dImpl::forward(torch::Tensor x){
     // TODO INTEGRATION
-  torch::Tensor scale = weight * var.rsqrt();
-  bias = bias - mean * scale;
-  scale = scale.reshape({1, -1, 1, 1});
-  bias = bias.reshape({1, -1, 1, 1});
-  return x * scale + bias;
+  torch::Tensor scale_n = weight * var.rsqrt();
+  torch::Tensor bias_n = bias - mean * scale_n;
+  scale_n = scale_n.reshape({1, -1, 1, 1});
+  bias_n = bias_n.reshape({1, -1, 1, 1});
+  return x * scale_n + bias_n;
 };
 
 FrozenBatchNorm2d BatchNorm(int64_t channels){

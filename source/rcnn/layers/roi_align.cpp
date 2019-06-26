@@ -3,8 +3,8 @@
 namespace rcnn{
 namespace layers{
 
-at::Tensor ROIAlign_forward(const at::Tensor& input,
-                            const at::Tensor& rois,
+torch::Tensor ROIAlign_forward(const torch::Tensor& input,
+                            const torch::Tensor& rois,
                             const float spatial_scale,
                             const int pooled_height,
                             const int pooled_width,
@@ -19,8 +19,8 @@ at::Tensor ROIAlign_forward(const at::Tensor& input,
   return ROIAlign_forward_cpu(input, rois, spatial_scale, pooled_height, pooled_width, sampling_ratio);
 }
 
-at::Tensor ROIAlign_backward(const at::Tensor& grad,
-                             const at::Tensor& rois,
+torch::Tensor ROIAlign_backward(const torch::Tensor& grad,
+                             const torch::Tensor& rois,
                              const float spatial_scale,
                              const int pooled_height,
                              const int pooled_width,

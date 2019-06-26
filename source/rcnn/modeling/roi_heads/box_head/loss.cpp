@@ -91,12 +91,18 @@ std::pair<torch::Tensor, torch::Tensor> FastRCNNLossComputation::operator()(std:
 
   torch::Tensor map_inds;
   if(cls_agnostic_bbox_reg_){
-    map_inds = torch::tensor({4, 5, 6, 7}).to(device);
+    map_inds = torch::tensor({4, 5, 6, 7}).to(device).to(torch::kI64);
   }
   else{
-    map_inds = 4 * labels_pos.unsqueeze(1) + torch::tensor({0, 1, 2, 3}).to(device);
+    map_inds = 4 * labels_pos.unsqueeze(1) + torch::tensor({0, 1, 2, 3}).to(device).to(torch::kI64);
   }
-  torch::Tensor box_loss = rcnn::layers::smooth_l1_loss(box_regression_tensor.index_select(0, sampled_pos_inds_subset.unsqueeze(1)).index_select(1, map_inds), 
+  cat_vec.clear();
+  box_regression_tensor = box_regression_tensor.index_select(0, sampled_pos_inds_subset);
+  
+  for(int i = 0; i < box_regression_tensor.size(0); ++i)
+    cat_vec.push_back(box_regression_tensor[i].index_select(0, map_inds[i]));
+  box_regression_tensor = torch::stack(cat_vec);
+  torch::Tensor box_loss = rcnn::layers::smooth_l1_loss(box_regression_tensor, 
                                regression_targets.index_select(0, sampled_pos_inds_subset),
                                1., false);
 

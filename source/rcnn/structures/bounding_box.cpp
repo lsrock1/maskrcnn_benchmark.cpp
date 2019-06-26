@@ -3,6 +3,7 @@
 #include "cat.h"
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 
 namespace rcnn{
@@ -19,9 +20,8 @@ torch::Tensor BoxList::BoxListIOU(BoxList a, BoxList b){
   torch::Tensor bbox_b = b.get_bbox();
   torch::Tensor lt = torch::max(bbox_a.unsqueeze(1).slice(/*dim=*/2, /*start=*/0, /*end=*/2), bbox_b.slice(1, 0, 2));
   torch::Tensor rb = torch::min(bbox_a.unsqueeze(1).slice(/*dim=*/2, /*start=*/2, /*end=*/4), bbox_b.slice(1, 2, 4));
-
   torch::Tensor wh = (rb - lt + TO_REMOVE).clamp(0);
-  torch::Tensor inter = wh.slice(2, 0, 1) * wh.slice(2, 1, 1);
+  torch::Tensor inter = wh.select(2, 0) * wh.select(2, 1);
   return inter / (area_a.unsqueeze(1) + area_b - inter);
 }
 
@@ -37,7 +37,9 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
     compared_field = boxlist.Fields();
     std::sort(compared_field.begin(), compared_field.end());
     cat_bbox.push_back(boxlist.get_bbox());
-    assert(boxlist.get_size() == size && boxlist.get_mode() == mode && fields == compared_field);
+    assert(boxlist.get_size() == size);
+    assert(boxlist.get_mode() == mode);
+    assert(fields == compared_field);
   }
   BoxList cat_boxlists = BoxList(rcnn::layers::cat(cat_bbox, 0), size, mode);
   for(auto& field: fields){
@@ -175,7 +177,7 @@ std::vector<std::string> BoxList::Fields(){
 
 BoxList BoxList::Convert(const std::string mode){
   assert(mode.compare("xyxy") == 0 || mode.compare("xywh") == 0);
-  if(this->mode_.compare(mode) != 0){
+  if(mode_.compare(mode) != 0){
     std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
     torch::Tensor bbox_tensor;
     if(mode.compare("xyxy") == 0){
@@ -238,8 +240,8 @@ void BoxList::CopyExtraFields(const BoxList bbox){
   if(bbox.get_rles().size() > 0)
     rles_ = bbox.get_rles();
 
-  if(bbox.get_masks())
-    masks_ = new SegmentationMask(*bbox.get_masks());
+  // if(bbox.get_masks())
+  //   masks_ = new SegmentationMask(*bbox.get_masks());
 }
 
 BoxList BoxList::Resize(const std::pair<Width, Height> size){
@@ -262,9 +264,11 @@ BoxList BoxList::Resize(const std::pair<Width, Height> size){
     }, -1);
   }
   BoxList bbox = BoxList(scaled_bbox, size, "xyxy");
-  bbox.CopyExtraFields(*this);
+  // bbox.CopyExtraFields(*this);
+  for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
+    bbox.AddField(i->first, i->second);
   if(masks_)
-    bbox.set_masks(new SegmentationMask((*bbox.get_masks()).Resize(size)));
+    bbox.set_masks(new SegmentationMask(masks_->Resize(size)));
   return bbox.Convert(get_mode());
 }
 
@@ -293,8 +297,11 @@ BoxList BoxList::Transpose(const Flip method){
     transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax
   }, -1);
   BoxList bbox = BoxList(transposed_boxes, size_, "xyxy");
+  for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
+    bbox.AddField(i->first, i->second);
   if(masks_)
-    bbox.set_masks(new SegmentationMask((*bbox.get_masks()).Transpose(method)));
+    bbox.set_masks(new SegmentationMask(masks_->Transpose(method)));
+  
   return bbox.Convert(mode_);
 }
 
@@ -310,9 +317,10 @@ BoxList BoxList::Crop(const std::tuple<int64_t, int64_t, int64_t, int64_t> box){
       {cropped_xmin, cropped_ymin, cropped_xmax, cropped_ymax}, -1
   );
   BoxList bbox = BoxList(cropped_box, std::make_pair(width, height), "xyxy");
-  bbox.CopyExtraFields(*this);
+  for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
+    bbox.AddField(i->first, i->second);
   if(masks_)
-    bbox.set_masks(new SegmentationMask((*bbox.get_masks()).Crop(box)));
+    bbox.set_masks(new SegmentationMask(masks_->Crop(box)));
   return bbox.Convert(mode_);
 }
 
@@ -326,6 +334,7 @@ BoxList BoxList::To(const torch::Device device){
 
 BoxList BoxList::operator[](torch::Tensor item){
   assert(item.sizes().size() == 1);
+  item = item.to(bbox_.device());
   if(item.dtype() == torch::kByte){
     BoxList bbox = BoxList(bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}), size_, mode_);
     for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
@@ -351,8 +360,8 @@ BoxList BoxList::operator[](torch::Tensor item){
   }
   else{
     //index_select
-    BoxList bbox = BoxList(this->bbox_.index_select(/*dim=*/0, item), this->size_, this->mode_);
-    for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
+    BoxList bbox = BoxList(bbox_.index_select(/*dim=*/0, item), size_, mode_);
+    for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
       auto size_vector = (i->second).sizes().vec();
       size_vector[0] = -1;
       bbox.AddField(i->first, (i->second).index_select(/*dim=*/0, item).reshape(torch::IntArrayRef(size_vector)));
@@ -373,7 +382,7 @@ BoxList BoxList::operator[](torch::Tensor item){
 
 BoxList BoxList::operator[](const int64_t index){
     BoxList bbox = BoxList(this->bbox_[index].reshape({-1, 4}), this->size_, this->mode_);
-    for(auto i = this->extra_fields_.begin(); i != this->extra_fields_.end(); ++i){
+    for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
         auto size_vector = (i->second).sizes().vec();
         size_vector[0] = -1;
         bbox.AddField(i->first, (i->second)[index].reshape(at::IntArrayRef(size_vector)));
@@ -387,20 +396,19 @@ BoxList BoxList::operator[](const int64_t index){
 }
 
 int64_t BoxList::Length() const {
-    return this->bbox_.size(0);
+    return bbox_.size(0);
 }
 
 BoxList BoxList::ClipToImage(const bool remove_empty){
   int TO_REMOVE = 1;
-  torch::Tensor bbox_tensor = torch::cat({
-    bbox_.narrow(/*dim*/1, /*start*/0, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE),
-    bbox_.narrow(/*dim*/1, /*start*/1, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE),
-    bbox_.narrow(/*dim*/1, /*start*/2, /*length*/1).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE),
-    bbox_.narrow(/*dim*/1, /*start*/3, /*length*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE)}, 1);
+  bbox_.select(/*dim*/1, /*index*/0).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE);
+  bbox_.select(/*dim*/1, /*index*/1).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE);
+  bbox_.select(/*dim*/1, /*index*/2).clamp_(/*min*/0, /*max*/std::get<0>(size_) - TO_REMOVE);
+  bbox_.select(/*dim*/1, /*index*/3).clamp_(/*min*/0, /*max*/std::get<1>(size_) - TO_REMOVE);
   if(remove_empty){
-    auto keep = (bbox_tensor.narrow(1, 3, 1) > bbox_tensor.narrow(1, 1, 1)).__and__((bbox_tensor.narrow(1, 2, 1) > bbox_tensor.narrow(1, 0, 1)));
+    auto keep = (bbox_.select(1, 3) > bbox_.select(1, 1)).__and__((bbox_.select(1, 2) > bbox_.select(1, 0)));
 
-    return (*this)[keep.squeeze_(1)];
+    return (*this)[keep];
   }
   return *this;
 }
@@ -408,11 +416,11 @@ BoxList BoxList::ClipToImage(const bool remove_empty){
 torch::Tensor BoxList::Area(){
   if(mode_.compare("xyxy") == 0){
     int TO_REMOVE = 1;
-    torch::Tensor area = (bbox_.narrow(1, 2, 1) - bbox_.narrow(1, 0, 1) + TO_REMOVE) * (bbox_.narrow(1, 3, 1) - bbox_.narrow(1, 1, 1) + TO_REMOVE);
+    torch::Tensor area = (bbox_.select(1, 2) - bbox_.select(1, 0) + TO_REMOVE) * (bbox_.select(1, 3) - bbox_.select(1, 1) + TO_REMOVE);
     return area;
   }
   else if(mode_.compare("xywh") == 0){
-    torch::Tensor area = bbox_.narrow(1, 2, 1) * bbox_.narrow(1, 3, 1);
+    torch::Tensor area = bbox_.select(1, 2) * bbox_.select(1, 3);
     return area;
   }
   else{
@@ -424,16 +432,17 @@ BoxList BoxList::CopyWithFields(const std::vector<std::string> fields, const boo
   BoxList bbox = BoxList(bbox_, size_, mode_);
   for(auto i = fields.begin(); i != fields.end(); ++i){
     if(HasField(*i)){
-      bbox.AddField(*i, GetField(*i));
+      if((*i).compare("mask") && rles_.size() > 0)
+        bbox.AddField("mask", rles_);
+      else if((*i).compare("masks") && masks_)
+        bbox.AddField("masks", masks_);
+      else
+        bbox.AddField(*i, GetField(*i));
     }
     else if(!skip_missing){
       throw std::invalid_argument("field is not found");
     }
   }
-  if(rles_.size())
-    bbox.AddField("mask", rles_);
-  if(masks_)
-    bbox.AddField("masks", masks_);
     
   return bbox;
 }

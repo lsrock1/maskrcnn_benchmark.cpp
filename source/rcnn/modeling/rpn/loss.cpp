@@ -3,6 +3,7 @@
 #include "defaults.h"
 #include "rpn/utils.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
@@ -19,7 +20,6 @@ RPNLossComputation::RPNLossComputation(Matcher proposal_matcher, BalancedPositiv
 rcnn::structures::BoxList RPNLossComputation::MatchTargetsToAnchors(rcnn::structures::BoxList& anchor, rcnn::structures::BoxList& target, const std::vector<std::string> copied_fields){
   torch::Tensor match_quality_matrix = rcnn::structures::BoxList::BoxListIOU(target, anchor);
   torch::Tensor matched_idxs = proposal_matcher_(match_quality_matrix);
-
   target = target.CopyWithFields(copied_fields);
   rcnn::structures::BoxList matched_targets = target[matched_idxs.clamp(/*min=*/0)];
   matched_targets.AddField("matched_idxs", matched_idxs);
@@ -30,6 +30,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNLossComputa
   std::vector<torch::Tensor> labels;
   std::vector<torch::Tensor> regression_targets;
   assert(anchors.size() == targets.size());
+  
   for(int i = 0; i < anchors.size(); ++i){
     rcnn::structures::BoxList matched_targets = MatchTargetsToAnchors(anchors[i], targets[i], copied_fields_);
     torch::Tensor matched_idxs = matched_targets.GetField("matched_idxs");
@@ -62,14 +63,15 @@ std::pair<torch::Tensor, torch::Tensor> RPNLossComputation::operator() (std::vec
 
   for(auto& anchors_per_image: anchors)
     cat_boxlists.push_back(rcnn::structures::BoxList::CatBoxList(anchors_per_image));
-
   std::tie(labels, regression_targets) = PrepareTargets(cat_boxlists, targets);
+  
   std::tie(sampled_pos_inds, sampled_neg_inds) = fg_bg_sampler_(labels);
   sampled_pos_inds_tensor = torch::nonzero(torch::cat(sampled_pos_inds, 0)).squeeze(1);
   sampled_neg_inds_tensor = torch::nonzero(torch::cat(sampled_neg_inds, 0)).squeeze(1);
-
+  
   sampled_inds = torch::cat({sampled_pos_inds_tensor, sampled_neg_inds_tensor}, /*dim=*/0);
   std::tie(objectness_tensor, box_regression_tensor) = ConcatBoxPredictionLayers(objectness, box_regression);
+
   objectness_tensor.squeeze_();
   labels_tensor = torch::cat(labels, 0);
   regression_targets_tensor = torch::cat(regression_targets, 0);

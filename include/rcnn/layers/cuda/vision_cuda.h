@@ -20,15 +20,15 @@ namespace layers{
 // 			     const float gamma,
 // 			     const float alpha);
 
-at::Tensor ROIAlign_forward_cuda(const at::Tensor& input,
-                                 const at::Tensor& rois,
+torch::Tensor ROIAlign_forward_cuda(const torch::Tensor& input,
+                                 const torch::Tensor& rois,
                                  const float spatial_scale,
                                  const int pooled_height,
                                  const int pooled_width,
                                  const int sampling_ratio);
 
-at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
-                                  const at::Tensor& rois,
+torch::Tensor ROIAlign_backward_cuda(const torch::Tensor& grad,
+                                  const torch::Tensor& rois,
                                   const float spatial_scale,
                                   const int pooled_height,
                                   const int pooled_width,
@@ -57,7 +57,7 @@ at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
 //                                  const int height,
 //                                  const int width);
 
-at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh);
+torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh);
 
 
 // int deform_conv_forward_cuda(at::Tensor input, at::Tensor weight,
@@ -113,7 +113,7 @@ at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh);
 //     const int sample_per_part, const float trans_std);
 
 
-at::Tensor compute_flow_cuda(const at::Tensor& boxes,
+torch::Tensor compute_flow_cuda(const torch::Tensor& boxes,
                              const int height,
                              const int width);
 }

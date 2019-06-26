@@ -257,8 +257,8 @@ __global__ void RoIAlignBackwardFeature(const int nthreads, const T* top_diff,
 } // RoIAlignBackward
 
 
-at::Tensor ROIAlign_forward_cuda(const at::Tensor& input,
-                                 const at::Tensor& rois,
+torch::Tensor ROIAlign_forward_cuda(const torch::Tensor& input,
+                                 const torch::Tensor& rois,
                                  const float spatial_scale,
                                  const int pooled_height,
                                  const int pooled_width,
@@ -271,7 +271,7 @@ at::Tensor ROIAlign_forward_cuda(const at::Tensor& input,
   auto height = input.size(2);
   auto width = input.size(3);
 
-  auto output = at::empty({num_rois, channels, pooled_height, pooled_width}, input.options());
+  auto output = torch::empty({num_rois, channels, pooled_height, pooled_width}, input.options());
   auto output_size = num_rois * pooled_height * pooled_width * channels;
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
@@ -302,8 +302,8 @@ at::Tensor ROIAlign_forward_cuda(const at::Tensor& input,
 }
 
 // TODO remove the dependency on input and use instead its sizes -> save memory
-at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
-                                  const at::Tensor& rois,
+torch::Tensor ROIAlign_backward_cuda(const torch::Tensor& grad,
+                                  const torch::Tensor& rois,
                                   const float spatial_scale,
                                   const int pooled_height,
                                   const int pooled_width,
@@ -316,7 +316,7 @@ at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
   AT_ASSERTM(rois.type().is_cuda(), "rois must be a CUDA tensor");
 
   auto num_rois = rois.size(0);
-  auto grad_input = at::zeros({batch_size, channels, height, width}, grad.options());
+  auto grad_input = torch::zeros({batch_size, channels, height, width}, grad.options());
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 

@@ -4,15 +4,15 @@
 namespace rcnn{
 namespace layers{
 template <typename scalar_t>
-at::Tensor nms_cpu_kernel(const at::Tensor& dets,
-                          const at::Tensor& scores,
+torch::Tensor nms_cpu_kernel(const torch::Tensor& dets,
+                          const torch::Tensor& scores,
                           const float threshold) {
   AT_ASSERTM(!dets.type().is_cuda(), "dets must be a CPU tensor");
   AT_ASSERTM(!scores.type().is_cuda(), "scores must be a CPU tensor");
   AT_ASSERTM(dets.type() == scores.type(), "dets should have the same type as scores");
 
   if (dets.numel() == 0) {
-    return at::empty({0}, dets.options().dtype(at::kLong).device(at::kCPU));
+    return torch::empty({0}, dets.options().dtype(at::kLong).device(at::kCPU));
   }
 
   auto x1_t = dets.select(1, 0).contiguous();
@@ -20,12 +20,12 @@ at::Tensor nms_cpu_kernel(const at::Tensor& dets,
   auto x2_t = dets.select(1, 2).contiguous();
   auto y2_t = dets.select(1, 3).contiguous();
 
-  at::Tensor areas_t = (x2_t - x1_t + 1) * (y2_t - y1_t + 1);
+  torch::Tensor areas_t = (x2_t - x1_t + 1) * (y2_t - y1_t + 1);
 
   auto order_t = std::get<1>(scores.sort(0, /* descending=*/true));
 
   auto ndets = dets.size(0);
-  at::Tensor suppressed_t = at::zeros({ndets}, dets.options().dtype(at::kByte).device(at::kCPU));
+  torch::Tensor suppressed_t = torch::zeros({ndets}, dets.options().dtype(at::kByte).device(at::kCPU));
 
   auto suppressed = suppressed_t.data<uint8_t>();
   auto order = order_t.data<int64_t>();
@@ -65,10 +65,10 @@ at::Tensor nms_cpu_kernel(const at::Tensor& dets,
   return at::nonzero(suppressed_t == 0).squeeze(1);
 }
 
-at::Tensor nms_cpu(const at::Tensor& dets,
-               const at::Tensor& scores,
+torch::Tensor nms_cpu(const torch::Tensor& dets,
+               const torch::Tensor& scores,
                const float threshold) {
-  at::Tensor result;
+  torch::Tensor result;
   AT_DISPATCH_FLOATING_TYPES(dets.type(), "nms", [&] {
     result = nms_cpu_kernel<scalar_t>(dets, scores, threshold);
   });

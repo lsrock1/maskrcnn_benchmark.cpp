@@ -18,7 +18,7 @@ bool _has_only_empty_bbox(std::vector<coco::Annotation> anno){
 }
 
 bool has_valid_annotation(std::vector<coco::Annotation> anno){
-  if(anno.size())
+  if(anno.size() == 0)
     return false;
 
   if(_has_only_empty_bbox(anno))

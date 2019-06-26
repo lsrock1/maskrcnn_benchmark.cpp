@@ -29,7 +29,7 @@ int main() {
   cout << "load complete" << endl;
   auto arch = rcnn::config::GetCFG<std::string>({"MODEL", "META_ARCHITECTURE"});
   cout << arch << "\n";
-  engine::do_train(100, 50, torch::Device("cpu"));
+  engine::do_train(100, 50, torch::Device("cuda"));
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";

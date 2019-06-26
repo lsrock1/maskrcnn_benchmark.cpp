@@ -40,7 +40,7 @@ RPNModuleImpl::RPNModuleImpl(int64_t in_channels)
   loss_evaluator_(MakeRPNLossEvaluator(rpn_box_coder_)),
   rpn_only_(rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})){}
 
-std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward(rcnn::structures::ImageList& images, std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& targets){
+std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward(rcnn::structures::ImageList& images, std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList> targets){
   //given targets
   std::vector<torch::Tensor> objectness, rpn_box_regression;
   std::tie(objectness, rpn_box_regression) = head_(features);
@@ -63,7 +63,7 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
   return forward_test(anchors, objectness, rpn_box_regression);
 }
 
-std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward_train(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& rpn_box_regression, std::vector<rcnn::structures::BoxList>& targets){
+std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward_train(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& rpn_box_regression, std::vector<rcnn::structures::BoxList> targets){
   std::vector<rcnn::structures::BoxList> boxes;
   torch::Tensor loss_objectness, loss_rpn_box_reg;
   std::map<std::string, torch::Tensor> losses;

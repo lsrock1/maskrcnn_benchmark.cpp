@@ -6,7 +6,7 @@
 namespace rcnn{
 namespace config{
 
-const std::string DatasetCatalog::DATA_DIR = "datasets";
+const std::string DatasetCatalog::DATA_DIR = "../datasets";
 const std::map<std::string, args> DatasetCatalog::DATASETS{
   {"coco_2017_train", 
     args{{"img_dir", "coco/train2017"}, {"ann_file", "coco/annotations/instances_train2017.json"}}},

@@ -1,4 +1,5 @@
 #include "balanced_positive_negative_sampler.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -29,13 +30,11 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> BalancedPositi
 
     pos_perm = torch::randperm(positive.numel(), torch::TensorOptions().device(positive.device()).dtype(positive.dtype())).slice(/*dim=*/0, /*start=*/0, /*end=*/num_pos);
     neg_perm = torch::randperm(negative.numel(), torch::TensorOptions().device(negative.device()).dtype(negative.dtype())).slice(/*dim=*/0, /*start=*/0, /*end=*/num_neg);
-
     pos_idx_per_image = positive.index_select(/*dim=*/0, pos_perm);
     neg_idx_per_image = negative.index_select(0, neg_perm);
-    //TODO
-    //can merge pos and neg mask
-    pos_idx_per_image_mask = torch::zeros_like(matched_idxs_per_image, torch::TensorOptions().dtype(torch::kInt8));
-    neg_idx_per_image_mask = torch::zeros_like(matched_idxs_per_image, torch::TensorOptions().dtype(torch::kInt8));
+
+    pos_idx_per_image_mask = torch::zeros_like(matched_idxs_per_image, torch::TensorOptions().dtype(torch::kInt8).device(matched_idxs_per_image.device()));
+    neg_idx_per_image_mask = torch::zeros_like(matched_idxs_per_image, torch::TensorOptions().dtype(torch::kInt8).device(matched_idxs_per_image.device()));
 
     pos_idx_per_image_mask.index_fill_(0, pos_idx_per_image, 1);
     neg_idx_per_image_mask.index_fill_(0, neg_idx_per_image, 1);

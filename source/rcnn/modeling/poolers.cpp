@@ -40,7 +40,7 @@ torch::Tensor PoolerImpl::ConvertToROIFormat(std::vector<rcnn::structures::BoxLi
   auto device = boxes[0].get_bbox().device();
   auto dtype = boxes[0].get_bbox().dtype();
   for(int i = 0; i < boxes.size(); ++i){
-    concat_boxes_vec.push_back(boxes[i].Area());
+    concat_boxes_vec.push_back(boxes[i].get_bbox());
     ids_vec.push_back(torch::full({boxes[i].Length(), 1}, i, torch::TensorOptions().dtype(dtype).device(device)));
   }
   torch::Tensor concat_boxes = rcnn::layers::cat(concat_boxes_vec, 0);

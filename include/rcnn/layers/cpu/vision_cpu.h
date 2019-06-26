@@ -5,16 +5,16 @@
 namespace rcnn{
 namespace layers{
     
-at::Tensor ROIAlign_forward_cpu(const at::Tensor& input,
-                                const at::Tensor& rois,
+torch::Tensor ROIAlign_forward_cpu(const torch::Tensor& input,
+                                const torch::Tensor& rois,
                                 const float spatial_scale,
                                 const int pooled_height,
                                 const int pooled_width,
                                 const int sampling_ratio);
 
 
-at::Tensor nms_cpu(const at::Tensor& dets,
-                   const at::Tensor& scores,
+torch::Tensor nms_cpu(const torch::Tensor& dets,
+                   const torch::Tensor& scores,
                    const float threshold);
 }
 }

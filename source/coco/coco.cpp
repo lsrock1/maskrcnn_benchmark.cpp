@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <ctime>
 
 
 namespace coco{
@@ -65,8 +66,11 @@ Categories::Categories(const Value& value)
 Categories::Categories(): id(0), name(""), supercategory(""){}
 
 COCO::COCO(std::string annotation_file){
+  std::cout << "loading annotations into memory...\n";
+  time_t start = time(0);
   std::ifstream ifs(annotation_file);
   IStreamWrapper isw(ifs);
+  std::cout << "Done : " << difftime(time(0), start) << "s\n";
   dataset.ParseStream(isw);
   assert(dataset.IsObject());
   CreateIndex();
@@ -105,6 +109,7 @@ COCO COCO::operator=(COCO&& other){
 }
 
 void COCO::CreateIndex(){
+  std::cout << "creating index...\n";
   if(dataset.HasMember("annotations")){
     assert(dataset["annotations"].IsArray());
     for(auto& ann : dataset["annotations"].GetArray()){
@@ -143,6 +148,7 @@ void COCO::CreateIndex(){
       }
     }
   }//ann and cat
+  std::cout << "index created!\n";
 }
 
 std::vector<int64_t> COCO::GetAnnIds(const std::vector<int> imgIds, 

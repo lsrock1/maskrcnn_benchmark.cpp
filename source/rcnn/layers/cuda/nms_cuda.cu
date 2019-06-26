@@ -70,7 +70,7 @@ __global__ void nms_kernel(const int n_boxes, const float nms_overlap_thresh,
 }
 
 // boxes is a N x 5 tensor
-at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh) {
+torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh) {
   using scalar_t = float;
   AT_ASSERTM(boxes.type().is_cuda(), "boxes must be a CUDA tensor");
   auto scores = boxes.select(1, 4);
@@ -108,7 +108,7 @@ at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh) {
   std::vector<unsigned long long> remv(col_blocks);
   memset(&remv[0], 0, sizeof(unsigned long long) * col_blocks);
 
-  at::Tensor keep = at::empty({boxes_num}, boxes.options().dtype(at::kLong).device(at::kCPU));
+  torch::Tensor keep = torch::empty({boxes_num}, boxes.options().dtype(torch::kLong).device(torch::kCPU));
   int64_t* keep_out = keep.data<int64_t>();
 
   int num_to_keep = 0;

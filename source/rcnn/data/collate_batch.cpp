@@ -1,4 +1,5 @@
 #include "collate_batch.h"
+#include <iostream>
 
 
 namespace rcnn{
