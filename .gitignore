@@ -37,6 +37,7 @@
 *.app
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -52,3 +53,4 @@ lib/libtorch
 build/
 
 *.pth
+datasets/*
