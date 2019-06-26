@@ -17,6 +17,7 @@ public:
   void set_bias_lr(double new_lr);
   void save(torch::serialize::OutputArchive& archive) const;
   void load(torch::serialize::InputArchive& archive);
+  double get_lr();
   
   torch::optim::SGD& get_weight_op();
   torch::optim::SGD& get_bias_op();

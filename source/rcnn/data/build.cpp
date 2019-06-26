@@ -26,7 +26,6 @@ namespace data{
 //supports only coco dataset
 //TODO Concat dataset
 COCODataset BuildDataset(std::vector<std::string> dataset_list, bool is_train){
-  std::cout << dataset_list << "\n";
   assert(dataset_list.size() == 1);
   rcnn::config::DatasetCatalog dataset_catalog = rcnn::config::DatasetCatalog();
   std::string dataset_name, img_dir, ann_file;

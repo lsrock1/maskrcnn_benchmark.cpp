@@ -6,7 +6,7 @@
 #include "samplers/build.h"
 #include <bounding_box.h>
 #include <build.h>
-#include <tovec.h>
+#include <metric_logger.h>
 #include <collate_batch.h>
 
 #include <solver_build.h>
@@ -30,18 +30,20 @@ using namespace std;
 
 void do_train(int checkpoint_period, int iteration, torch::Device device){
   //meters
-  GeneralizedRCNN model = BuildDetectionModel();
+  auto meters = MetricLogger(" ");
+  cout << "Start training\n";
   int max_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   int start_iter = iteration;
-  model->to(device);
-  model->train();
-
   time_t start_training_time = time(0);
   time_t end = time(0);
-  double data_time;
+  double data_time, batch_time, eta_seconds;
+  std::string eta_string;
 
+  GeneralizedRCNN model = BuildDetectionModel();
+  model->to(device);
+  model->train();
   ConcatOptimizer optimizer = MakeOptimizer(model);
-  ConcatScheduler scheduler = MakeLRScheduler(optimizer);
+  ConcatScheduler scheduler = MakeLRScheduler(optimizer, start_iter);
   
   vector<string> dataset_list = GetCFG<std::vector<std::string>>({"DATASETS", "TRAIN"});
   Compose transforms = BuildTransforms(true);
@@ -73,13 +75,22 @@ void do_train(int checkpoint_period, int iteration, torch::Device device){
 
     for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
       loss += i->second;
-    
-    // for(auto& i : losses)
-    //   loss = loss + i;
+    loss_map["loss"] = loss;
+    meters.update(loss_map);
+
     optimizer.zero_grad();
     loss.backward();
     optimizer.step();
-    cout << loss.item<double>() << "\n";
+
+    batch_time = difftime(time(0), end);
+    end = time(0);
+    meters.update(map<string, float>{{"time", static_cast<float>(batch_time)}, {"data", static_cast<float>(data_time)}});
+    eta_second = meters["time"].global_avg() * (max_iter - iteration);
+    eta_string = std::to_string(eta_seconds/60/60/24) + " day " + std::to_string(eta_second/60/60) + " h " + std::string(eta_second/60) + " m";
+    if(iteration % 20 == 0 || iteration == max_iter){
+      cout << "eta: " << eta_string << meters.delimiter_ << "iter: " << iteration << meters.delimiter_ << meters << meters.delimiter_
+      << "lr: " << to_string(optimizer.get_lr()) << meters.delimiter_ << "max mem: " << "none\n";
+    }
   }
   
 

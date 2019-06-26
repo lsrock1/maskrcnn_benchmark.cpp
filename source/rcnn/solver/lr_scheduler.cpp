@@ -52,5 +52,15 @@ void ConcatScheduler::step(){
   bias->step();
 }
 
+void ConcatScheduler::load(torch::serialize::InputArchive& archive){
+  weight->load(archive);
+  bias->load(archive);
+}
+
+void ConcatScheduler::save(torch::serialize::OutputArchive& archive) const{
+  weight->save(archive);
+  bias->save(archive);
+}
+
 }
 }

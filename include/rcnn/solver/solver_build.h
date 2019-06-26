@@ -9,7 +9,7 @@ namespace solver{
 
 ConcatOptimizer MakeOptimizer(rcnn::modeling::GeneralizedRCNN& model);
 
-ConcatScheduler MakeLRScheduler(ConcatOptimizer& optimizer);
+ConcatScheduler MakeLRScheduler(ConcatOptimizer& optimizer, int last_epoch);
 
 }
 }

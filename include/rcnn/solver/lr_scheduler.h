@@ -32,6 +32,23 @@ public:
     optimizer_.options.learning_rate(get_lr());
   }
 
+  void save(torch::serialize::OutputArchive& archive) const{
+    archive.write(
+      "last_epoch",
+      torch::tensor(static_cast<int64_t>(last_epoch_), torch::kI64),
+      true
+    );
+  }
+
+  void load(torch::serialize::InputArchive& archive){
+    auto tensor = torch::empty(1, torch::kInt64);
+    archive.read(
+      "last_epoch",
+      tensor,
+      true);
+    last_epoch_ = tensor.item<int64_t>();
+  }
+
 protected:
   Optimizer optimizer_;
   int64_t last_epoch_ = 0;
@@ -79,6 +96,8 @@ public:
                   std::string warmup_method="linear", 
                   int64_t last_epoch=-1);
   void step();
+  void load(torch::serialize::InputArchive& archive);
+  void save(torch::serialize::OutputArchive& archive) const;
 
 private:
   std::shared_ptr<_LRScheduler<torch::optim::SGD>> weight;

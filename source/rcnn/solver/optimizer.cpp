@@ -35,6 +35,10 @@ void ConcatOptimizer::step(){
   bias.step();
 }
 
+double ConcatOptimizer::get_lr(){
+  return weight.options.learning_rate();
+}
+
 void ConcatOptimizer::set_weight_lr(double new_lr){
   weight.options.learning_rate(new_lr);
 }
