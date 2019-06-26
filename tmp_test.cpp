@@ -27,17 +27,43 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
-  auto arch = rcnn::config::GetCFG<std::string>({"MODEL", "META_ARCHITECTURE"});
-  cout << arch << "\n";
-  engine::do_train(100, 50, torch::Device("cuda"));
+  // engine::do_train(100, 50, torch::Device("cuda"));
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";
-  // auto body = modeling::ResNet();
+  auto body = modeling::ResNet();
+  for(auto& i : body->named_parameters())
+    cout << i.key() << "\n";
+  for(auto& i : body->named_buffers())
+    cout << i.key() << "\n";
   // torch::load(body, "../resource/resnet50.pth");
-  // auto module_ = torch::jit::load("../resource/resnet50.pth");
+  auto module_ = torch::jit::load("../resource/resnet50.pth");
   //cout << module_->get_modules()->get_parameters() << "\n";
   // cout << module_->name() << "\n";
+  for(auto&a : module_->get_module("conv1")->get_parameters())
+    cout << a.name() << "\n";
+  
+  cout << "bn1\n";
+  for(auto&a : module_->get_module("bn1")->get_parameters())
+    cout << a.name() << "\n";
+
+  for(auto&a : module_->get_module("bn1")->get_attributes())
+    cout << a.value() << "\n";
+  cout << "relu\n";
+  for(auto&a : module_->get_module("relu")->get_parameters())
+    cout << a.name() << "\n";
+
+  for(auto&a : module_->get_module("layer1")->get_parameters())
+    cout << a.name() << "\n";
+
+  for(auto&a : module_->get_module("layer2")->get_parameters())
+    cout << a.name() << "\n";
+  
+  for(auto&a : module_->get_module("layer3")->get_parameters())
+    cout << a.name() << "\n";
+  
+  for(auto&a : module_->get_module("layer4")->get_parameters())
+    cout << a.name() << "\n";
   // for(auto& a : module_->get_modules())
   //   cout << a->name() << "\n";
   // module_->find_parameter("0")->value();

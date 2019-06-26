@@ -31,14 +31,15 @@ using namespace std;
 void do_train(int checkpoint_period, int iteration, torch::Device device){
   //meters
   GeneralizedRCNN model = BuildDetectionModel();
-  cout << "build\n";
   int max_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   int start_iter = iteration;
   model->to(device);
   model->train();
+
   time_t start_training_time = time(0);
   time_t end = time(0);
   double data_time;
+
   ConcatOptimizer optimizer = MakeOptimizer(model);
   ConcatScheduler scheduler = MakeLRScheduler(optimizer);
   
@@ -50,11 +51,11 @@ void do_train(int checkpoint_period, int iteration, torch::Device device){
 
   auto data = coco.map(transforms).map(collate);
   std::shared_ptr<torch::data::samplers::Sampler<>> sampler = make_batch_data_sampler(coco, true, start_iter);
-  cout << "build\n";
+  
   torch::data::DataLoaderOptions options(images_per_batch);
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<IterationBasedBatchSampler*>(sampler.get()), options);
-  cout << "build\n";
+  
   for(auto& i : *data_loader){
     time(&end);
     data_time = difftime(time(0), end);
@@ -62,19 +63,19 @@ void do_train(int checkpoint_period, int iteration, torch::Device device){
     scheduler.step();
     ImageList images = get<0>(i).to(device);
     vector<BoxList> targets;
+    
     for(auto& target : get<1>(i))
       targets.push_back(target.To(device));
-    // for(auto& i : )
-    //   targets.push_back(i.target);
-    cout << "forward\n";
-    map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
 
-    std::vector<torch::Tensor> losses;
-    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-      losses.push_back(i->second);
+    cout << images.get_tensors().sizes();
+    map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
     torch::Tensor loss = torch::zeros({1}).to(device);
-    for(auto& i : losses)
-      loss = loss + i;
+
+    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
+      loss += i->second;
+    
+    // for(auto& i : losses)
+    //   loss = loss + i;
     optimizer.zero_grad();
     loss.backward();
     optimizer.step();
