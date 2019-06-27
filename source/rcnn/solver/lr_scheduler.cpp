@@ -16,7 +16,8 @@ double WarmupMultiStepLR::get_lr(){
       warmup_factor = warmup_factor_ * (1. - alpha) + alpha;
     }
   }
-  return pow(_LRScheduler<torch::optim::SGD>::base_lr * warmup_factor * gamma_, rcnn::utils::bisect_right(milestones_, _LRScheduler<torch::optim::SGD>::last_epoch_)); 
+  //std::cout << pow(_LRScheduler<torch::optim::SGD>::base_lr * warmup_factor * gamma_, rcnn::utils::bisect_right(milestones_, _LRScheduler<torch::optim::SGD>::last_epoch_)) << "\n";
+  return _LRScheduler<torch::optim::SGD>::base_lr * warmup_factor * pow(gamma_, rcnn::utils::bisect_right(milestones_, _LRScheduler<torch::optim::SGD>::last_epoch_)); 
 }
 
 ConcatScheduler::ConcatScheduler(ConcatOptimizer& optimizer,
@@ -60,6 +61,11 @@ void ConcatScheduler::load(torch::serialize::InputArchive& archive){
 void ConcatScheduler::save(torch::serialize::OutputArchive& archive) const{
   weight->save(archive);
   bias->save(archive);
+}
+
+void ConcatScheduler::set_last_epoch(int64_t last_epoch){
+  weight->set_last_epoch(last_epoch);
+  bias->set_last_epoch(last_epoch);
 }
 
 }

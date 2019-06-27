@@ -45,7 +45,6 @@ torch::Tensor Conv2dImpl::forward(const torch::Tensor& input){
   return _NewEmptyTensorOp(input, shape);
 };
 
-
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape){
   auto& self_ = torch::autograd::as_variable_ref(x);
   auto result = torch::empty(new_shape, torch::TensorOptions().dtype(self_.dtype()).device(self_.device()));

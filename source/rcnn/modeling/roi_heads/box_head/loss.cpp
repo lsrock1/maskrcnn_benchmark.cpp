@@ -4,6 +4,7 @@
 #include "smooth_l1_loss.h"
 #include "matcher.h"
 #include <cassert>
+#include <iostream>
 
 
 namespace rcnn{
@@ -83,9 +84,10 @@ std::pair<torch::Tensor, torch::Tensor> FastRCNNLossComputation::operator()(std:
   cat_vec.clear();
   std::for_each(proposals.begin(), proposals.end(), [&cat_vec](rcnn::structures::BoxList proposal){cat_vec.push_back(proposal.GetField("regression_targets"));});
   torch::Tensor regression_targets = rcnn::layers::cat(cat_vec, 0);
-
-  torch::Tensor classification_loss = torch::nll_loss(class_logits_tensor.log_softmax(1), labels);
-
+  std::cout << "class logits : " << class_logits_tensor.softmax(1)[0].sum() << "\n";
+  std::cout << "labels : " <<labels[0] << "\n";
+  torch::Tensor classification_loss = torch::nll_loss(torch::log_softmax(class_logits_tensor, 1), labels);
+  std::cout << "loss : " << classification_loss.item<float>() << "\n";
   torch::Tensor sampled_pos_inds_subset = torch::nonzero(labels > 0).squeeze(1);
   torch::Tensor labels_pos = labels.index_select(0, sampled_pos_inds_subset);
 

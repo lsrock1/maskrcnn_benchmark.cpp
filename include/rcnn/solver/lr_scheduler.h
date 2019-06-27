@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "optimizer.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -28,8 +29,11 @@ public:
       last_epoch_ += 1;
     else
       last_epoch_ = epoch;
-
     optimizer_.options.learning_rate(get_lr());
+  }
+
+  void set_last_epoch(int64_t last_epoch){
+    last_epoch_ = last_epoch;
   }
 
   void save(torch::serialize::OutputArchive& archive) const{
@@ -50,7 +54,7 @@ public:
   }
 
 protected:
-  Optimizer optimizer_;
+  Optimizer& optimizer_;
   int64_t last_epoch_ = 0;
   double base_lr;
 };
@@ -98,6 +102,7 @@ public:
   void step();
   void load(torch::serialize::InputArchive& archive);
   void save(torch::serialize::OutputArchive& archive) const;
+  void set_last_epoch(int64_t last_epoch);
 
 private:
   std::shared_ptr<_LRScheduler<torch::optim::SGD>> weight;

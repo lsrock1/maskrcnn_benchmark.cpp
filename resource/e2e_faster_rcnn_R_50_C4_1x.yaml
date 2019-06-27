@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-50"
+  WEIGHT: "../resource/resnet50_cpp.pth"
   RPN:
     PRE_NMS_TOP_N_TEST: 6000
     POST_NMS_TOP_N_TEST: 1000

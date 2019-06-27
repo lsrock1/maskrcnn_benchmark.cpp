@@ -4,7 +4,7 @@
 namespace rcnn{
 namespace engine{
 
-void do_train(int checkpoint_period, int iteration , torch::Device device = torch::Device("gpu"));
+void do_train();
 
 }
 }

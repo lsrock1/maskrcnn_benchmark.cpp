@@ -19,6 +19,7 @@ public:
   void save(std::string name, int iteration);
   bool has_checkpoint();
   std::string get_checkpoint_file();
+  int load_from_checkpoint(torch::serialize::InputArchive& archive);
   void write_checkpoint_file(std::string name);
 
 private:

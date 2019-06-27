@@ -18,26 +18,46 @@ Checkpoint::Checkpoint(rcnn::modeling::GeneralizedRCNN& model,
 
 int Checkpoint::load(std::string weight_path){
   //return iteration
+  torch::NoGradGuard guard;
+  torch::Tensor iter = torch::zeros({1});
   torch::serialize::InputArchive archive;
   if(has_checkpoint()){
-    std::string checkpoint_name = get_checkpoint_file();
-    archive.load_from(checkpoint_name);
-    model_->load(archive);
-    optimizer_.load(archive);
-    scheduler_.load(archive);
-    torch::Tensor iter = torch::zeros({1});
-    archive.read("iteration", iter, true);
-    return iter.item<int>();
+    return load_from_checkpoint(archive);
   }
   else{
     //no optimizer scheduler
     archive.load_from(weight_path);
-    for(auto& i : model_->named_parameters())
-      archive.try_read(i.key(), i.value());
-    for(auto& i : model_->named_buffers())
-      archive.try_read(i.key(), i.value(), true);
+    if(archive.try_read("iteration", iter, true))
+      return load_from_checkpoint(archive);
+    else
+      for(auto& i : model_->named_parameters()){
+        if(i.key().find("backbone") != std::string::npos){
+          archive.try_read(i.key().substr(20), i.value());
+          // std::cout << a << " " << i.key().substr(20) << "\n";
+        }
+        else
+          archive.try_read(i.key(), i.value());
+      }
+      for(auto& i : model_->named_buffers()){
+        if(i.key().find("backbone") != std::string::npos)
+          archive.try_read(i.key().substr(20), i.value(), true);
+        else
+          archive.try_read(i.key(), i.value(), true);
+      }
     return 0;
   }
+}
+
+int Checkpoint::load_from_checkpoint(torch::serialize::InputArchive& archive){
+  torch::Tensor iter = torch::zeros({1});
+  std::string checkpoint_name = get_checkpoint_file();
+  archive.load_from(checkpoint_name);
+  model_->load(archive);
+  optimizer_.load(archive);
+  scheduler_.load(archive);
+  
+  archive.read("iteration", iter, true);
+  return iter.item<int>();
 }
 
 void Checkpoint::save(std::string name, int iteration){
@@ -65,7 +85,7 @@ std::string Checkpoint::get_checkpoint_file(){
 
 void Checkpoint::write_checkpoint_file(std::string name){
   std::ofstream writeFile(save_dir_ + "/last_checkpoint");
-  writeFile << save_dir_ + name;
+  writeFile << save_dir_ + "/" + name;
   writeFile.close();
 }
 

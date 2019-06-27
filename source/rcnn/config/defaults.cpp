@@ -176,7 +176,7 @@ void SetCFGFromFile(const std::string file_path){
   
 
   //MISC OPTIONS
-  SetNode((*cfg)["OUTPUT_DIR"], ".");
+  SetNode((*cfg)["OUTPUT_DIR"], "../checkpoints");
   //default_config["PATH_CATALOG"], solver;
   SetNode((*cfg)["DTYPE"], "float32");
 }

@@ -78,7 +78,7 @@ std::pair<torch::Tensor, torch::Tensor> RPNLossComputation::operator() (std::vec
 
   return std::make_pair(
     torch::binary_cross_entropy_with_logits(objectness_tensor.index_select(0, sampled_inds), labels_tensor.index_select(0, sampled_inds), {}, {}, Reduction::Mean),
-    rcnn::layers::smooth_l1_loss(box_regression_tensor.index_select(0, sampled_pos_inds_tensor), regression_targets_tensor.index_select(0, sampled_pos_inds_tensor), 1./9., false)
+    rcnn::layers::smooth_l1_loss(box_regression_tensor.index_select(0, sampled_pos_inds_tensor), regression_targets_tensor.index_select(0, sampled_pos_inds_tensor), 1./9., false) / sampled_inds.numel()
   );
 }
 

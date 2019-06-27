@@ -49,11 +49,7 @@ SmoothedValue MetricLogger::operator[](std::string attr){
 
 std::ostream& operator << (std::ostream& os, const MetricLogger& bml){
   for(auto i = bml.meters.begin(); i != bml.meters.end(); ++i){
-    os << i->first << ": " << i->second.median() << " (" << i->second.global_avg() << ")";
-    if(++i != bml.meters.end()){
-      os << bml.delimiter_;
-      i--;
-    }
+    os << i->first << ": " << i->second.median() << " (" << i->second.global_avg() << ")" << bml.delimiter_;
   }
   os << "\n";
   return os;

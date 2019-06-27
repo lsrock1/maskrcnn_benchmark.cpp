@@ -18,4 +18,3 @@ torch::Tensor nms_cpu(const torch::Tensor& dets,
                    const float threshold);
 }
 }
-
