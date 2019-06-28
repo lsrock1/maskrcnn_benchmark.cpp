@@ -6,6 +6,7 @@
 
 #include <torch/torch.h>
 #include <coco.h>
+#include <iostream>
 
 
 namespace rcnn{
@@ -14,26 +15,33 @@ namespace data{
 using namespace rapidjson;
 
 void DoCOCOEvaluation(COCODataset& dataset, 
-                 std::vector<rcnn::structures::BoxList>& predictions,
-                 bool box_only,
+                 std::map<int64_t, rcnn::structures::BoxList>& predictions,
                  std::string output_folder,
-                 std::vector<std::string> iou_types){
-  
+                 std::set<std::string> iou_types){
+  std::cout << "Preparing results for COCO format\n";
+
+  if(iou_types.count("bbox")){
+    std::cout << "Preparing bbox results\n";
+    prepare_for_coco_detection(output_folder, predictions, dataset);
+  }
+
+  std::cout << "Evaluation is not implemented!\n";
 }
                  //TODO expected results
 
-void prepare_for_coco_detection(std::string output_folder, std::vector<rcnn::structures::BoxList>& predictions, COCODataset& dataset){
+void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcnn::structures::BoxList>& predictions, COCODataset& dataset){
   Document coco_results;
   auto& a = coco_results.GetAllocator();
   coco_results.SetArray();
-  int64_t original_id, image_width, image_height;
+  int64_t original_id, image_width, image_height, image_id;
   coco::Image image_info;
   rcnn::structures::BoxList prediction;
   torch::Tensor bboxes, scores, labels;
 
-  for(int image_id = 0; image_id < predictions.size(); ++image_id){
+  for(auto prediction_set = predictions.begin(); prediction_set != predictions.end(); ++prediction_set){
+    image_id = prediction_set->first;
     original_id = dataset.id_to_img_map[image_id];
-    prediction = predictions[image_id];
+    prediction = prediction_set->second;
     if(prediction.Length() == 0)
       continue;
     image_info = dataset.get_img_info(image_id);

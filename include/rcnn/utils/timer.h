@@ -1,6 +1,7 @@
 #pragma once
 #include <ctime>
 #include <string>
+#include <chrono>
 
 
 namespace rcnn{
@@ -12,14 +13,14 @@ public:
   Timer();
   void tic();
   double toc(bool average=true);
-  void add(double time_diff);
+  void add(std::chrono::duration<double> time_diff);
   std::string avg_time_str();
   void reset();
   double average_time();
+  std::chrono::duration<double> total_time;
 
 private:
-  time_t start_time;
-  time_t total_time;
+   std::chrono::system_clock::time_point start_time;
   double diff;
   int calls;
 };

@@ -44,11 +44,12 @@ std::shared_ptr<torch::data::samplers::Sampler<>> make_batch_data_sampler(COCODa
   int num_iters = -1;
   if(is_train){
     images_per_batch = rcnn::config::GetCFG<int64_t>({"SOLVER", "IMS_PER_BATCH"});
-    // shuffle = true;
+    shuffle = true;
     num_iters = rcnn::config::GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   }
   else{
     images_per_batch = rcnn::config::GetCFG<int64_t>({"TEST", "IMS_PER_BATCH"});
+    shuffle = false;
     //no distributed
     start_iter = 0;
   }

@@ -9,9 +9,10 @@ namespace solver{
 ConcatOptimizer::ConcatOptimizer(torch::OrderedDict<std::string, torch::Tensor> parameters, 
                                 const double learning_rate, 
                                 const double momentum, 
-                                const double weight_decay)
-                                :weight(torch::optim::SGD(std::vector<torch::Tensor>{}, torch::optim::SGDOptions(learning_rate).momentum(momentum).weight_decay(weight_decay))),
-                                 bias(torch::optim::SGD(std::vector<torch::Tensor>{}, torch::optim::SGDOptions(learning_rate).momentum(momentum).weight_decay(weight_decay)))
+                                const double weight_decay_w,
+                                const double weight_decay_b)
+                                :weight(torch::optim::SGD(std::vector<torch::Tensor>{}, torch::optim::SGDOptions(learning_rate).momentum(momentum).weight_decay(weight_decay_w))),
+                                 bias(torch::optim::SGD(std::vector<torch::Tensor>{}, torch::optim::SGDOptions(learning_rate).momentum(momentum).weight_decay(weight_decay_b)))
 {
   std::vector<torch::Tensor> bias_tensor;
   std::vector<torch::Tensor> weight_tensor;

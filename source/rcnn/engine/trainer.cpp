@@ -36,7 +36,7 @@ void do_train(){
   auto meters = MetricLogger(" ");
   torch::Device device(GetCFG<std::string>({"MODEL", "DEVICE"}));
 
-  std::string output_dir = GetCFG<std::string>({"OUTPUT_DIR"});
+  string output_dir = GetCFG<std::string>({"OUTPUT_DIR"});
   int max_iter = GetCFG<int64_t>({"SOLVER", "MAX_ITER"});
   auto start_training_time = chrono::system_clock::now();
   auto end = chrono::system_clock::now();

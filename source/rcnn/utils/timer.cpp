@@ -5,14 +5,17 @@
 namespace rcnn{
 namespace utils{
 
-Timer::Timer() :start_time(time(0)), total_time(time(0)), diff(0.0), calls(0){}
+Timer::Timer() :diff(0.0), calls(0){
+  start_time = std::chrono::system_clock::now();
+  total_time = std::chrono::duration<double>::zero();
+}
 
 void Timer::tic(){
-  time(&start_time);
+  start_time = std::chrono::system_clock::now();
 }
 
 double Timer::toc(bool average){
-  add(difftime(time(0), start_time));
+  add(std::chrono::system_clock::now() - start_time);
   if(average){
     return average_time();
   }
@@ -21,21 +24,21 @@ double Timer::toc(bool average){
   }
 }
 
-void Timer::add(double time_diff){
-  diff = time_diff;
-  total_time += diff;
+void Timer::add(std::chrono::duration<double> time_diff){
+  diff = time_diff.count();
+  total_time += time_diff;
   calls += 1;
 }
 
 void Timer::reset(){
   diff = 0;
-  total_time = 0.0;
+  total_time = std::chrono::duration<double>::zero();
   calls = 0;
-  start_time = 0.0;
+  start_time = std::chrono::system_clock::now();
 }
 
 double Timer::average_time(){
-  return calls > 0 ? total_time / calls : 0.0;
+  return calls > 0 ? total_time.count() / calls : 0.0;
 }
 
 std::string Timer::avg_time_str(){

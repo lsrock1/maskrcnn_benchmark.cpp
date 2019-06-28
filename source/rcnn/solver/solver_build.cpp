@@ -9,7 +9,8 @@ ConcatOptimizer MakeOptimizer(rcnn::modeling::GeneralizedRCNN& model){
   return ConcatOptimizer(model->named_parameters(), 
                         rcnn::config::GetCFG<double>({"SOLVER", "BASE_LR"}),
                         rcnn::config::GetCFG<double>({"SOLVER", "MOMENTUM"}),
-                        rcnn::config::GetCFG<double>({"SOLVER", "WEIGHT_DECAY"}));
+                        rcnn::config::GetCFG<double>({"SOLVER", "WEIGHT_DECAY"}),
+                        rcnn::config::GetCFG<double>({"SOLVER", "WEIGHT_DECAY_BIAS"}));
 }
 
 ConcatScheduler MakeLRScheduler(ConcatOptimizer& optimizer, int last_epoch){
