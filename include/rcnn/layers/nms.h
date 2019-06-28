@@ -5,6 +5,7 @@
 #ifdef WITH_CUDA
 #include "cuda/vision_cuda.h"
 #endif
+#include <iostream>
 
 namespace rcnn{
 namespace layers{

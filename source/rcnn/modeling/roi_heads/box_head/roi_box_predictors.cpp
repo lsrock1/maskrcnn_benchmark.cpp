@@ -1,7 +1,6 @@
 #include "roi_heads/box_head/roi_box_predictors.h"
 #include "defaults.h"
 #include <cassert>
-#include <iostream>
 
 
 namespace rcnn{

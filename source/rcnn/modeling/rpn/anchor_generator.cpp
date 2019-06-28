@@ -1,7 +1,6 @@
 #include "rpn/anchor_generator.h"
 #include "defaults.h"
 #include <cassert>
-#include <iostream>
 
 
 namespace rcnn{
@@ -152,8 +151,6 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
       std::vector<rcnn::structures::BoxList> anchors_in_image;
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");
-
-        rcnn::structures::BoxList test(boxlist);
         AddVisibilityTo(boxlist);
         anchors_in_image.push_back(boxlist);
       }

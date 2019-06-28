@@ -452,12 +452,12 @@ BoxList BoxList::nms(const float nms_thresh, const int max_proposals, const std:
     return *this;
   }
   std::string mode = mode_;
-  BoxList boxlist = this->Convert("xyxy");
+  BoxList boxlist = Convert("xyxy");
   torch::Tensor boxes = boxlist.get_bbox();
   torch::Tensor scores = boxlist.GetField(score_field);
   torch::Tensor keep = rcnn::layers::nms(boxes, scores, nms_thresh);
-  if(max_proposals > 0 && keep.size(0) > max_proposals)
-    keep = keep.narrow(/*dim=*/0, /*start=*/0, /*end=*/max_proposals);
+  if(max_proposals > 0)
+    keep = keep.slice(/*dim=*/0, /*start=*/0, /*end=*/max_proposals);
   return boxlist[keep].Convert(mode);
 }
 

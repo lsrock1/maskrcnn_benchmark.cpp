@@ -46,7 +46,38 @@ int main() {
   // torch::set_default_dtype(torch::kF32);
   rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
+  // modeling::GeneralizedRCNN model = modeling::BuildDetectionModel();
+  // for(auto& i : model->named_parameters())
+  //   cout << i.key() << "\n";
+  
   engine::do_train();
+  // torch::NoGradGuard guard;
+  // auto body = modeling::ResNet();
+
+  // auto module_ = torch::jit::load("../resource/resnet50.pth");
+  // tmp_recur(module_, "");
+  // for(auto i = saved.begin(); i != saved.end(); ++i)
+  //   cout << i->first << "\n";
+  
+  // for(auto& i : body->named_parameters()){
+  //   cout << i.key() << "\n";
+  //   if(i.key().find("stem") != string::npos)
+  //     i.value().copy_(saved.at(i.key().substr(5)));
+  //   else
+  //     i.value().copy_(saved.at(i.key()));
+  // }
+  // for(auto& i : body->named_buffers()){
+  //   cout << i.key() << "\n";    
+  //   if(i.key().find("stem") != string::npos)
+  //     i.value().copy_(saved.at(i.key().substr(5)));
+  //   else
+  //     i.value().copy_(saved.at(i.key()));
+  // }
+  
+  //   torch::serialize::OutputArchive archive;
+  // for(auto& i : body->named_parameters())
+  //   archive.write(i.key(), i.value());
+  // archive.save_to("../resource/resnet50_cpp.pth");
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";

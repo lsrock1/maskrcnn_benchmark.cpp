@@ -10,6 +10,7 @@ RPNPostProcessorImpl::RPNPostProcessorImpl(const int64_t pre_nms_top_n, const in
                                 :pre_nms_top_n_(pre_nms_top_n),
                                  post_nms_top_n_(post_nms_top_n),
                                  nms_thresh_(nms_thresh),
+                                 min_size_(min_size),
                                  box_coder_(box_coder),
                                  fpn_post_nms_top_n_(fpn_post_nms_top_n),
                                  fpn_post_nms_per_batch_(fpn_post_nms_per_batch){}
@@ -40,13 +41,13 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
 
   int64_t pre_nms_top_n = std::min(pre_nms_top_n_, num_anchors);
   torch::Tensor topk_idx;
+  torch::Tensor origi = objectness;
   std::tie(objectness, topk_idx) = objectness.topk(pre_nms_top_n, /*dim=*/1, /*largest=*/true, /*sorted=*/true);
   std::vector<torch::Tensor> box_regression_vec;
   for(int i = 0; i < topk_idx.size(0); ++i){
     box_regression_vec.push_back(box_regression[i].index_select(0, topk_idx[i]));
   }
   box_regression = torch::stack(box_regression_vec);
-  // box_regression = box_regression.index_select(/*dim=*/1, topk_idx);
   
   std::vector<std::pair<int64_t, int64_t>> image_shapes;
   std::vector<torch::Tensor> concat_anchors_vec;
@@ -57,6 +58,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   }
   
   torch::Tensor concat_anchors = torch::cat(concat_anchors_vec, /*dim=*/0).reshape({N, -1, 4});
+
   concat_anchors_vec.clear();
   for(int i = 0; i < topk_idx.size(0); ++i){
     concat_anchors_vec.push_back(concat_anchors[i].index_select(0, topk_idx[i]));
@@ -81,22 +83,32 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
 std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>> anchors, std::vector<torch::Tensor> objectness, std::vector<torch::Tensor> box_regression){
   std::vector<std::vector<rcnn::structures::BoxList>> sampled_boxes;//{feature1{image1, image2 ...}, feature2 ...}
   int num_levels = objectness.size();//== num_feature_maps
+  std::vector<std::vector<rcnn::structures::BoxList>> anchors_per_feature_maps;
 
+  for(int j = 0; j < num_levels; ++j){
+    std::vector<rcnn::structures::BoxList> bucket;
+    for(int i = 0; i < anchors.size(); ++i){
+      bucket.push_back(anchors[i][j]);
+    }
+    anchors_per_feature_maps.push_back(bucket);
+  }
+
+  //anchors images..{feature maps..}
   for(int i = 0; i < num_levels; ++i){
-    std::vector<rcnn::structures::BoxList> boxes_per_feature_map;
-    std::for_each(anchors.begin(), anchors.end(), [&](std::vector<rcnn::structures::BoxList> anchors_per_image){boxes_per_feature_map.push_back(anchors_per_image[i]);});
-    sampled_boxes.push_back(ForwardForSingleFeatureMap(boxes_per_feature_map, objectness[i], box_regression[i]));
+    sampled_boxes.push_back(ForwardForSingleFeatureMap(anchors_per_feature_maps[i], objectness[i], box_regression[i]));
   }
 
   std::vector<std::vector<rcnn::structures::BoxList>> boxlists;//image{features }
-  for(int i = 0; i < sampled_boxes[0].size(); ++i){//iterate num_images
-    std::vector<rcnn::structures::BoxList> boxlist;
-    std::for_each(sampled_boxes.begin(), sampled_boxes.end(), [&](std::vector<rcnn::structures::BoxList> boxes_per_feature_map){boxlist.push_back(boxes_per_feature_map[i]);});
-    boxlists.push_back(boxlist);
+  for(int j = 0; j < sampled_boxes[0].size(); ++j){
+    std::vector<rcnn::structures::BoxList> bucket;
+    for(int i = 0; i < num_levels; ++i){
+      bucket.push_back(sampled_boxes[i][j]);
+    }
+    boxlists.push_back(bucket);
   }
-
+  
   std::vector<rcnn::structures::BoxList> return_boxlists;
-  for(auto& boxlist: boxlists){
+  for(auto& boxlist : boxlists){
     return_boxlists.push_back(rcnn::structures::BoxList::CatBoxList(boxlist));
   }
 

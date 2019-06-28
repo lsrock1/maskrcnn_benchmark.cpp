@@ -3,7 +3,6 @@
 #include "defaults.h"
 #include "rpn/utils.h"
 #include <cassert>
-#include <iostream>
 
 
 namespace rcnn{
@@ -35,17 +34,18 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNLossComputa
     rcnn::structures::BoxList matched_targets = MatchTargetsToAnchors(anchors[i], targets[i], copied_fields_);
     torch::Tensor matched_idxs = matched_targets.GetField("matched_idxs");
     torch::Tensor labels_per_image = generate_labels_func_(matched_targets);
+    
     labels_per_image = labels_per_image.to(torch::kF32);
 
     torch::Tensor bg_indices = (matched_idxs == Matcher::BELOW_LOW_THRESHOLD);
-    labels_per_image.masked_fill(bg_indices, 0);
+    labels_per_image.masked_fill_(bg_indices, 0);
 
     if(discard_cases_.count("not_visibility") > 0)
-      labels_per_image.masked_fill(1 - anchors[i].GetField("visibility"), -1);
+      labels_per_image.masked_fill_(1 - anchors[i].GetField("visibility"), -1);
 
     if(discard_cases_.count("between_thresholds") > 0){
       torch::Tensor inds_to_discard = (matched_idxs == Matcher::BETWEEN_THRESHOLDS);
-      labels_per_image.masked_fill(inds_to_discard, -1);
+      labels_per_image.masked_fill_(inds_to_discard, -1);
     }
 
     labels.push_back(labels_per_image);

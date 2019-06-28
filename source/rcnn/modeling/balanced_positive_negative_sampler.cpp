@@ -23,7 +23,8 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> BalancedPositi
   for(torch::Tensor& matched_idxs_per_image : matched_idxs){
     //list of positive or negative idxs
     torch::Tensor positive = torch::nonzero(matched_idxs_per_image >= 1).squeeze(1);
-    torch::Tensor negative = torch::nonzero(matched_idxs_per_image == 1).squeeze(1);
+    torch::Tensor negative = torch::nonzero(matched_idxs_per_image == 0).squeeze(1);
+
     //prevent from over indexing
     num_pos = std::min(num_pos_, positive.numel());
     num_neg = std::min(num_neg_, negative.numel());

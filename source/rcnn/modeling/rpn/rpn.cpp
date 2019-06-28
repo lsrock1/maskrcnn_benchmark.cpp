@@ -43,7 +43,7 @@ RPNModuleImpl::RPNModuleImpl(int64_t in_channels)
 std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward(rcnn::structures::ImageList& images, std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList> targets){
   //given targets
   std::vector<torch::Tensor> objectness, rpn_box_regression;
-  std::tie(objectness, rpn_box_regression) = head_(features);
+  std::tie(objectness, rpn_box_regression) = head_->forward(features);
   std::vector<std::vector<rcnn::structures::BoxList>> anchors = anchor_generator_(images, features);
 
   if(is_training()){
@@ -57,7 +57,7 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
 std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward(rcnn::structures::ImageList& images, std::vector<torch::Tensor>& features){
   //no targets
   std::vector<torch::Tensor> objectness, rpn_box_regression;
-  std::tie(objectness, rpn_box_regression) = head_(features);
+  std::tie(objectness, rpn_box_regression) = head_->forward(features);
   std::vector<std::vector<rcnn::structures::BoxList>> anchors = anchor_generator_(images, features);
   
   return forward_test(anchors, objectness, rpn_box_regression);

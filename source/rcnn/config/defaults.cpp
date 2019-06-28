@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <algorithm>
-#include <iostream>
 
 
 namespace rcnn{

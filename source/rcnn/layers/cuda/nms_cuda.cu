@@ -108,7 +108,7 @@ torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh) {
   std::vector<unsigned long long> remv(col_blocks);
   memset(&remv[0], 0, sizeof(unsigned long long) * col_blocks);
 
-  torch::Tensor keep = torch::empty({boxes_num}, boxes.options().dtype(torch::kLong).device(torch::kCPU));
+  at::Tensor keep = at::empty({boxes_num}, boxes.options().dtype(at::kLong).device(at::kCPU));
   int64_t* keep_out = keep.data<int64_t>();
 
   int num_to_keep = 0;

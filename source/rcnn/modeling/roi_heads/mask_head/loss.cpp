@@ -96,9 +96,9 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> MaskRCNNLossCo
     torch::Tensor labels_per_image = matched_targets.GetField("labels");
     labels_per_image = labels_per_image.to(torch::kInt64);
     torch::Tensor bg_inds = (matched_idxs == Matcher::BELOW_LOW_THRESHOLD);
-    labels_per_image.masked_fill(bg_inds, 0);
+    labels_per_image.masked_fill_(bg_inds, 0);
     torch::Tensor ignore_inds = (matched_idxs == Matcher::BETWEEN_THRESHOLDS);
-    labels_per_image.masked_fill(ignore_inds, -1);
+    labels_per_image.masked_fill_(ignore_inds, -1);
 
     torch::Tensor positive_inds = torch::nonzero(labels_per_image > 0).squeeze(1);
     rcnn::structures::SegmentationMask* segmentation_mask = matched_targets.GetMasksField("masks");

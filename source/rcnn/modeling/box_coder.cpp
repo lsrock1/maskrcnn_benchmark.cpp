@@ -1,5 +1,4 @@
 #include "box_coder.h"
-#include <iostream>
 
 
 namespace rcnn{
@@ -30,6 +29,7 @@ torch::Tensor BoxCoder::encode(torch::Tensor reference_boxes, torch::Tensor prop
 }
 
 torch::Tensor BoxCoder::decode(torch::Tensor rel_codes, torch::Tensor boxes){
+  boxes = boxes.to(rel_codes.dtype());
   int TO_REMOVE = 1;
   torch::Tensor widths = boxes.select(1, 2) - boxes.select(1, 0) + TO_REMOVE;
   torch::Tensor heights = boxes.select(1, 3) - boxes.select(1, 1) + TO_REMOVE;
@@ -42,8 +42,8 @@ torch::Tensor BoxCoder::decode(torch::Tensor rel_codes, torch::Tensor boxes){
   torch::Tensor dw = rel_codes.slice(1, 2, length+1, /*step=*/4) / weights_[2];
   torch::Tensor dh = rel_codes.slice(1, 3, length+1, /*step=*/4) / weights_[3];
 
-  dw = torch::clamp(dw, /*max=*/bbox_xform_clip_);
-  dh = torch::clamp(dh, /*max=*/bbox_xform_clip_);
+  dw = torch::clamp_max(dw, /*max=*/bbox_xform_clip_);
+  dh = torch::clamp_max(dh, /*max=*/bbox_xform_clip_);
   
   torch::Tensor pred_ctr_x = dx * widths.unsqueeze(1) + ctr_x.unsqueeze(1);
   torch::Tensor pred_ctr_y = dy * heights.unsqueeze(1) + ctr_y.unsqueeze(1);

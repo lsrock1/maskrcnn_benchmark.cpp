@@ -83,7 +83,7 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
     boxlist_for_class.AddField("scores", scores_i);
     boxlist_for_class = boxlist_for_class.nms(nms_);
     int64_t num_labels = boxlist_for_class.Length();
-    boxlist_for_class.AddField("labels", torch::full({num_labels}, (int)i, torch::TensorOptions().dtype(torch::kInt64).device(device)));
+    boxlist_for_class.AddField("labels", torch::full({num_labels}, static_cast<int>(i), torch::TensorOptions().dtype(torch::kInt64).device(device)));
     results_vec.push_back(boxlist_for_class);
   }
 

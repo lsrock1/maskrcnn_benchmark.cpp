@@ -4,7 +4,6 @@
 #include "smooth_l1_loss.h"
 #include "matcher.h"
 #include <cassert>
-#include <iostream>
 
 
 namespace rcnn{
@@ -19,11 +18,11 @@ FastRCNNLossComputation::FastRCNNLossComputation(Matcher proposal_matcher,
                                                   box_coder_(box_coder),
                                                   cls_agnostic_bbox_reg_(cls_agnostic_bbox_reg){}
 
-rcnn::structures::BoxList FastRCNNLossComputation::MatchTargetsToProposals(rcnn::structures::BoxList proposal, rcnn::structures::BoxList target){
+rcnn::structures::BoxList FastRCNNLossComputation::MatchTargetsToProposals(rcnn::structures::BoxList& proposal, rcnn::structures::BoxList target){
   torch::Tensor match_quality_matrix = rcnn::structures::BoxList::BoxListIOU(target, proposal);
   torch::Tensor matched_idxs = proposal_matcher_(match_quality_matrix);
   target = target.CopyWithFields(std::vector<std::string>{"labels"});
-  rcnn::structures::BoxList matched_targets = target[matched_idxs.clamp(0)];
+  rcnn::structures::BoxList matched_targets = target[matched_idxs.clamp_min(0)];
   matched_targets.AddField("matched_idxs", matched_idxs);
   return matched_targets;
 }
@@ -37,11 +36,10 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> FastRCNNLossCo
     torch::Tensor labels_per_image = matched_targets.GetField("labels");
     labels_per_image = labels_per_image.to(torch::kInt64);
     torch::Tensor bg_inds = (matched_idxs == Matcher::BELOW_LOW_THRESHOLD);
-    labels_per_image.masked_fill(bg_inds, 0);
+    labels_per_image.masked_fill_(bg_inds, 0);
     torch::Tensor ignore_inds = (matched_idxs == Matcher::BETWEEN_THRESHOLDS);
-    labels_per_image.masked_fill(ignore_inds, -1);
+    labels_per_image.masked_fill_(ignore_inds, -1);
     torch::Tensor regression_targets_per_image = box_coder_.encode(matched_targets.get_bbox(), proposals[i].get_bbox());
-    
     labels.push_back(labels_per_image);
     regression_targets.push_back(regression_targets_per_image);
   }
@@ -58,16 +56,16 @@ std::vector<rcnn::structures::BoxList> FastRCNNLossComputation::Subsample(std::v
     proposals[i].AddField("labels", labels[i]);
     proposals[i].AddField("regression_targets", regression_targets[i]);
   }
-
+  _proposals.clear();
   assert(sampled_pos_inds.size() == sampled_neg_inds.size());
   for(int img_idx = 0; img_idx < sampled_pos_inds.size(); ++img_idx){
     torch::Tensor img_sampled_inds = torch::nonzero(sampled_pos_inds[img_idx].__or__(sampled_neg_inds[img_idx])).squeeze(1);
     rcnn::structures::BoxList proposals_per_image = proposals[img_idx][img_sampled_inds];
-    proposals[img_idx] = proposals_per_image;
+    _proposals.push_back(proposals_per_image);
   }
 
-  _proposals = proposals;
-  return proposals;
+  //_proposals = proposals;
+  return _proposals;
 }
 
 std::pair<torch::Tensor, torch::Tensor> FastRCNNLossComputation::operator()(std::vector<torch::Tensor> class_logits, std::vector<torch::Tensor> box_regression){
@@ -84,10 +82,7 @@ std::pair<torch::Tensor, torch::Tensor> FastRCNNLossComputation::operator()(std:
   cat_vec.clear();
   std::for_each(proposals.begin(), proposals.end(), [&cat_vec](rcnn::structures::BoxList proposal){cat_vec.push_back(proposal.GetField("regression_targets"));});
   torch::Tensor regression_targets = rcnn::layers::cat(cat_vec, 0);
-  std::cout << "class logits : " << class_logits_tensor.softmax(1)[0].sum() << "\n";
-  std::cout << "labels : " <<labels[0] << "\n";
   torch::Tensor classification_loss = torch::nll_loss(torch::log_softmax(class_logits_tensor, 1), labels);
-  std::cout << "loss : " << classification_loss.item<float>() << "\n";
   torch::Tensor sampled_pos_inds_subset = torch::nonzero(labels > 0).squeeze(1);
   torch::Tensor labels_pos = labels.index_select(0, sampled_pos_inds_subset);
 

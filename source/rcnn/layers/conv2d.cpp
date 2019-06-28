@@ -51,7 +51,7 @@ torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_sh
   // auto tmp = self_.data().new_empty(new_shape);
   //auto result = torch::autograd::as_variable(tmp);
 
-  if(x.requires_grad()){
+  if(torch::autograd::compute_requires_grad(x)){
     auto grad_fn = std::shared_ptr<_NewEmptyTensorOpBackward>(new _NewEmptyTensorOpBackward(), torch::autograd::deleteFunction);
     grad_fn -> set_next_edges(torch::autograd::collect_next_edges(x));
     grad_fn -> shape = x.sizes();

@@ -67,8 +67,6 @@ void do_train(){
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<IterationBasedBatchSampler*>(sampler.get()), options);
   
-  
-  
   model->to(device);
   model->train();
   cout << "Start training\n";
@@ -103,8 +101,7 @@ void do_train(){
     minutes = eta_seconds/60 - hours * 60 - days * 24 * 60;
     eta_string = to_string(days) + " day " + to_string(hours) + " h " + to_string(minutes) + " m";
     if(iteration % 20 == 0 || iteration == max_iter){
-      cout << "eta: " << eta_string << meters.delimiter_ << "iter: " << iteration << meters.delimiter_ << meters << meters.delimiter_
-      << "lr: " << to_string(optimizer.get_lr()) << meters.delimiter_ << "max mem: " << "none\n";
+      cout << "eta: " << eta_string << meters.delimiter_ << "iter: " << iteration << meters.delimiter_ << meters << meters.delimiter_ << "lr: " << to_string(optimizer.get_lr()) << meters.delimiter_ << "max mem: " << "none\n";
     }
     if(iteration % checkpoint_period == 0)
       check_point.save("model_" + to_string(iteration) + ".pth", iteration);
