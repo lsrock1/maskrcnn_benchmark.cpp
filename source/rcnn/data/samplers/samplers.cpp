@@ -206,7 +206,12 @@ void IterationBasedBatchSampler::reset(){
 torch::optional<std::vector<size_t>> IterationBasedBatchSampler::next(size_t batch_size){
   if(index_ <= num_iterations_){
     index_ += 1;
-    return sampler_->next(batch_size);
+    auto result = sampler_->next(batch_size);
+    if(!result.has_value()){
+      sampler_->reset(batch_size);
+      return sampler_->next(batch_size);
+    }
+    return result;
   }
   else
     return torch::nullopt;
