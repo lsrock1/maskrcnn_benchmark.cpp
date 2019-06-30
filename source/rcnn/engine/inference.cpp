@@ -6,11 +6,13 @@
 
 #include <data.h>
 #include <defaults.h>
+#include <checkpoint.h>
 
 
 namespace rcnn{
 namespace engine{
 
+using namespace rcnn::utils;
 using namespace rcnn::data;
 using namespace rcnn::config;
 
@@ -30,7 +32,8 @@ void inference(){
   torch::data::DataLoaderOptions options(images_per_batch);
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<GroupedBatchSampler*>(sampler.get()), options);
-
+  string output_dir = GetCFG<std::string>({"OUTPUT_DIR"});
+  Checkpoint::load(model, output_dir);
   //Check iou type
   set<string> iou_types{"bbox"};
   if(GetCFG<bool>({"MODEL", "MASK_ON"}))
@@ -41,12 +44,12 @@ void inference(){
   torch::Device device(GetCFG<string>({"MODEL", "DEVICE"}));
 
   //todo
-  cout << "Start evaluation on dataset\n";
+  cout << "Start evaluation on " << dataset_list[0] << " dataset[" << coco.size().value() << "]\n";
   Timer total_time = Timer();
   Timer inference_timer = Timer();
 
   total_time.tic();
-  map<int64_t, BoxList> predictions = compute_on_dataset(model, data_loader, device, inference_timer);
+  map<int64_t, BoxList> predictions = compute_on_dataset(model, data_loader, device, inference_timer, coco.size().value());
 
   auto total_time_ = total_time.toc();
   string total_time_str = total_time.avg_time_str();

@@ -46,9 +46,11 @@ void do_train(){
   string eta_string;
   int days, hours, minutes;
   int checkpoint_period = GetCFG<int>({"SOLVER", "CHECKPOINT_PERIOD"});
-
+  cout << "building model\n";
   GeneralizedRCNN model = BuildDetectionModel();
-  
+  cout << "build complete!\n";
+
+  cout << "Making optimizer and scheduler\n";
   ConcatOptimizer optimizer = MakeOptimizer(model);
   ConcatScheduler scheduler = MakeLRScheduler(optimizer, 0);
   auto check_point = Checkpoint(model, optimizer, scheduler, output_dir);

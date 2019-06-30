@@ -18,39 +18,43 @@
 #include "bisect.h"
 #include "trainer.h"
 
+#include "inference.h"
+
 
 using namespace std;
 using namespace rcnn;
 using namespace coco;
 
-// std::map<string, torch::Tensor> saved;
+std::map<string, torch::Tensor> saved;
 
-// void tmp_recur(shared_ptr<torch::jit::script::Module> module, std::string name){
-//     string new_name;
-//     if(name.compare("") != 0)
-//       new_name = name + ".";
+void tmp_recur(shared_ptr<torch::jit::script::Module> module, std::string name){
+    string new_name;
+    if(name.compare("") != 0)
+      new_name = name + ".";
     
-//     for(auto& u : module->get_parameters()){
-//       torch::Tensor tensor = u.value().toTensor();
-//       saved[new_name + u.name()] = tensor;
-//     }
-//     for(auto& u : module->get_attributes()){
-//       torch::Tensor tensor = u.value().toTensor();
-//       saved[new_name + u.name()] = tensor;
-//     }
-//     for(auto& i : module->get_modules())
-//       tmp_recur(i, new_name + i->name());
-//   }
+    for(auto& u : module->get_parameters()){
+      torch::Tensor tensor = u.value().toTensor();
+      saved[new_name + u.name()] = tensor;
+    }
+    for(auto& u : module->get_attributes()){
+      torch::Tensor tensor = u.value().toTensor();
+      saved[new_name + u.name()] = tensor;
+    }
+    for(auto& i : module->get_modules())
+      tmp_recur(i, new_name + i->name());
+  }
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
+  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_FPN_1x.yaml");
   cout << "load complete" << endl;
   // modeling::GeneralizedRCNN model = modeling::BuildDetectionModel();
   // for(auto& i : model->named_parameters())
   //   cout << i.key() << "\n";
   
   engine::do_train();
+  // engine::inference();
+  
   // torch::NoGradGuard guard;
   // auto body = modeling::ResNet();
 
@@ -77,6 +81,10 @@ int main() {
   //   torch::serialize::OutputArchive archive;
   // for(auto& i : body->named_parameters())
   //   archive.write(i.key(), i.value());
+  // for(auto& i : body->named_buffers()){
+  //   std::cout << "saved buffer name : " << i.key() << "\n";
+  //   archive.write(i.key(), i.value(), true);
+  // }
   // archive.save_to("../resource/resnet50_cpp.pth");
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
   // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";

@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <cassert>
+#include <iostream>
 
 #include <bounding_box.h>
 #include <modeling.h>
@@ -18,10 +19,13 @@ using namespace std;
 using namespace rcnn::utils;
 
 template<typename Dataset>
-map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& dataset, torch::Device& device, Timer& inference_timer){
+map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& dataset, torch::Device& device, Timer& inference_timer, int total_size){
+  torch::NoGradGuard guard;
   model->eval();
+  model->to(device);
   map<int64_t, BoxList> results_map;
   torch::Device cpu_device = torch::Device("cpu");
+  int progress = 0;
 
   for(auto& batch : *dataset){
     vector<BoxList> output;
@@ -37,6 +41,8 @@ map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& datase
     assert(output.size() == image_ids.size());
     for(int i = 0; i < output.size(); ++i)
       results_map.insert({image_ids[i], output[i]});
+    progress += images.get_tensors().size(0);
+    std::cout << (static_cast<float>(progress)/static_cast<float>(total_size)) * 100 << "%\n";
   }
   return results_map;
 }

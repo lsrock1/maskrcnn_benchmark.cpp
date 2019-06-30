@@ -2,6 +2,7 @@
 #include "make_layers.h"
 #include "registry.h"
 #include "defaults.h"
+#include <iostream>
 
 
 namespace rcnn{

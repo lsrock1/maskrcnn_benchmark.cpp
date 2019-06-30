@@ -1,4 +1,5 @@
 #include "roi_heads/roi_heads.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -58,7 +59,7 @@ std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::
 
 CombinedROIHeads BuildROIHeads(int64_t out_channels){
   std::set<std::string> roi_heads;
-  
+  std::cout << "build roi head\n";
   if(!rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})){
     roi_heads.insert("box");
   }

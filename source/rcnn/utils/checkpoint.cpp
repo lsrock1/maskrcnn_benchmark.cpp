@@ -9,6 +9,19 @@
 namespace rcnn{
 namespace utils{
 
+void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_dir){
+  torch::NoGradGuard guard;
+  std::ifstream f(save_dir + "/last_checkpoint");
+  assert(f.good());
+  std::ifstream inFile(save_dir + "/last_checkpoint");
+  std::string checkpoint_name;
+  std::getline(inFile, checkpoint_name);
+  torch::serialize::InputArchive archive;
+  archive.load_from(checkpoint_name);
+  model->load(archive);
+  std::cout << "Load Complete\n";
+}
+
 Checkpoint::Checkpoint(rcnn::modeling::GeneralizedRCNN& model, 
                     rcnn::solver::ConcatOptimizer& optimizer, 
                     rcnn::solver::ConcatScheduler& scheduler, 
@@ -35,10 +48,15 @@ int Checkpoint::load(std::string weight_path){
     if(buffer != nullptr)
       return load_from_checkpoint();
     else{
+      std::cout << "Load weight into memory\n";
       std::vector<std::string> names_in_pth;
       for(auto& i : module->get_parameters()){
         names_in_pth.push_back(i.name());
       }
+      for(auto& i : module->get_attributes()){
+        names_in_pth.push_back(i.name());
+      }
+      std::cout << "load end\n";
 
       for(auto& i : model_->named_parameters()){
         for(auto& name : names_in_pth){
@@ -51,13 +69,8 @@ int Checkpoint::load(std::string weight_path){
             // archive.read(name, i.value());
           }
         }
-        // if(i.key().find("backbone") != std::string::npos){
-        //   archive.try_read(i.key().substr(20), i.value());
-        //   // std::cout << a << " " << i.key().substr(20) << "\n";
-        // }
-        // else
-        //   archive.try_read(i.key(), i.value());
       }
+
       for(auto& i : model_->named_buffers()){
         for(auto& name : names_in_pth){
           if(i.key().find(name) != std::string::npos){
@@ -68,10 +81,6 @@ int Checkpoint::load(std::string weight_path){
             std::cout << i.key() << " loaded from " << name << "\n";
           }
         }
-        // if(i.key().find("backbone") != std::string::npos)
-        //   archive.try_read(i.key().substr(20), i.value(), true);
-        // else
-        //   archive.try_read(i.key(), i.value(), true);
       }
       if(checker) std::cout << "No checkpoint found. Initializing model from scratch\n";
       return 0;
