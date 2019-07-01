@@ -46,11 +46,8 @@ void tmp_recur(shared_ptr<torch::jit::script::Module> module, std::string name){
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_101_FPN_1x.yaml");
   cout << "load complete" << endl;
-  // modeling::GeneralizedRCNN model = modeling::BuildDetectionModel();
-  // for(auto& i : model->named_parameters())
-  //   cout << i.key() << "\n";
   
   engine::do_train();
   // engine::inference();
@@ -58,7 +55,7 @@ int main() {
   // torch::NoGradGuard guard;
   // auto body = modeling::ResNet();
 
-  // auto module_ = torch::jit::load("../resource/resnet50.pth");
+  // auto module_ = torch::jit::load("../resource/resnet101.pth");
   // tmp_recur(module_, "");
   // for(auto i = saved.begin(); i != saved.end(); ++i)
   //   cout << i->first << "\n";
@@ -85,77 +82,10 @@ int main() {
   //   std::cout << "saved buffer name : " << i.key() << "\n";
   //   archive.write(i.key(), i.value(), true);
   // }
-  // archive.save_to("../resource/resnet50_cpp.pth");
-  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 5) << "\n";
-  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 3) << "\n";
-  // cout << utils::bisect_right(std::vector<int64_t> {3, 6, 9}, 12) << "\n";
+  // archive.save_to("../resource/resnet101_cpp.pth");
   
   
 
-
-  
-  // torch::NoGradGuard guard;
-  // auto body = modeling::ResNet();
-  // // torch::load(body, "../resource/resnet50_cpp.pt");
-  
-  // // for(auto& i : body->named_buffers())
-  // //   cout << i.key() << "\n";
-  // torch::load(body, "../resource/resnet50_cpp.pt");
-  // torch::serialize::OutputArchive archive;
-  // for(auto& i : body->named_parameters())
-  //   archive.write(i.key(), i.value());
-  // archive.save_to("../resource/resnet50_cpp.pth");
-  // auto module_ = torch::jit::load("../resource/resnet50.pth");
-  // tmp_recur(module_, "");
-  // for(auto i = saved.begin(); i != saved.end(); ++i)
-  //   cout << i->first << "\n";
-  
-  // for(auto& i : body->named_parameters()){
-  //   cout << i.key() << "\n";
-  //   if(i.key().find("stem") != string::npos)
-  //     i.value().copy_(saved.at(i.key().substr(5)));
-  //   else
-  //     i.value().copy_(saved.at(i.key()));
-  // }
-  // for(auto& i : body->named_buffers()){
-  //   cout << i.key() << "\n";    
-  //   if(i.key().find("stem") != string::npos)
-  //     i.value().copy_(saved.at(i.key().substr(5)));
-  //   else
-  //     i.value().copy_(saved.at(i.key()));
-  // }
-  // torch::save(body, "../resource/resnet50_cpp.pt");
-  //cout << module_->get_modules()->get_parameters() << "\n";
-  // cout << module_->name() << "\n";
-  // for(auto& a : module_->get_modules())
-  //   cout << a->name() << "\n";
-  // for(auto&a : module_->get_module("conv1")->get_parameters())
-  //   cout << a.name() << "\n";
-  
-  // cout << "bn1\n";
-  // for(auto&a : module_->get_module("bn1")->get_parameters())
-  //   cout << a.name() << "\n";
-
-  // for(auto&a : module_->get_module("bn1")->get_attributes())
-  //   // cout << a.value() << "\n";
-  // cout << "relu\n";
-  // for(auto&a : module_->get_module("relu")->get_parameters())
-  //   cout << a.name() << "\n";
-
-  // for(auto&a : module_->get_module("layer1")->get_parameters())
-  //   cout << a.name() << "\n";
-
-  // for(auto&a : module_->get_module("layer2")->get_parameters())
-  //   cout << a.name() << "\n";
-  
-  // for(auto&a : module_->get_module("layer3")->get_parameters())
-  //   cout << a.name() << "\n";
-  
-  // for(auto&a : module_->get_module("layer4")->get_parameters())
-  //   cout << a.name() << "\n";
-  // for(auto& a : module_->get_modules())
-  //   cout << a->name() << "\n";
-  // module_->find_parameter("0")->value();
   // auto model = modeling::BuildDetectionModel();
   // auto concat = solver::ConcatOptimizer(model->named_parameters(), 0.1, 0.1, 0.1);
 

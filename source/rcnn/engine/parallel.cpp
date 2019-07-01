@@ -4,6 +4,7 @@
 namespace rcnn{
 namespace engine{
 
+#ifdef USE_CUDA
 std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
     std::vector<rcnn::modeling::GeneralizedRCNN>& modules,
     const std::vector<rcnn::structures::ImageList>& inputs,
@@ -60,6 +61,7 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
 
   return outputs;
 }
+#endif
 
 std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     rcnn::modeling::GeneralizedRCNN module,

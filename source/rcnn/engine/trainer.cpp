@@ -77,26 +77,30 @@ void do_train(){
     data_time = chrono::system_clock::now() - end;
     iteration += 1;
     scheduler.step();
-    // ImageList images = get<0>(i).to(device);
-    // vector<BoxList> targets;
     
-    // for(auto& target : get<1>(i))
-    //   targets.push_back(target.To(device));
-
-    // map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
+    #ifdef USE_CUDA
     map<string, torch::Tensor> loss_map;
     torch::Tensor loss;
     std::tie(loss, loss_map) = data_parallel(model, get<0>(i), get<1>(i));
-    // torch::Tensor loss = torch::zeros({1}).to(device);
 
-    // for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-    //   loss += i->second;
-    // loss_map["loss"] = loss;
+    #else
+    ImageList images = get<0>(i).to(device);
+    vector<BoxList> targets;
+    
+    for(auto& target : get<1>(i))
+      targets.push_back(target.To(device));
+
+    map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
+    torch::Tensor loss = torch::zeros({1}).to(device);
+    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
+      loss += i->second;
+    loss_map["loss"] = loss;
+    
+    #endif    
     meters.update(loss_map);
 
     optimizer.zero_grad();
     loss.backward();
-    // loss_map["loss"].backward();
     optimizer.step();
 
     batch_time = chrono::system_clock::now() - end;

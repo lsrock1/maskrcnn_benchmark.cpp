@@ -1,7 +1,8 @@
 #pragma once
 #include <torch/torch.h>
+#ifdef USE_CUDA
 #include <torch/nn/parallel/data_parallel.h>
-
+#endif
 #include <modeling.h>
 #include <image_list.h>
 #include <bounding_box.h>
