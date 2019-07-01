@@ -27,7 +27,9 @@ rcnn::structures::BoxList RPNLossComputation::MatchTargetsToAnchors(rcnn::struct
 
 std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNLossComputation::PrepareTargets(std::vector<rcnn::structures::BoxList>& anchors, std::vector<rcnn::structures::BoxList>& targets){
   std::vector<torch::Tensor> labels;
+  labels.reserve(anchors.size());
   std::vector<torch::Tensor> regression_targets;
+  regression_targets.reserve(anchors.size());
   assert(anchors.size() == targets.size());
   
   for(int i = 0; i < anchors.size(); ++i){
@@ -58,6 +60,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNLossComputa
 
 std::pair<torch::Tensor, torch::Tensor> RPNLossComputation::operator() (std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& box_regression, std::vector<rcnn::structures::BoxList>& targets){
   std::vector<rcnn::structures::BoxList> cat_boxlists;
+  cat_boxlists.reserve(anchors.size());
   std::vector<torch::Tensor> labels, regression_targets, sampled_pos_inds, sampled_neg_inds;
   torch::Tensor objectness_tensor, box_regression_tensor, labels_tensor, regression_targets_tensor, sampled_inds, sampled_pos_inds_tensor, sampled_neg_inds_tensor;
 

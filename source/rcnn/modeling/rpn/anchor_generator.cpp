@@ -7,7 +7,7 @@ namespace rcnn{
 namespace modeling{
 //anchor utils
 //ratio_enum in original
-torch::Tensor RepeatAnchorRatios(torch::Tensor anchor, torch::Tensor ratios){
+torch::Tensor RepeatAnchorRatios(torch::Tensor& anchor, torch::Tensor& ratios){
   torch::Tensor w, h, x, y;
   std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
   //ex) 32 * 32
@@ -19,7 +19,7 @@ torch::Tensor RepeatAnchorRatios(torch::Tensor anchor, torch::Tensor ratios){
   return MakeAnchors(ws, hs, x, y);
 }
 
-std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::Tensor anchor){
+std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::Tensor& anchor){
   Width w = anchor[2] - anchor[0] + 1;
   Height h = anchor[3] - anchor[1] + 1;
   CoordCenterX x = anchor[0] + 0.5 * (w - 1);
@@ -27,7 +27,7 @@ std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::
   return std::make_tuple(w, h, x, y);
 }
 
-torch::Tensor MakeAnchors(Width ws, Height hs, CoordCenterX x, CoordCenterY y){
+torch::Tensor MakeAnchors(Width& ws, Height& hs, CoordCenterX& x, CoordCenterY& y){
   ws.unsqueeze_(1);
   hs.unsqueeze_(1);
   // (ratios, 4)
@@ -44,7 +44,7 @@ torch::Tensor MakeAnchors(Width ws, Height hs, CoordCenterX x, CoordCenterY y){
   return anchors;
 }
 
-torch::Tensor RepeatAnchorScales(torch::Tensor anchor, torch::Tensor scales){
+torch::Tensor RepeatAnchorScales(torch::Tensor& anchor, torch::Tensor& scales){
   torch::Tensor w, h, x, y;
   std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
   torch::Tensor ws = w * scales, hs = h * scales;
@@ -62,6 +62,7 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
   torch::Tensor anchor = torch::tensor({0., 0., (float) (base_size-1), (float) (base_size-1)}).to(torch::kF32);
   torch::Tensor anchors = RepeatAnchorRatios(anchor, aspect_ratios_tensor);
   std::vector<torch::Tensor> repeated_scale_anchors;
+  repeated_scale_anchors.reserve(anchors.size(0));
   for(auto i = 0; i < anchors.size(0); ++i){
     repeated_scale_anchors.push_back(RepeatAnchorScales(anchors[i], anchor_sizes_tensor));
   }
@@ -94,17 +95,18 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
       cell_anchors.push_back(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat32));
     }
     else{
+      cell_anchors.reserve(sizes.size());
       assert(anchor_strides.size() == sizes.size());
       for(int i = 0; i < sizes.size(); ++i){
-        std::vector<int64_t> size{sizes[i]};
-        cell_anchors.push_back(GenerateAnchors(anchor_strides[i], size, aspect_ratios).toType(torch::kFloat32));
+        cell_anchors.push_back(GenerateAnchors(anchor_strides[i], std::vector<int64_t> {sizes[i]}, aspect_ratios).toType(torch::kFloat32));
       }
     }
     cell_anchors_->extend(cell_anchors);
   }
 
-  std::vector<torch::Tensor> AnchorGeneratorImpl::GridAnchors(std::vector<std::pair<int64_t, int64_t>> grid_sizes){
+  std::vector<torch::Tensor> AnchorGeneratorImpl::GridAnchors(std::vector<std::pair<int64_t, int64_t>>& grid_sizes){
     std::vector<torch::Tensor> anchors;
+    anchors.reserve(grid_sizes.size());
     int64_t stride, grid_height, grid_width;
     torch::Tensor base_anchors;
     for(auto i = 0; i < grid_sizes.size(); ++i){
@@ -134,21 +136,25 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
 
   std::vector<int64_t> AnchorGeneratorImpl::NumAnchorsPerLocation(){
     std::vector<int64_t> num_anchors;
+    num_anchors.reserve(cell_anchors_->size());
     for(int i = 0; i < cell_anchors_->size(); ++i)
       num_anchors.push_back((*cell_anchors_)[i].size(0));
     return num_anchors;
   }
   
-  std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList image_list, std::vector<torch::Tensor> feature_maps){
+  std::vector<std::vector<rcnn::structures::BoxList>> AnchorGeneratorImpl::forward(rcnn::structures::ImageList& image_list, std::vector<torch::Tensor>& feature_maps){
     std::vector<std::pair<int64_t, int64_t>> grid_sizes;
+    grid_sizes.reserve(feature_maps.size());
     std::vector<std::vector<rcnn::structures::BoxList>> anchors;
     for(auto i = 0; i < feature_maps.size(); ++i){
       grid_sizes.push_back(std::make_pair(feature_maps[i].size(2), feature_maps[i].size(3)));
     }
     std::vector<torch::Tensor> anchors_over_all_feature_maps = GridAnchors(grid_sizes);
     auto image_sizes = image_list.get_image_sizes();
+    anchors.reserve(image_sizes.size());
     for(auto& image_size: image_sizes){
       std::vector<rcnn::structures::BoxList> anchors_in_image;
+      anchors_in_image.reserve(anchors_over_all_feature_maps.size());
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");
         AddVisibilityTo(boxlist);

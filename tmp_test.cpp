@@ -46,11 +46,11 @@ void tmp_recur(shared_ptr<torch::jit::script::Module> module, std::string name){
 
 int main() {
   // torch::set_default_dtype(torch::kF32);
-  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_101_FPN_1x.yaml");
+  rcnn::config::SetCFGFromFile("../resource/e2e_faster_rcnn_R_50_C4_1x.yaml");
   cout << "load complete" << endl;
   
-  engine::do_train();
-  // engine::inference();
+  // engine::do_train();
+  engine::inference();
   
   // torch::NoGradGuard guard;
   // auto body = modeling::ResNet();

@@ -37,7 +37,6 @@ void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcn
   coco::Image image_info;
   rcnn::structures::BoxList prediction;
   torch::Tensor bboxes, scores, labels;
-
   for(auto prediction_set = predictions.begin(); prediction_set != predictions.end(); ++prediction_set){
     image_id = prediction_set->first;
     original_id = dataset.id_to_img_map[image_id];
@@ -69,7 +68,7 @@ void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcn
       coco_results.PushBack(node, a);
     }
   }
-
+ 
   std::ofstream ofs(output_folder + "/bbox.json");
   OStreamWrapper osw(ofs);
   Writer<OStreamWrapper> writer(osw);

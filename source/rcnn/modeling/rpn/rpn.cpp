@@ -1,6 +1,5 @@
 #include "rpn/rpn.h"
 #include "defaults.h"
-#include <iostream>
 
 
 namespace rcnn{
@@ -23,7 +22,9 @@ RPNHeadImpl::RPNHeadImpl(int64_t in_channels, int64_t num_anchors)
 
 std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNHeadImpl::forward(std::vector<torch::Tensor> x){
   std::vector<torch::Tensor> logits;
+  logits.reserve(x.size());
   std::vector<torch::Tensor> bbox_reg;
+  bbox_reg.reserve(x.size());
   for(auto& feature: x){
     torch::Tensor t = conv_->forward(feature).relu_();
     logits.push_back(cls_logits_->forward(t));
@@ -59,13 +60,14 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
   //no targets
   std::vector<torch::Tensor> objectness, rpn_box_regression;
   std::tie(objectness, rpn_box_regression) = head_->forward(features);
+
   std::vector<std::vector<rcnn::structures::BoxList>> anchors = anchor_generator_(images, features);
   
   return forward_test(anchors, objectness, rpn_box_regression);
 }
 
 std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward_train(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& rpn_box_regression, std::vector<rcnn::structures::BoxList> targets){
-  std::vector<rcnn::structures::BoxList> boxes;
+  std::vector<rcnn::structures::BoxList> boxes(anchors.size());
   torch::Tensor loss_objectness, loss_rpn_box_reg;
   std::map<std::string, torch::Tensor> losses;
   if(rpn_only_){
@@ -101,7 +103,6 @@ std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::T
 }
 
 RPNModule BuildRPN(int64_t in_channels){
-  std::cout << "build rpn\n";
   return RPNModule(in_channels);
 }
 

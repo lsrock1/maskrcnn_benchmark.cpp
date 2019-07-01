@@ -120,4 +120,4 @@ if __name__ == '__main__':
     coco_path = sys.argv[1]
     output_folder = sys.argv[2]
     iou_types = sys.argv[3:]
-    do_coco_evaluation(output_folder, iou_types)
+    do_coco_evaluation(coco_path, output_folder, iou_types)

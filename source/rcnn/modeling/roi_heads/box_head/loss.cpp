@@ -29,7 +29,9 @@ rcnn::structures::BoxList FastRCNNLossComputation::MatchTargetsToProposals(rcnn:
 
 std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> FastRCNNLossComputation::PrepareTargets(std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets){
   std::vector<torch::Tensor> labels;
+  labels.reserve(proposals.size());
   std::vector<torch::Tensor> regression_targets;
+  regression_targets.reserve(proposals.size());
   for(size_t i = 0; i < proposals.size(); ++i){
     rcnn::structures::BoxList matched_targets = MatchTargetsToProposals(proposals[i], targets[i]);
     torch::Tensor matched_idxs = matched_targets.GetField("matched_idxs");

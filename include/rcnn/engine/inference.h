@@ -23,15 +23,14 @@ map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& datase
   torch::NoGradGuard guard;
   model->eval();
   model->to(device);
+  cout << "Model to Device\n";
   map<int64_t, BoxList> results_map;
   torch::Device cpu_device = torch::Device("cpu");
   int progress = 0;
-
   for(auto& batch : *dataset){
     vector<BoxList> output;
     ImageList images = get<0>(batch).to(device);
     vector<int64_t> image_ids = get<2>(batch);
-    
     inference_timer.tic();
     output = model->forward(images);
 
@@ -42,8 +41,11 @@ map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& datase
     for(int i = 0; i < output.size(); ++i)
       results_map.insert({image_ids[i], output[i]});
     progress += images.get_tensors().size(0);
-    std::cout << (static_cast<float>(progress)/static_cast<float>(total_size)) * 100 << "%\n";
+    std::cout << progress << "/" << total_size << "\n";
+    // if(progress > 50)
+    //   break;
   }
+  std::cout << results_map.size() << "\n";
   return results_map;
 }
 
