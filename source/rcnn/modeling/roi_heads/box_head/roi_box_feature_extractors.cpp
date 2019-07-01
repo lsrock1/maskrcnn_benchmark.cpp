@@ -35,7 +35,7 @@ int64_t ResNet50Conv5ROIFeatureExtractorImpl::out_channels() const{
 FPN2MLPFeatureExtractorImpl::FPN2MLPFeatureExtractorImpl(int64_t in_channels)
   :pooler_(register_module("pooler", MakePooler("ROI_BOX_HEAD"))),
   fc6_(register_module("fc6", layers::MakeFC(
-      pow(in_channels * rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
+      in_channels * pow(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})
     ))),//fc6
   fc7_(register_module("fc7", layers::MakeFC(
@@ -85,7 +85,7 @@ FPNXconv1fcFeatureExtractorImpl::FPNXconv1fcFeatureExtractorImpl(int64_t in_chan
   :pooler_(register_module("pooler", MakePooler("ROI_BOX_HEAD"))),
   xconvs_(register_module("xconvx", make_xconvs(in_channels))),
   fc6_(register_module("fc6", layers::MakeFC(
-      pow(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "CONV_HEAD_DIM"}) * rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
+      rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "CONV_HEAD_DIM"}) * pow(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "POOLER_RESOLUTION"}), 2),
       rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})
     ))),
   out_channels_(rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_BOX_HEAD", "MLP_HEAD_DIM"})){}
