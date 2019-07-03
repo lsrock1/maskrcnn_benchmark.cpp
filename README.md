@@ -44,6 +44,8 @@ cd build
 cmake ..
 make
 
+//run inference r50-fpn
+./tmp.out
 ```
 # Results
 R-50-FPN(cpp) weight if from maskrcnn-benchmark pretrained model  
