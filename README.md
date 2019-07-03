@@ -46,25 +46,27 @@ make
 
 ```
 # Results
-R-50-FPN(cpp) weight if from maskrcnn-benchmark pretrained model
+R-50-FPN(cpp) weight if from maskrcnn-benchmark pretrained model  
 
+#### Under RTX2080ti 1gpu, cuda 10, cudnn 7  
+  
 backbone | type | lr sched | im / gpu | inference time(s/im) | box AP
 -- | -- | -- | -- | -- | --
 R-50-FPN(python) | Fast | 1x | 1 | 0.05989 | 0.368
 R-50-FPN(cpp) | Fast | 1x | 1 | 0.05296 | 0.368
 
 # Warning
-In Progress.
-It doesn't support training yet.(only support single gpu but not tested)
-It only tested in pre-trained model from python maskrcnn-benchmark
-It doesn't import evaluation process
+### In Progress.  
+It doesn't support training yet.(only support single gpu training but not tested).  
+It only tested in pre-trained model from python maskrcnn-benchmark.  
+It doesn't import evaluation process  
 
 # TODO
-Other model test
-python jit -> cpp model code
-Multi GPU training
-installable
-clean up code
+- [] Other model test
+- [] python jit -> cpp model code
+- [] Multi GPU training
+- [] installable
+- [] clean up code
 
 # Requirements
 Yaml-cpp
