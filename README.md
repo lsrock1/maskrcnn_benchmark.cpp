@@ -46,6 +46,10 @@ make
 
 //run inference r50-fpn
 ./tmp.out
+
+//evaluation with python
+//pycocotools require
+python ../resource/coco_eval.py ../datasets/coco/annotations/instances_val2017.json ../checkpoints_r50_fpn bbox
 ```
 # Results
 R-50-FPN(cpp) weight if from maskrcnn-benchmark pretrained model  
