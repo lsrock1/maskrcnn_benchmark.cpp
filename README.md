@@ -62,11 +62,11 @@ It only tested in pre-trained model from python maskrcnn-benchmark.
 It doesn't import evaluation process  
 
 # TODO
-- [] Other model test
-- [] python jit -> cpp model code
-- [] Multi GPU training
-- [] installable
-- [] clean up code
+- [ ] Other model test
+- [ ] python jit -> cpp model code
+- [ ] Multi GPU training
+- [ ] installable
+- [ ] clean up code
 
 # Requirements
 Yaml-cpp
