@@ -82,6 +82,8 @@ rapidjson
 opencv
 
 # MODELS
+Download into resource dir  
+
 backbone | from | link 
 -- | -- | -- 
 R-50 | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0)
