@@ -77,10 +77,10 @@ R-50-FPN(cpp) | Fast | 1x | 1 | 0.05296 | 0.368
 
 # Warning
 ### In Progress.  
-It doesn't support multi dataset training(like coco2014 with coco2014valminusminival, use coco2017 instead)
-It doesn't support training yet.(only support single gpu training but not tested).  
-It only tested in pre-trained model from python maskrcnn-benchmark.  
-It doesn't import evaluation process  
+* It doesn't support multi dataset training(like coco2014 with coco2014valminusminival, use coco2017 instead)
+* It doesn't support training yet.(only support single gpu training but not tested).  
+* It only tested in pre-trained model from python maskrcnn-benchmark.  
+* It doesn't import evaluation process  
 
 # TODO
 - [ ] concat dataset
