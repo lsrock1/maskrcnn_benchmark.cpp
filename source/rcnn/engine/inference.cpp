@@ -45,7 +45,7 @@ void inference(){
   torch::Device device(GetCFG<string>({"MODEL", "DEVICE"}));
 
   //todo
-  cout << "Start evaluation on  " << dataset_list[0] << " dataset[" << coco.size().value() << "]\n";
+  cout << "Start evaluation on " << dataset_list[0] << " dataset[" << coco.size().value() << "]\n";
   Timer total_time = Timer();
   Timer inference_timer = Timer();
 
