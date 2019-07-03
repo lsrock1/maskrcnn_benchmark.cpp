@@ -104,7 +104,4 @@ backbone | from | link
 -- | -- | -- 
 R-50 | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0)
 R-101 | python-pretrained | [link](https://www.dropbox.com/s/h5a51ur3qvrdjh5/resnet101_cpp.pth?dl=0)
-  
-model | from | link
--- | -- | --
 R-50-FPN | python-pretrained | [link](https://www.dropbox.com/s/o889pmhzu2jxczl/frcn_r50_cpp.pth?dl=0)
