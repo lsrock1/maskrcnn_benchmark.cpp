@@ -22,7 +22,7 @@ public:
   int load_from_checkpoint();
   void write_checkpoint_file(std::string name);
 
-  static void load(rcnn::modeling::GeneralizedRCNN& model, std::string save_dir);
+  static void load(rcnn::modeling::GeneralizedRCNN& model, std::string save_dir, std::string weight_dir);
 
 private:
   rcnn::modeling::GeneralizedRCNN& model_;

@@ -44,7 +44,7 @@ torch::Tensor MakeAnchors(Width& ws, Height& hs, CoordCenterX& x, CoordCenterY& 
   return anchors;
 }
 
-torch::Tensor RepeatAnchorScales(torch::Tensor& anchor, torch::Tensor& scales){
+torch::Tensor RepeatAnchorScales(torch::Tensor anchor, torch::Tensor scales){
   torch::Tensor w, h, x, y;
   std::tie(w, h, x, y) = WidthHeightCoordXY(anchor);
   torch::Tensor ws = w * scales, hs = h * scales;

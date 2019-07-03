@@ -1,6 +1,7 @@
 #include "poolers.h"
 #include "cat.h"
 #include "defaults.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -64,10 +65,10 @@ torch::Tensor PoolerImpl::forward(std::vector<torch::Tensor> x, std::vector<rcnn
   torch::Tensor result = torch::zeros({num_rois, num_channels, output_size, output_size}, 
                                 torch::TensorOptions().dtype(dtype).device(device));
 
-  for(int level = 0; level < boxes.size(); ++level){
+  for(int level = 0; level < poolers_.size(); ++level){
     torch::Tensor idx_in_level = torch::nonzero(levels == level).squeeze(1);
     torch::Tensor rois_per_level = rois.index_select(/*dim=*/0, idx_in_level);
-    result.index_copy_(/*dim=*/0, idx_in_level, poolers_[level]->forward(/*per_level_feature=*/x[level], rois_per_level));
+    result.index_copy_(/*dim=*/0, idx_in_level, poolers_[level]->forward(/*per_level_feature=*/x[level], rois_per_level).to(dtype));
   }
 
   return result;

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <memory>
+#include <iostream>
 
 
 namespace rcnn{
@@ -91,27 +92,36 @@ torch::data::Example<cv::Mat, RCNNData> RandomVerticalFlip::operator()(torch::da
 }
 
 torch::data::Example<torch::Tensor, RCNNData> ToTensor::operator()(torch::data::Example<cv::Mat, RCNNData> input){
-  torch::Tensor tensor_image = torch::from_blob(input.data.data, {1, 3, input.data.rows, input.data.cols}, torch::kByte);
+  torch::Tensor tensor_image = torch::from_blob(input.data.data, {1, input.data.rows, input.data.cols, 3}, torch::kByte);
   tensor_image = tensor_image.to(torch::kFloat);
+  // cv::Mat warp(input.data.rows, input.data.cols, CV_32FC3, tensor_image.data<float>());
+  // cv::imwrite("../resource/tmp/after_upcast" + std::to_string(input.target.idx) + ".jpg", warp);
+  tensor_image = tensor_image.permute({0, 3, 1, 2}).contiguous();
+  // warp = cv::Mat(input.data.rows, input.data.cols, CV_32FC3, tensor_image.permute({0, 2, 3, 1}).contiguous().data<float>());
+  // cv::imwrite("../resource/tmp/after_permute" + std::to_string(input.target.idx) + ".jpg", warp);
   return torch::data::Example<torch::Tensor, RCNNData> {tensor_image, input.target};
 }
 
 Normalize::Normalize(torch::ArrayRef<float> mean, torch::ArrayRef<float> stddev, bool to_bgr255)
           : mean(torch::tensor(mean, torch::kFloat32)
                 .unsqueeze(/*dim=*/1)
-                .unsqueeze(/*dim=*/2)),
+                .unsqueeze(/*dim=*/2)
+                .unsqueeze(0)),
             stddev(torch::tensor(stddev, torch::kFloat32)
-                .unsqueeze(/*dim=*/1)
-                .unsqueeze(/*dim=*/2)),
+                  .unsqueeze(/*dim=*/1)
+                  .unsqueeze(/*dim=*/2)
+                  .unsqueeze(0)),
             to_bgr255_(to_bgr255) {}
 
 torch::data::Example<torch::Tensor, RCNNData> Normalize::operator()(torch::data::Example<torch::Tensor, RCNNData> input){
   if(!to_bgr255_)
     input.data.div_(255);
+  // cv::Mat warp = cv::Mat(input.data.size(2), input.data.size(3), CV_32FC3, input.data.permute({0, 2, 3, 1}).contiguous().data<float>());
+  // cv::imwrite("../resource/tmp/norm" + std::to_string(input.target.idx) + ".jpg", warp);
   input.data = input.data.sub(mean).div(stddev);
   return input;
 }
 
 
 }//data
-}//rcnn
+}//rcnnㅊ

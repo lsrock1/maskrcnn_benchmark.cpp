@@ -78,12 +78,13 @@ void do_train(){
     iteration += 1;
     scheduler.step();
     
-    #ifdef USE_CUDA
+    #ifdef WITH_CUDA
     map<string, torch::Tensor> loss_map;
     torch::Tensor loss;
     std::tie(loss, loss_map) = data_parallel(model, get<0>(i), get<1>(i));
 
     #else
+    std::cout << "no cuda\n";
     ImageList images = get<0>(i).to(device);
     vector<BoxList> targets;
     

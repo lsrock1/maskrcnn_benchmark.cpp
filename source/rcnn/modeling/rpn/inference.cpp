@@ -1,6 +1,7 @@
 #include "rpn/inference.h"
 #include "rpn/utils.h"
 #include "defaults.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -15,7 +16,7 @@ RPNPostProcessorImpl::RPNPostProcessorImpl(const int64_t pre_nms_top_n, const in
                                  fpn_post_nms_top_n_(fpn_post_nms_top_n),
                                  fpn_post_nms_per_batch_(fpn_post_nms_per_batch){}
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std::vector<rcnn::structures::BoxList>& proposals, std::vector<rcnn::structures::BoxList>& targets){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets){
   auto device = proposals[0].get_bbox().device();
   std::vector<rcnn::structures::BoxList> return_proposals;
   return_proposals.reserve(proposals.size());
@@ -31,7 +32,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std:
   return return_proposals;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFeatureMap(std::vector<rcnn::structures::BoxList>& anchors, torch::Tensor& objectness, torch::Tensor& box_regression){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFeatureMap(std::vector<rcnn::structures::BoxList> anchors, torch::Tensor objectness, torch::Tensor box_regression){
   auto device = objectness.device();
   int N = objectness.size(0), A = objectness.size(1), H = objectness.size(2), W = objectness.size(3);
   objectness = PermuteAndFlatten(objectness, N, A, 1, H, W).view({N, -1});
@@ -87,8 +88,10 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   return result;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& box_regression){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>> anchors, std::vector<torch::Tensor> objectness, std::vector<torch::Tensor> box_regression){
+  //anchors : imgs<features<>>
   int num_levels = objectness.size();//== num_feature_maps
+  int num_imgs = anchors.size();
   std::vector<std::vector<rcnn::structures::BoxList>> sampled_boxes;
   sampled_boxes.reserve(num_levels);//{feature1{image1, image2 ...}, feature2 ...}
   std::vector<std::vector<rcnn::structures::BoxList>> anchors_per_feature_maps;
@@ -102,6 +105,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
     }
     anchors_per_feature_maps.push_back(bucket);
   }
+  assert(anchors_per_feature_maps.size() == num_levels && anchors_per_feature_maps[0].size() == num_imgs);
 
   //anchors images..{feature maps..}
   for(int i = 0; i < num_levels; ++i){
@@ -131,7 +135,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
   return return_boxlists;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& box_regression, std::vector<rcnn::structures::BoxList>& targets){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>> anchors, std::vector<torch::Tensor> objectness, std::vector<torch::Tensor> box_regression, std::vector<rcnn::structures::BoxList> targets){
   std::vector<rcnn::structures::BoxList> boxlists = forward(anchors, objectness, box_regression);
   if(is_training())
     return AddGtProposals(boxlists, targets);
@@ -139,7 +143,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
     return boxlists;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList>& boxlists){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList> boxlists){
   int num_images = boxlists.size();
 
   if(is_training() && fpn_post_nms_per_batch_){

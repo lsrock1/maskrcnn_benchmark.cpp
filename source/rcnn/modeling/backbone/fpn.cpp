@@ -8,7 +8,7 @@ namespace modeling{
   FPNImpl::FPNImpl(bool use_relu, const std::vector<int64_t> in_channels_list, int64_t out_channels, ConvFunction conv_block){
     for(int i = 0; i < in_channels_list.size(); ++i){
       inner_blocks_.push_back(register_module("fpn_inner"+std::to_string(i+1), conv_block(use_relu, in_channels_list[i], out_channels, 1, 1, 1)));
-      layer_blocks_.push_back(register_module("fpn_layers"+std::to_string(i+1), conv_block(use_relu, out_channels, out_channels, 3, 1, 1)));
+      layer_blocks_.push_back(register_module("fpn_layer"+std::to_string(i+1), conv_block(use_relu, out_channels, out_channels, 3, 1, 1)));
     }
   };
 
@@ -19,7 +19,7 @@ namespace modeling{
     torch::Tensor last_inner = inner_blocks_[3]->forward(x[3]);
     results.push_back(layer_blocks_[3]->forward(last_inner));
     for(int i = inner_blocks_.size()-2; i >= 0; --i){
-      inner_top_down = torch::upsample_bilinear2d(last_inner, {last_inner.size(2)*2, last_inner.size(3)*2}, false);
+      inner_top_down = torch::upsample_nearest2d(last_inner, {last_inner.size(2)*2, last_inner.size(3)*2});
       inner_lateral = inner_blocks_[i]->forward(x[i]);
       last_inner = inner_top_down + inner_lateral;
       results.push_back(layer_blocks_[i]->forward(last_inner));

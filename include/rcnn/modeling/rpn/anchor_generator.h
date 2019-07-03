@@ -16,7 +16,7 @@ namespace modeling{
   torch::Tensor RepeatAnchorRatios(torch::Tensor& anchor, torch::Tensor& ratios);
   std::tuple<Width, Height, CoordCenterX, CoordCenterY> WidthHeightCoordXY(torch::Tensor& anchor);
   torch::Tensor MakeAnchors(Width& ws, Height& hs, CoordCenterX& x, CoordCenterY& y);
-  torch::Tensor RepeatAnchorScales(torch::Tensor& anchor, torch::Tensor& scales);
+  torch::Tensor RepeatAnchorScales(torch::Tensor anchor, torch::Tensor scales);
 
 
   torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_sizes, std::vector<float> aspect_ratios);

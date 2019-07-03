@@ -1,5 +1,6 @@
 #include "roi_heads/box_head/inference.h"
 #include "defaults.h"
+#include <iostream>
 
 
 namespace rcnn{
@@ -52,7 +53,7 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   results.reserve(proposals_per_img.size());
 
   for(size_t i = 0; i < proposals_per_img.size(); ++i){
-    rcnn::structures::BoxList boxlist = prepare_boxlist(proposals[i], class_prob[i], image_shapes[i]);
+    rcnn::structures::BoxList boxlist = prepare_boxlist(proposals_per_img[i], class_prob_per_img[i], image_shapes[i]);
     boxlist = boxlist.ClipToImage(false);
     if(!bbox_aug_enabled_)
       boxlist = filter_results(boxlist, num_classes);
@@ -73,11 +74,11 @@ rcnn::structures::BoxList PostProcessorImpl::prepare_boxlist(torch::Tensor boxes
 rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::BoxList boxlist, int num_classes){
   torch::Tensor boxes = boxlist.get_bbox().reshape({-1, num_classes * 4});
   torch::Tensor scores = boxlist.GetField("scores").reshape({-1, num_classes});
-
   auto device = scores.device();
   std::vector<rcnn::structures::BoxList> results_vec;
   results_vec.reserve(num_classes);
   torch::Tensor inds_all = scores > score_thresh_;
+
   for(size_t i = 1; i < num_classes; ++i){
     torch::Tensor inds = inds_all.select(1, i).nonzero().squeeze(1);
     torch::Tensor scores_i = scores.index_select(0, inds).select(1, i);

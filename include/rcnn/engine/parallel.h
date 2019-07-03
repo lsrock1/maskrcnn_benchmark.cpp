@@ -1,6 +1,6 @@
 #pragma once
 #include <torch/torch.h>
-#ifdef USE_CUDA
+#ifdef WITH_CUDA
 #include <torch/nn/parallel/data_parallel.h>
 #endif
 #include <modeling.h>
@@ -16,6 +16,7 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
     const std::vector<rcnn::structures::ImageList>& inputs,
     const std::vector<std::vector<rcnn::structures::BoxList>>& targets,
     const torch::optional<std::vector<torch::Device>>& devices = torch::nullopt);
+
 
 std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     rcnn::modeling::GeneralizedRCNN module,

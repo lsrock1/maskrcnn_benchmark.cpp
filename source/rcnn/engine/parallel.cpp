@@ -1,12 +1,14 @@
 #include "parallel.h"
+#include <iostream>
 
 
 namespace rcnn{
 namespace engine{
 
-#ifdef USE_CUDA
+#ifdef WITH_CUDA
+
 std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
-    std::vector<rcnn::modeling::GeneralizedRCNN>& modules,
+    std::vector<torch::nn::ModuleHolder<rcnn::modeling::GeneralizedRCNNImpl>>& modules,
     const std::vector<rcnn::structures::ImageList>& inputs,
     const std::vector<std::vector<rcnn::structures::BoxList>>& targets,
     const torch::optional<std::vector<torch::Device>>& devices) {
@@ -41,7 +43,6 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
             torch::Tensor loss = torch::zeros({1}).to(to_device);
             for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
               loss += (i->second).to(to_device);
-            loss_map["loss"] = loss;
             // output =
             //     output.to(devices ? (*devices)[index] : inputs[index].device());
             std::lock_guard<std::mutex> lock(mutex);
@@ -53,6 +54,7 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
             }
           }
         }
+        std::cout << "lambda cal\n";
       });
 
   if (exception) {
@@ -72,6 +74,8 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     int64_t dim) {
   if (!devices) {
     const auto device_count = torch::cuda::device_count();
+    std::cout << device_count << " dc\n";
+
     // TORCH_CHECK(
     //     device_count > 0, "Expected at least one CUDA device to be available");
     devices = std::vector<Device>();
@@ -98,14 +102,14 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     return std::make_pair(loss, loss_map);
   }
 
-#ifdef USE_CUDA
+#ifdef WITH_CUDA
   torch::autograd::Scatter scatter(*devices, /*chunk_sizes=*/torch::nullopt, dim);
   //handle input image_list
   torch::Tensor input = images.get_tensors();
   auto scattered_tensors = fmap<torch::Tensor>(scatter.apply({std::move(input)}));
-  std::vector<rcnn::structres::ImageList> scattered_inputs;
+  std::vector<rcnn::structures::ImageList> scattered_inputs;
   for(auto& tensor : scattered_tensors)
-    scattered_inputs.implace_back(tensor, images.get_image_sizes());
+    scattered_inputs.emplace_back(tensor, images.get_image_sizes());
   
   //handle target bounding_box
   std::vector<std::vector<rcnn::structures::BoxList>> scattered_targets;
@@ -135,23 +139,22 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     int size = images.get_tensors().size(0);
     std::vector<rcnn::structures::BoxList> slice{targets.begin() + box_index, targets.begin() + box_index + size};
     for(auto& i : slice)
-      i = i.To(image.get_tensors().device());
+      i = i.To(images.get_tensors().device());
     scattered_targets.push_back(slice);
     box_index += size;
   }
 
-  auto replicas = replicate(module, *devices);
-  auto outputs = parallel_apply(replicas, scattered_inputs, scattered_targets, *devices);
+  auto replicas = torch::nn::parallel::replicate(module, *devices);
+  std::vector<std::map<std::string, torch::Tensor>> outputs = parallel_apply(replicas, scattered_inputs, scattered_targets, *devices);
   std::vector<torch::Tensor> total_loss(outputs.size());
   for(auto& loss_map : outputs)
     total_loss.push_back(loss_map["loss"]);
-  {
-    torch::NoGradGuard guard;
-    for(int start = 1; start < outputs.size(); ++start){
-      for(auto i = outputs[start].begin(); i != outputs[start].end(); ++i)
-        outputs[0][i->first] += i->second;
-    }
+  
+  for(int start = 1; start < outputs.size(); ++start){
+    for(auto i = outputs[start].begin(); i != outputs[start].end(); ++i)
+      outputs[0][i->first] += i->second;
   }
+  std::cout << "end loss cal\n";
   return std::make_pair(torch::autograd::Gather(*output_device, dim)
       .apply(fmap<torch::autograd::Variable>(std::move(total_loss)))
       .front(), outputs[0]);

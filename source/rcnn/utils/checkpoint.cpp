@@ -9,16 +9,57 @@
 namespace rcnn{
 namespace utils{
 
-void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_dir){
+void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_dir, std::string weight_dir){
   torch::NoGradGuard guard;
   std::ifstream f(save_dir + "/last_checkpoint");
-  assert(f.good());
-  std::ifstream inFile(save_dir + "/last_checkpoint");
-  std::string checkpoint_name;
-  std::getline(inFile, checkpoint_name);
-  torch::serialize::InputArchive archive;
-  archive.load_from(checkpoint_name);
-  model->load(archive);
+  if(f.good()){
+    std::ifstream inFile(save_dir + "/last_checkpoint");
+    std::string checkpoint_name;
+    std::getline(inFile, checkpoint_name);
+    torch::serialize::InputArchive archive;
+    archive.load_from(checkpoint_name);
+    model->load(archive);
+  }
+  else{
+    bool checker = true;
+    auto module = torch::jit::load(weight_dir);
+    std::cout << "Load weight into memory\n";
+    std::vector<std::string> names_in_pth;
+    for(auto& i : module->get_parameters()){
+      names_in_pth.push_back(i.name());
+    }
+    for(auto& i : module->get_attributes()){
+      names_in_pth.push_back(i.name());
+    }
+    std::cout << "load end\n";
+
+    for(auto& i : model->named_parameters()){
+      for(auto& name : names_in_pth){
+        if(i.key().find(name) != std::string::npos){
+          auto param = module->find_parameter(name);
+          assert(param != nullptr);
+          i.value().copy_(param->value().toTensor());
+          checker = false;
+          std::cout << i.key() << " loaded from " << name << "\n";
+          // archive.read(name, i.value());
+        }
+      }
+    }
+
+    for(auto& i : model->named_buffers()){
+      for(auto& name : names_in_pth){
+        if(i.key().find(name) != std::string::npos){
+          auto param = module->find_buffer(name);
+          assert(param != nullptr);
+          i.value().copy_(param->value().toTensor());
+          checker = false;
+          std::cout << i.key() << " loaded from " << name << "\n";
+        }
+      }
+    }
+    assert(!checker);
+  }
+  
   std::cout << "Load Complete\n";
 }
 

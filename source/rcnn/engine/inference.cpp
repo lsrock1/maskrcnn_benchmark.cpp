@@ -33,7 +33,8 @@ void inference(){
   options.workers(GetCFG<int64_t>({"DATALOADER", "NUM_WORKERS"}));
   auto data_loader = torch::data::make_data_loader(std::move(data), *dynamic_cast<GroupedBatchSampler*>(sampler.get()), options);
   string output_dir = GetCFG<std::string>({"OUTPUT_DIR"});
-  Checkpoint::load(model, output_dir);
+  string weight_dir = GetCFG<std::string>({"MODEL", "WEIGHT"});
+  Checkpoint::load(model, output_dir, weight_dir);
   //Check iou type
   set<string> iou_types{"bbox"};
   if(GetCFG<bool>({"MODEL", "MASK_ON"}))
@@ -44,7 +45,7 @@ void inference(){
   torch::Device device(GetCFG<string>({"MODEL", "DEVICE"}));
 
   //todo
-  cout << "Start evaluation on " << dataset_list[0] << " dataset[" << coco.size().value() << "]\n";
+  cout << "Start evaluation on  " << dataset_list[0] << " dataset[" << coco.size().value() << "]\n";
   Timer total_time = Timer();
   Timer inference_timer = Timer();
 

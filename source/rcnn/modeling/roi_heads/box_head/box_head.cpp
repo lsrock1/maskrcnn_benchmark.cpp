@@ -33,7 +33,7 @@ std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector
   torch::Tensor x = feature_extractor_->forward(features, proposals);
   torch::Tensor class_logits, box_regression;
   std::tie(class_logits, box_regression) = predictor_->forward<std::pair<torch::Tensor, torch::Tensor>>(x);
-  // std::cout << box_regression.reshape({256, -1, 4})[0].slice(0, 0, 15) << "\n";
+  
   if(!is_training()){
     std::vector<rcnn::structures::BoxList> result = post_processor_(std::make_pair(class_logits, box_regression), proposals);
     return std::make_tuple(x, result, losses());

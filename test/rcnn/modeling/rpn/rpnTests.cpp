@@ -55,7 +55,7 @@ TEST(rpn, anchor)
     grid_sizes.push_back(std::make_pair(image_width/stride, image_width/stride));
   }
 
-  auto generated_anchors = anchor_generator(imageList, feature_maps);
+  auto generated_anchors = anchor_generator->forward(imageList, feature_maps);
 
   ASSERT_EQ(generated_anchors.size(), image_num);
   ASSERT_EQ(generated_anchors[0].size(), strides.size());
