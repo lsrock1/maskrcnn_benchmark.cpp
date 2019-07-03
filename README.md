@@ -2,7 +2,7 @@
 faster rcnn cpp implementation based on maskrcnn-benchmark
 
 # Codes
-All code architecture from [mask](https://github.com/facebookresearch/maskrcnn-benchmark)
+All code architecture from [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark)
 
 # Installation
 ```
