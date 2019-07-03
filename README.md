@@ -4,7 +4,7 @@ faster rcnn cpp implementation based on maskrcnn-benchmark
 # Codes
 All code architecture from [mask](https://github.com/facebookresearch/maskrcnn-benchmark)
 
-# Install
+# Installation
 ```
 export INSTALL_DIR=$PWD
 git clone --recursive https://github.com/lsrock1/maskrcnn_benchmark.cpp.git
