@@ -17,7 +17,8 @@ using namespace rapidjson;
 void DoCOCOEvaluation(COCODataset& dataset, 
                  std::map<int64_t, rcnn::structures::BoxList>& predictions,
                  std::string output_folder,
-                 std::set<std::string> iou_types);
+                 std::set<std::string> iou_types,
+                 std::string ann_file);
                  //TODO expected results
 
 void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcnn::structures::BoxList>& predictions, COCODataset& dataset); 

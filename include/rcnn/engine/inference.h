@@ -38,10 +38,6 @@ map<int64_t, BoxList> compute_on_dataset(GeneralizedRCNN& model, Dataset& datase
     vector<int64_t> image_ids = get<2>(batch);
     inference_timer.tic();
     output = model->forward(images);
-    total += images.get_tensors().sum().item<int64_t>();
-    first += images.get_tensors().select(1, 0).sum().item<int64_t>();
-    second += images.get_tensors().select(1, 1).sum().item<int64_t>();
-    third += images.get_tensors().select(1, 2).sum().item<int64_t>();
     inference_timer.toc();
     for(auto& i : output)
       i = i.To(cpu_device);

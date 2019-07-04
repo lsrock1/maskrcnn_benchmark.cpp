@@ -6,6 +6,7 @@
 
 #include <data.h>
 #include <defaults.h>
+#include <paths_catalog.h>
 #include <checkpoint.h>
 
 
@@ -58,7 +59,11 @@ void inference(){
   cout << "Total run time: " << total_time_str << " (" << total_time_ * /*device num*/1 / coco.size().value() << " s / img per device, on 1 devices)\n";
 
   cout << "Model inference time: " << inference_timer.total_time.count() << "s (" << inference_timer.total_time.count() / coco.size().value() << " s / img per device, on 1 devices)\n";
-  DoCOCOEvaluation(coco, predictions, output_folder, iou_types);
+  rcnn::config::DatasetCatalog dataset_catalog = rcnn::config::DatasetCatalog();
+  std::string dataset_name, img_dir, ann_file;
+  std::tie(dataset_name, img_dir, ann_file) = dataset_catalog[dataset_list[0]];
+
+  DoCOCOEvaluation(coco, predictions, output_folder, iou_types, ann_file);
 }
 
 }

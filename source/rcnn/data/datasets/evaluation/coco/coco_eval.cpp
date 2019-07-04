@@ -17,7 +17,8 @@ using namespace rapidjson;
 void DoCOCOEvaluation(COCODataset& dataset, 
                  std::map<int64_t, rcnn::structures::BoxList>& predictions,
                  std::string output_folder,
-                 std::set<std::string> iou_types){
+                 std::set<std::string> iou_types,
+                 std::string ann_file){
   std::cout << "Preparing results for COCO format\n";
 
   if(iou_types.count("bbox")){
@@ -26,6 +27,12 @@ void DoCOCOEvaluation(COCODataset& dataset,
   }
 
   std::cout << "Evaluation is not implemented!\n";
+  std::cout << "Run python script\n";
+  std::string types = "";
+  for(auto i = iou_types.begin(); i != iou_types.end(); ++i)
+    types = types + " " + *i;
+
+  system(("python ../python_utils/coco_eval.py " + ann_file + " " + output_folder + types).c_str());
 }
                  //TODO expected results
 
