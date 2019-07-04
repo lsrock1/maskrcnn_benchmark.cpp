@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "../models/resnet101_cpp.pth"
+  WEIGHT: "../models/frcn_r101_fpn_cpp.pth"
   BACKBONE:
     CONV_BODY: "R-101-FPN"
   RESNETS:
@@ -20,7 +20,6 @@ MODEL:
     POOLER_SAMPLING_RATIO: 2
     FEATURE_EXTRACTOR: "FPN2MLPFeatureExtractor"
     PREDICTOR: "FPNPredictor"
-  DEVICE: "cpu"
 DATASETS:
   TRAIN: ("coco_2017_train", )
   TEST: ("coco_2017_val",)

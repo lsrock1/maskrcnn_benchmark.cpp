@@ -53,7 +53,7 @@ def main():
     _ = checkpoint.load(args.weight_path, None)
     
     #backbone save
-    backbone_tensor = torch.zeros(2, 3, 225, 225)
+    backbone_tensor = torch.zeros(2, 3, 320, 320)
     tmp_model = output_tuple_or_tensor(model.backbone, backbone_tensor)
     backbone_jit = torch.jit.trace(tmp_model, backbone_tensor)
     backbone_jit.save(os.path.join(args.output_path, 'backbone.pth'))

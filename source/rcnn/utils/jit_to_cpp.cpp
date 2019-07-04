@@ -50,9 +50,18 @@ void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std
 
   for(auto& i : model->named_parameters()){
     std::string name;
-    std::cout << i.key() <<"\n";
     if(i.key().find("backbone") != std::string::npos){
       name = i.key().substr(20);
+      if(i.key().find("fpn") != std::string::npos){
+        name = name.substr(0, 14);
+        if(i.key().find("weight") !=std::string::npos){
+          name += ".weight";
+        }
+        else{
+          name += ".bias";
+        }
+      }
+
       for(auto s = saved.begin(); s != saved.end(); ++s){
         if((s->first).find(name) != std::string::npos){
           i.value().copy_(s->second);
@@ -112,7 +121,7 @@ void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std
         updated.insert(i.key());
         mapping[i.key()] = name;
       }
-      else if(i.key().find("head") != std::string::npos){
+      else if(i.key().find(".head.") != std::string::npos){
         name = i.key().substr(39);
         for(auto s = saved.begin(); s != saved.end(); ++s){
           if((s->first).find(name) != std::string::npos){
@@ -121,6 +130,12 @@ void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std
             mapping[i.key()] = s->first;
           }
         }
+      }
+      else if(i.key().find("fc") != std::string::npos){
+        name = "extractor_" + i.key().substr(i.key().find("fc"));
+        i.value().copy_(saved.at(name));
+        updated.insert(i.key());
+        mapping[i.key()] = name;
       }
       else{
         assert(false);
@@ -133,7 +148,6 @@ void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std
 
   for(auto& i : model->named_buffers()){
     std::string name;
-    std::cout << i.key() <<"\n";
     if(i.key().find("backbone") != std::string::npos){
       name = i.key().substr(20);
       for(auto s = saved.begin(); s != saved.end(); ++s){

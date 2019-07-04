@@ -22,12 +22,12 @@ using namespace coco;
 int main() {
 
   // torch::set_default_dtype(torch::kF32);
-  // rcnn::config::SetCFGFromFile("../configs/e2e_faster_rcnn_R_50_FPN_1x.yaml");
+  rcnn::config::SetCFGFromFile("../configs/e2e_faster_rcnn_R_101_FPN_1x.yaml");
   // cout << "load complete" << endl;
-  rcnn::utils::jit_to_cpp("../python_utils", "../configs/e2e_faster_rcnn_R_50_C4_1x.yaml", std::vector<std::string>{"backbone.pth", "bbox_pred.pth", "cls_score.pth", "extractor_head.pth", "rpn_bbox.pth", "rpn_conv.pth", "rpn_logits.pth"});
+  //rcnn::utils::jit_to_cpp("../python_utils", "../configs/e2e_faster_rcnn_R_101_FPN_1x.yaml", std::vector<std::string>{"backbone.pth", "bbox_pred.pth", "cls_score.pth", "extractor_fc6.pth", "extractor_fc7.pth", "rpn_bbox.pth", "rpn_conv.pth", "rpn_logits.pth"});
   
   // // engine::do_train();
-  // engine::inference();
-  
+  engine::inference();
+
   return 0;
 }
