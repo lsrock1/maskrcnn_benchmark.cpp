@@ -47,9 +47,6 @@ make
 //run inference r50-fpn
 ./tmp.out
 
-//evaluation with python
-//pycocotools require
-python ../resource/coco_eval.py ../datasets/coco/annotations/instances_val2017.json ../checkpoints_r50_fpn bbox
 ```
 
 # Datasets
@@ -66,10 +63,11 @@ datasets
 ```
 
 # Results
-R-50-FPN(cpp) weight if from maskrcnn-benchmark pretrained model  
 
-#### Under RTX2080ti 1gpu, cuda 10, cudnn 7  
-  
+#### Under RTX2080ti 1 GPU, cuda 10, cudnn 7  
+#### [ResNet](https://arxiv.org/abs/1512.03385)
+#### [VoVNet](https://arxiv.org/abs/1904.09730)
+
 backbone | type | lr sched | inference total batch | inference time(s/im) | box AP
 -- | -- | -- | -- | -- | --
 R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368
@@ -104,7 +102,7 @@ rapidjson
 opencv
 
 # MODELS
-Download into resource dir  
+Download into /models 
 
 backbone | from | link 
 -- | -- | -- 
