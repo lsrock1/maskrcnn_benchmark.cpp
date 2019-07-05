@@ -65,7 +65,7 @@ datasets
 
 # Results
 
-#### Device:  RTX2080ti 1 GPU, cuda 10, cudnn 7  
+#### Device:  RTX2080ti 1 GPU, cuda 10, cudnn 7, Ubuntu 16.04
 #### [ResNet](https://arxiv.org/abs/1512.03385)
 #### [VoVNet](https://arxiv.org/abs/1904.09730)
 
