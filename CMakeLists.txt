@@ -36,7 +36,7 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test/rcnn)
-add_executable(tmp.out
-  tmp_test.cpp)
+add_executable(run.out
+  runner.cpp)
 
-target_link_libraries(tmp.out maskrcnn cocotool)
+target_link_libraries(run.out maskrcnn cocotool)

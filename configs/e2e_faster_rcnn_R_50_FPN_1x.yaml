@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "../models/frcn_r50_cpp.pth"
+  WEIGHT: "../models/frcn_r50_fpn_cpp.pth"
   BACKBONE:
     CONV_BODY: "R-50-FPN"
   RESNETS:
@@ -33,4 +33,4 @@ SOLVER:
   MAX_ITER: 90000
   IMS_PER_BATCH: 16
   CHECKPOINT_PERIOD: 1000
-OUTPUT_DIR: "../checkpoints_r50_fpn"
+OUTPUT_DIR: "../checkpoints"

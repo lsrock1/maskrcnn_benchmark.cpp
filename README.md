@@ -4,6 +4,7 @@ faster rcnn cpp implementation based on maskrcnn-benchmark
 # Codes
 All code architecture from [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark)
 
+
 # Installation
 ```
 export INSTALL_DIR=$PWD
@@ -45,7 +46,7 @@ cmake ..
 make
 
 //run inference r50-fpn
-./tmp.out
+run.out ../configs/e2e_faster_rcnn_R_50_FPN_1x.yaml inference
 
 ```
 
@@ -64,34 +65,33 @@ datasets
 
 # Results
 
-#### Under RTX2080ti 1 GPU, cuda 10, cudnn 7  
+#### Device:  RTX2080ti 1 GPU, cuda 10, cudnn 7  
 #### [ResNet](https://arxiv.org/abs/1512.03385)
 #### [VoVNet](https://arxiv.org/abs/1904.09730)
 
 backbone | type | lr sched | inference total batch | inference time(s/im) | box AP
 -- | -- | -- | -- | -- | --
 R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368
-R-50-FPN(cpp) | Fast | 1x | 8 | 0.05296 | 0.368
+R-50-FPN(cpp) | Fast | 1x | 8 | 0.05593 | 0.368
 R-101-FPN(python) | Fast | 1x | 8 | 0.07627 | 0.391
 R-101-FPN(cpp) | Fast | 1x | 8 | 0.07176 | 0.391
-VoV-39(python) | Fast | 1x | 8 |  |
-VoV-39(cpp) | Fast | 1x | 8 |  |
-VoV-57(python) | Fast | 1x | 8 |  |
-VoV-57(cpp) | Fast | 1x | 8 |  |
+VoV-39(python) | Fast | 2x | 8 |  |
+VoV-39(cpp) | Fast | 2x | 8 |  |
+VoV-57(python) | Fast | 2x | 8 |  |
+VoV-57(cpp) | Fast | 2x | 8 |  |
 
 # Warning
 ### In Progress.  
 * It doesn't support multi dataset training(like coco2014 with coco2014valminusminival, use coco2017 instead)
 * It doesn't support training yet.(only support single gpu training but not tested).  
 * It only tested in pre-trained model from python maskrcnn-benchmark.  
-* It doesn't import evaluation process  
 
 # TODO
 - [ ] concat dataset
 - [ ] Other model test
-- [ ] python jit -> cpp model code
+- [x] python jit -> cpp model code
 - [ ] Multi GPU training
-- [ ] installable
+- [ ] cmake install
 - [ ] clean up code
 
 # Requirements
