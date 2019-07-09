@@ -1,9 +1,9 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "../models/resnet50_cpp.pth"
+  WEIGHT: "../models/frcn_v57_fpn_cpp.pth"
   BACKBONE:
-    CONV_BODY: "R-50-FPN"
-    OUT_CHANNELS: 256
+    CONV_BODY: "V-57-FPN"
+    FREEZE_CONV_BODY_AT: 0
   RPN:
     USE_FPN: True
     ANCHOR_STRIDE: (4, 8, 16, 32, 64)
@@ -20,13 +20,14 @@ MODEL:
     FEATURE_EXTRACTOR: "FPN2MLPFeatureExtractor"
     PREDICTOR: "FPNPredictor"
 DATASETS:
-  TRAIN: ("coco_2017_val", )
+  TRAIN: ("coco_2017_train", )
   TEST: ("coco_2017_val",)
 DATALOADER:
   SIZE_DIVISIBILITY: 32
 SOLVER:
   BASE_LR: 0.02
   WEIGHT_DECAY: 0.0001
-  STEPS: (60000, 80000)
-  MAX_ITER: 90000
-OUTPUT_DIR: "../checkpoints"
+  WARMUP_FACTOR : 0.01
+  STEPS: (120000, 160000)
+  MAX_ITER: 180000
+OUTPUT_DIR : "../checkpoints"

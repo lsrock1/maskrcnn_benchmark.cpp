@@ -66,19 +66,21 @@ datasets
 # Results
 
 #### Device:  RTX2080ti 1 GPU, cuda 10, cudnn 7  
+#### Dataset: coco 2017 val
 #### [ResNet](https://arxiv.org/abs/1512.03385)
 #### [VoVNet](https://arxiv.org/abs/1904.09730)
+#### ResNets are 1x and VoVNets are 2x
 
 backbone | type | lr sched | inference total batch | inference time(s/im) | box AP
 -- | -- | -- | -- | -- | --
 R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368
-R-50-FPN(cpp) | Fast | 1x | 8 | 0.05296 | 0.368
+R-50-FPN(cpp) | Fast | 1x | 8 | 0.05520 | 0.368
 R-101-FPN(python) | Fast | 1x | 8 | 0.07627 | 0.391
 R-101-FPN(cpp) | Fast | 1x | 8 | 0.07176 | 0.391
-VoV-39(python) | Fast | 1x | 8 |  |
-VoV-39(cpp) | Fast | 1x | 8 |  |
-VoV-57(python) | Fast | 1x | 8 |  |
-VoV-57(cpp) | Fast | 1x | 8 |  |
+VoV-39(python) | Fast | 2x | 8 | 0.06479 | 0.398
+VoV-39(cpp) | Fast | 2x | 8 | 0.05949 | 0.398
+VoV-57(python) | Fast | 2x | 8 | 0.07224 | 0.409
+VoV-57(cpp) | Fast | 2x | 8 |  | 0.06713 | 0.409
 
 # Warning
 ### In Progress.  
@@ -88,9 +90,8 @@ VoV-57(cpp) | Fast | 1x | 8 |  |
 
 # TODO
 - [ ] concat dataset
-- [ ] Other model test
 - [x] python jit -> cpp model code
-- [ ] Multi GPU training
+- [ ] multi GPU training
 - [ ] cmake install
 - [ ] clean up code
 
@@ -104,10 +105,12 @@ opencv
 # MODELS
 Download into /models 
 
-backbone | from | link 
+name | from | link 
 -- | -- | -- 
 R-50(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0)
 R-101(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/h5a51ur3qvrdjh5/resnet101_cpp.pth?dl=0)
 R-50-FPN | python-trained | [link](https://www.dropbox.com/s/4uvdc8kaluelzx8/frcn_r50_fpn_cpp.pth?dl=0)
 R-101-FPN | python-trained | [link](https://www.dropbox.com/s/sgo3k502kegmcxa/frcn_r101_fpn_cpp.pth?dl=0)
 R-50-C4 | python-trained | [link](https://www.dropbox.com/s/zu1yzt9ydlnqin4/frcn_r50_c4_cpp.pth?dl=0)
+V-39-FPN | python-trained | [link](https://www.dropbox.com/s/h0rgqyy375m3rhv/frcn_v39_fpn_cpp.pth?dl=0)
+V-57-FPN | python-trained | [link](https://www.dropbox.com/s/18alpuwz8ft9d86/frcn_v57_fpn_cpp.pth?dl=0)

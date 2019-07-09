@@ -84,7 +84,6 @@ void do_train(){
     std::tie(loss, loss_map) = data_parallel(model, get<0>(i), get<1>(i));
 
     #else
-    std::cout << "no cuda\n";
     ImageList images = get<0>(i).to(device);
     vector<BoxList> targets;
     

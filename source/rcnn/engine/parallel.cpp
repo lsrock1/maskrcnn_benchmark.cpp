@@ -54,7 +54,6 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
             }
           }
         }
-        std::cout << "lambda cal\n";
       });
 
   if (exception) {
@@ -74,7 +73,7 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     int64_t dim) {
   if (!devices) {
     const auto device_count = torch::cuda::device_count();
-    std::cout << device_count << " dc\n";
+    std::cout << device_count << " devices detected\n";
 
     // TORCH_CHECK(
     //     device_count > 0, "Expected at least one CUDA device to be available");
@@ -106,6 +105,9 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
   torch::autograd::Scatter scatter(*devices, /*chunk_sizes=*/torch::nullopt, dim);
   //handle input image_list
   torch::Tensor input = images.get_tensors();
+  //because of current bug, set requires true is necessary
+  //Remove next release TODO
+  input.set_requires_grad(true);
   auto scattered_tensors = fmap<torch::Tensor>(scatter.apply({std::move(input)}));
   std::vector<rcnn::structures::ImageList> scattered_inputs;
   for(auto& tensor : scattered_tensors)

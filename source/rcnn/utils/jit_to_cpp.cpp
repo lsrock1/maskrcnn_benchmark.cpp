@@ -1,12 +1,7 @@
 #include "jit_to_cpp.h"
 
-#include <iostream>
 #include <cassert>
-
-#include <torch/script.h>
-
-#include <defaults.h>
-#include <modeling.h>
+#include <iostream>
 
 
 namespace rcnn{
@@ -29,187 +24,211 @@ void recur(std::shared_ptr<torch::jit::script::Module> module, std::string name,
     recur(i, new_name + i->name(), saved);
 }
 
-void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std::string> weight_files)
-{
-  std::map<std::string, torch::Tensor> saved;
-  std::set<std::string> updated;
-  std::map<std::string, std::string> mapping;
-
-  rcnn::config::SetCFGFromFile(config_path);
-  modeling::GeneralizedRCNN model = modeling::BuildDetectionModel();
-
-  torch::NoGradGuard guard;
-
-  for(auto& weight_file : weight_files){
-    auto module_part = torch::jit::load(weight_dir + "/" + weight_file);
-    recur(module_part, weight_file.substr(0, weight_file.size()-4), saved);
-  }
-
-  // for(auto i = saved.begin(); i != saved.end(); ++i)
-  //   std::cout << i->first << "\n";
-
-  for(auto& i : model->named_parameters()){
-    std::string name;
-    if(i.key().find("backbone") != std::string::npos){
-      name = i.key().substr(20);
-      if(i.key().find("fpn") != std::string::npos){
-        name = name.substr(0, 14);
-        if(i.key().find("weight") !=std::string::npos){
-          name += ".weight";
-        }
-        else{
-          name += ".bias";
-        }
-      }
-
-      for(auto s = saved.begin(); s != saved.end(); ++s){
-        if((s->first).find(name) != std::string::npos){
-          i.value().copy_(s->second);
-          updated.insert(i.key());
-          mapping[i.key()] = s->first;
-        }
-      }
-    }
-    else if(i.key().find("rpn") != std::string::npos){
-      if(i.key().find("conv") != std::string::npos){
-        if(i.key().find("weight") != std::string::npos)
-          name = "rpn_conv.weight";
-        else
-          name = "rpn_conv.bias";
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else if(i.key().find("bbox") != std::string::npos){
-        if(i.key().find("weight") != std::string::npos)
-          name = "rpn_bbox.weight";
-        else
-          name = "rpn_bbox.bias";
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else if(i.key().find("logits") != std::string::npos){
-        if(i.key().find("weight") != std::string::npos)
-          name = "rpn_logits.weight";
-        else
-          name = "rpn_logits.bias";
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else{
-        assert(false);
-      }
-    }
-    else if(i.key().find("roi_heads.box") != std::string::npos){
-      if(i.key().find("cls_score") != std::string::npos){
-        if(i.key().find("weight") != std::string::npos)
-          name = "cls_score.weight";
-        else
-          name = "cls_score.bias";
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else if(i.key().find("bbox_pred") != std::string::npos){
-        if(i.key().find("weight") != std::string::npos)
-          name = "bbox_pred.weight";
-        else
-          name = "bbox_pred.bias";
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else if(i.key().find(".head.") != std::string::npos){
-        name = i.key().substr(39);
-        for(auto s = saved.begin(); s != saved.end(); ++s){
-          if((s->first).find(name) != std::string::npos){
-            i.value().copy_(s->second);
-            updated.insert(i.key());
-            mapping[i.key()] = s->first;
-          }
-        }
-      }
-      else if(i.key().find("fc") != std::string::npos){
-        name = "extractor_" + i.key().substr(i.key().find("fc"));
-        i.value().copy_(saved.at(name));
-        updated.insert(i.key());
-        mapping[i.key()] = name;
-      }
-      else{
-        assert(false);
-      }
+std::string ResNetMapper::backboneMapping(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  std::string new_name = name.substr(20);
+  if(name.find("fpn") != std::string::npos){
+    new_name = new_name.substr(0, 14);
+    if(name.find("weight") != std::string::npos){
+      new_name += ".weight";
     }
     else{
-      assert(false);
+      new_name += ".bias";
     }
   }
 
-  for(auto& i : model->named_buffers()){
-    std::string name;
-    if(i.key().find("backbone") != std::string::npos){
-      name = i.key().substr(20);
-      for(auto s = saved.begin(); s != saved.end(); ++s){
-        if((s->first).find(name) != std::string::npos){
-          i.value().copy_(s->second);
-          updated.insert(i.key());
-          mapping[i.key()] = s->first;
-        }
-      }
-    }
-    else if(i.key().find("roi_heads.box") != std::string::npos){
-      if(i.key().find("head") != std::string::npos){
-        name = i.key().substr(39);
-        for(auto s = saved.begin(); s != saved.end(); ++s){
-          if((s->first).find(name) != std::string::npos){
-            i.value().copy_(s->second);
-            updated.insert(i.key());
-            mapping[i.key()] = s->first;
-          }
-        }
-      }
-      else{
-        assert(false);
-      }
-    }
-    else if(i.key().find("anchor") != std::string::npos){
-      updated.insert(i.key());
-       mapping[i.key()] = i.key();
-    }
-    else{
-      assert(false);
+  for(auto s = saved.begin(); s != saved.end(); ++s){
+    if((s->first).find(new_name) != std::string::npos){
+      value.copy_(s->second);
+      return s->first;
+      // updated.insert(i.key());
+      // mapping[i.key()] = s->first;
     }
   }
-
-  //check
-  for(auto& i : model->named_parameters()){
-    assert(updated.count(i.key()));
-    std::cout << i.key() << "load from " << mapping[i.key()] << "\n";
-  }
-
-  //check
-  for(auto& i : model->named_buffers()){
-    assert(updated.count(i.key()));
-    std::cout << i.key() << "load from " << mapping[i.key()] << "\n";
-  }
-
-  torch::serialize::OutputArchive archive;
-  for(auto& i : model->named_parameters()){
-    assert(updated.count(i.key()));
-    assert( (saved.at(mapping[i.key()]) != i.value()).sum().item<int>() == 0);
-    archive.write(i.key(), i.value());
-  }
-
-  for(auto& i : model->named_buffers()){
-    assert(updated.count(i.key()));
-    if(i.key().find("anchor_generator") == std::string::npos)
-      assert( (saved.at(mapping[i.key()]) != i.value()).sum().item<int>() == 0);
-    archive.write(i.key(), i.value(), true);
-  }
-  archive.save_to("../models/new_pth_from_python_cpp.pth");
-  std::cout << "saved as /models/new_pth_from_python_cpp.pth\n"; 
-
+  assert(false);
 }
+
+std::string ResNetMapper::roiHead(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  std::string new_name;
+  if(name.find("cls_score") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "cls_score.weight";
+    else
+      new_name = "cls_score.bias";
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else if(name.find("bbox_pred") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "bbox_pred.weight";
+    else
+      new_name = "bbox_pred.bias";
+    value.copy_(saved.at(new_name));
+    // updated.insert(i.key());
+    // mapping[i.key()] = name;
+    return new_name;
+  }
+  else if(name.find(".head.") != std::string::npos){
+    new_name = name.substr(39);
+    for(auto s = saved.begin(); s != saved.end(); ++s){
+      if((s->first).find(new_name) != std::string::npos){
+        value.copy_(s->second);
+        // updated.insert(i.key());
+        // mapping[i.key()] = s->first;
+        return s->first;
+      }
+    }
+    assert(false);
+  }
+  else if(name.find("fc") != std::string::npos){
+    new_name = "extractor_" + name.substr(name.find("fc"));
+    value.copy_(saved.at(new_name));
+    // updated.insert(i.key());
+    // mapping[i.key()] = name;
+    return new_name;
+  }
+  else{
+    assert(false);
+  }
+}
+
+std::string ResNetMapper::rpn(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  std::string new_name;
+  if(name.find("conv") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_conv.weight";
+    else
+      new_name = "rpn_conv.bias";
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else if(name.find("bbox") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_bbox.weight";
+    else
+      new_name = "rpn_bbox.bias";
+    value.copy_(saved.at(new_name));
+    // updated.insert(i.key());
+    // mapping[i.key()] = name;
+    return new_name;
+  }
+  else if(name.find("logits") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_logits.weight";
+    else
+      new_name = "rpn_logits.bias";
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else{
+    assert(false);
+  }
+}
+
+std::string VoVNetMapper::backboneMapping(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  
+  std::string new_name = name.substr(20);
+  if(name.find("fpn") != std::string::npos){
+    new_name = new_name.substr(0, 14);
+    if(name.find("weight") != std::string::npos){
+      new_name += ".weight";
+    }
+    else{
+      new_name += ".bias";
+    }
+  }
+  else if(name.find("stem") == std::string::npos){
+    new_name = new_name.substr(13);
+    if(name.find("layers_") != std::string::npos){
+      new_name.replace(new_name.find("layers_") + 6, 1, ".");
+    }
+  }
+
+  for(auto s = saved.begin(); s != saved.end(); ++s){
+    if((s->first).find(new_name) != std::string::npos){
+      value.copy_(s->second);
+      return s->first;
+      // updated.insert(i.key());
+      // mapping[i.key()] = s->first;
+    }
+  }
+  assert(false);
+}
+
+std::string VoVNetMapper::roiHead(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  std::string new_name;
+  if(name.find("cls_score") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "cls_score.weight";
+    else
+      new_name = "cls_score.bias";
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else if(name.find("bbox_pred") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "bbox_pred.weight";
+    else
+      new_name = "bbox_pred.bias";
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else if(name.find(".head.") != std::string::npos){
+    new_name = name.substr(39);
+    for(auto s = saved.begin(); s != saved.end(); ++s){
+      if((s->first).find(new_name) != std::string::npos){
+        value.copy_(s->second);
+        return s->first;
+      }
+    }
+    assert(false); 
+  }
+  else if(name.find("fc") != std::string::npos){
+    new_name = "extractor_" + name.substr(name.find("fc"));
+    value.copy_(saved.at(new_name));
+    return new_name;
+  }
+  else{
+    assert(false);
+  }
+}
+
+std::string VoVNetMapper::rpn(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){
+  std::string new_name; 
+  if(name.find("anchor") != std::string::npos){
+    return name;
+  }
+  if(name.find("conv") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_conv.weight";
+    else
+      new_name = "rpn_conv.bias";
+    value.copy_(saved.at(new_name));
+    return new_name; 
+  }
+  else if(name.find("bbox") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_bbox.weight";
+    else
+      new_name = "rpn_bbox.bias";
+    value.copy_(saved.at(new_name));
+    // updated.insert(i.key());
+    // mapping[i.key()] = name;
+    return new_name;
+  }
+  else if(name.find("logits") != std::string::npos){
+    if(name.find("weight") != std::string::npos)
+      new_name = "rpn_logits.weight";
+    else
+      new_name = "rpn_logits.bias";
+    value.copy_(saved.at(new_name));
+    // updated.insert(name);
+    // mapping[i.key()] = name;
+    return new_name;
+  }
+  else{
+    assert(false);
+  } 
+}
+
 }
 }

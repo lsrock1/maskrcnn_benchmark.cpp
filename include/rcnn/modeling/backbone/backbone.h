@@ -1,6 +1,5 @@
 #pragma once
-#include "resnet.h"
-#include "fpn.h"
+#include <torch/torch.h>
 
 
 namespace rcnn{
@@ -23,6 +22,7 @@ TORCH_MODULE(Backbone);
 Backbone BuildResnetBackbone();
 Backbone BuildResnetFPNBackbone();
 Backbone BuildBackbone();
+Backbone BuildVoVNetFPNBackbone();
 
 }
 }

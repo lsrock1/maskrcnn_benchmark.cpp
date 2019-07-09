@@ -1,8 +1,11 @@
 #include "backbone/backbone.h"
-#include "make_layers.h"
-#include "registry.h"
-#include "defaults.h"
-#include <iostream>
+#include "backbone/resnet.h"
+#include "backbone/vovnet.h"
+#include "backbone/fpn.h"
+
+#include <make_layers.h>
+#include <registry.h>
+#include <defaults.h>
 
 
 namespace rcnn{
@@ -40,6 +43,29 @@ Backbone BuildResnetFPNBackbone(){
         in_channels_stage2 * 2,
         in_channels_stage2 * 4,
         in_channels_stage2 * 8
+      }, 
+      out_channels, 
+      rcnn::layers::ConvWithKaimingUniform
+    )
+  );
+  auto backbone = Backbone(model, out_channels);
+  return backbone;
+}
+
+Backbone BuildVoVNetFPNBackbone(){
+  torch::nn::Sequential model;
+  VoVNet body = VoVNet();
+  int64_t in_channels_stage = rcnn::config::GetCFG<int64_t>({"MODEL", "VOVNET", "OUT_CHANNELS"});
+  int64_t out_channels = rcnn::config::GetCFG<int64_t>({"MODEL", "VOVNET", "BACKBONE_OUT_CHANNELS"});
+  model->push_back(body);
+  model->push_back(
+    FPNLastMaxPool(
+      rcnn::config::GetCFG<bool>({"MODEL", "FPN", "USE_RELU"}), 
+      std::vector<int64_t>{
+        in_channels_stage,
+        in_channels_stage * 2,
+        in_channels_stage * 3,
+        in_channels_stage * 4
       }, 
       out_channels, 
       rcnn::layers::ConvWithKaimingUniform

@@ -143,6 +143,12 @@ void SetCFGFromFile(const std::string file_path){
   // SetNode((*cfg)["MODEL"]["RESNET"]["STAGE_WITH_DCN"], vec);
   // SetNode((*cfg)["MODEL"]["RESNET"]["DEFORMABLE_GROUPS"], 1);
 
+  SetNode((*cfg)["MODEL"]["VOVNET"], YAML::Node());
+  SetNode((*cfg)["MODEL"]["VOVNET"]["PRETRAINED"], "");
+  // SetNode((*cfg)["MODEL"]["VOVNET"]["USE_GN"], false);
+  SetNode((*cfg)["MODEL"]["VOVNET"]["OUT_CHANNELS"], 256);
+  SetNode((*cfg)["MODEL"]["VOVNET"]["BACKBONE_OUT_CHANNELS"], 256);
+
   //SOLVER
   SetNode((*cfg)["SOLVER"], YAML::Node());
   SetNode((*cfg)["SOLVER"]["MAX_ITER"], 40000);
