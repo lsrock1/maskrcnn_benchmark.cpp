@@ -70,16 +70,16 @@ datasets
 #### [VoVNet](https://arxiv.org/abs/1904.09730)
 #### ResNets are 1x and VoVNets are 2x
 
-backbone | type | lr sched | inference total batch | inference time(s/im) | box AP
--- | -- | -- | -- | -- | --
-R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368
-R-50-FPN(cpp) | Fast | 1x | 8 | 0.05520 | 0.368
-R-101-FPN(python) | Fast | 1x | 8 | 0.07627 | 0.391
-R-101-FPN(cpp) | Fast | 1x | 8 | 0.07176 | 0.391
-VoV-39(python) | Fast | 2x | 8 | 0.06479 | 0.398
-VoV-39(cpp) | Fast | 2x | 8 | 0.05949 | 0.398
-VoV-57(python) | Fast | 2x | 8 | 0.07224 | 0.409
-VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409
+backbone | type | lr sched | inference total batch | inference time(s/im) | box AP | faster
+-- | -- | -- | -- | -- | -- | --
+R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368 | 0
+R-50-FPN(cpp) | Fast | 1x | 8 | 0.05520 | 0.368 | 7.8%
+R-101-FPN(python) | Fast | 1x | 8 | 0.07627 | 0.391 | 0
+R-101-FPN(cpp) | Fast | 1x | 8 | 0.07176 | 0.391 | 5.9%
+VoV-39(python) | Fast | 2x | 8 | 0.06479 | 0.398 | 0
+VoV-39(cpp) | Fast | 2x | 8 | 0.05949 | 0.398 | 8.1%
+VoV-57(python) | Fast | 2x | 8 | 0.07224 | 0.409 | 0
+VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 
 # Warning
 ### In Progress.  
