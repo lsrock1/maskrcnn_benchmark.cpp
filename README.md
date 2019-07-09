@@ -79,7 +79,7 @@ R-101-FPN(cpp) | Fast | 1x | 8 | 0.07176 | 0.391
 VoV-39(python) | Fast | 2x | 8 | 0.06479 | 0.398
 VoV-39(cpp) | Fast | 2x | 8 | 0.05949 | 0.398
 VoV-57(python) | Fast | 2x | 8 | 0.07224 | 0.409
-VoV-57(cpp) | Fast | 2x | 8 |  | 0.06713 | 0.409
+VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409
 
 # Warning
 ### In Progress.  
