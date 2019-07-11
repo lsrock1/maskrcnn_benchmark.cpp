@@ -47,6 +47,22 @@ ResNetImpl::ResNetImpl(){
   freeze_backbone(rcnn::config::GetCFG<int64_t>({"MODEL", "BACKBONE", "FREEZE_CONV_BODY_AT"}));
 }
 
+std::shared_ptr<ResNetImpl> ResNetImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::shared_ptr<ResNetImpl> copy = std::make_shared<ResNetImpl>();
+  auto named_params = named_parameters();
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_parameters()){
+    i.value().copy_(named_params[i.key()]);
+  }
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
+
 std::vector<torch::Tensor> ResNetImpl::forward(torch::Tensor x){
   std::vector<torch::Tensor> results;
   x = stem_(x);

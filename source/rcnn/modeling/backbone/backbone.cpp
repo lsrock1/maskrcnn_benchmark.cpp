@@ -21,6 +21,17 @@ int64_t BackboneImpl::get_out_channels(){
   return out_channels_;
 }
 
+std::shared_ptr<BackboneImpl> BackboneImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  torch::nn::Sequential backbone_copy;
+  auto backbone_clone = std::dynamic_pointer_cast<torch::nn::SequentialImpl>(backbone_->clone());
+  static_cast<torch::nn::SequentialImpl&>(*backbone_copy) = std::move(*backbone_clone);
+  std::shared_ptr<BackboneImpl> copy = std::make_shared<BackboneImpl>(backbone_copy, out_channels_);
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
+
 Backbone BuildResnetBackbone(){
   torch::nn::Sequential model;
   auto body = ResNet();

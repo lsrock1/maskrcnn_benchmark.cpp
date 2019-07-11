@@ -19,6 +19,7 @@ class GeneralizedRCNNImpl : public torch::nn::Module{
 
 public:
   GeneralizedRCNNImpl();
+  std::shared_ptr<GeneralizedRCNNImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
   
   template<typename T>
   T forward(std::vector<torch::Tensor> images, std::vector<rcnn::structures::BoxList> targets);
@@ -34,6 +35,7 @@ private:
   RPNModule rpn;
   CombinedROIHeads roi_heads;
 };
+
 TORCH_MODULE(GeneralizedRCNN);
 
 template<>

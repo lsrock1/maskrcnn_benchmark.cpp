@@ -30,15 +30,17 @@ torch::Tensor ROIAlign_backward(const torch::Tensor& grad,
                              const int sampling_ratio);
 
 class ROIAlignImpl : public torch::nn::Module {
-  public:
-    ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio);
-    torch::Tensor forward(const at::Tensor& x, at::Tensor rois);
 
-  private:
-    int pooled_height_;
-    int pooled_width_;
-    float spatial_scale_;
-    int sampling_ratio_;
+public:
+  ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale, int sampling_ratio);
+  torch::Tensor forward(const torch::Tensor& x, torch::Tensor rois);
+  std::shared_ptr<ROIAlignImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
+
+private:
+  int pooled_height_;
+  int pooled_width_;
+  float spatial_scale_;
+  int sampling_ratio_;
 };
 
 TORCH_MODULE(ROIAlign);

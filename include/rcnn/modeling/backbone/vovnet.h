@@ -46,6 +46,7 @@ public:
 
   VoVNetImpl();
   std::vector<torch::Tensor> forward(torch::Tensor x);
+  std::shared_ptr<VoVNetImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
 
 private:
   void initialize_weights();

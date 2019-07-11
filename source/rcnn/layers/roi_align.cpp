@@ -76,6 +76,11 @@ ROIAlignImpl::ROIAlignImpl(std::pair<int, int> output_size, float spatial_scale,
                   spatial_scale_(spatial_scale),
                   sampling_ratio_(sampling_ratio){}
 
+std::shared_ptr<ROIAlignImpl> ROIAlignImpl::clone(torch::optional<torch::Device> device) const{
+  std::shared_ptr<ROIAlignImpl> copy = std::make_shared<ROIAlignImpl>(std::make_pair(pooled_height_, pooled_width_), spatial_scale_, sampling_ratio_);
+  return copy;
+}
+
 torch::Tensor ROIAlignImpl::forward(const torch::Tensor& x, torch::Tensor rois){
   const auto& x_ = torch::autograd::as_variable_ref(x);
   auto& rois_ = torch::autograd::as_variable_ref(rois);

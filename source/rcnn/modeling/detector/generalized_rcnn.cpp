@@ -10,6 +10,22 @@ GeneralizedRCNNImpl::GeneralizedRCNNImpl()
    rpn(register_module("rpn", BuildRPN(backbone->get_out_channels()))),
    roi_heads(register_module("roi_heads", BuildROIHeads(backbone->get_out_channels()))){}
 
+std::shared_ptr<GeneralizedRCNNImpl> GeneralizedRCNNImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::shared_ptr<GeneralizedRCNNImpl> copy = std::make_shared<GeneralizedRCNNImpl>();
+  auto named_params = named_parameters();
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_parameters()){
+    i.value().copy_(named_params[i.key()]);
+  }
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
+
 std::vector<rcnn::structures::BoxList> GeneralizedRCNNImpl::forward(std::vector<torch::Tensor> images){
   assert(!is_training());
   std::vector<rcnn::structures::BoxList> result, proposals;

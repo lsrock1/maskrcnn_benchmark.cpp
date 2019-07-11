@@ -91,10 +91,16 @@ void do_train(){
       targets.push_back(target.To(device));
 
     map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
-    torch::Tensor loss = torch::zeros({1}).to(device);
-    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-      loss += i->second;
-    loss_map["loss"] = loss;
+
+    for(auto i = loss_map.begin(); i != loss_map.end(); ++i){
+      if(i == loss_map.begin()){
+        loss_map["loss"] = loss;
+      }
+      else{
+        loss_map["loss"] = loss_map["loss"] + i->second;
+      }
+    }
+    torch::Tensor loss = loss_map["loss"];
     
     #endif    
     meters.update(loss_map);

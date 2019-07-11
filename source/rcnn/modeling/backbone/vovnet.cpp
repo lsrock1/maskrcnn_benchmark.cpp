@@ -112,6 +112,22 @@ std::vector<torch::Tensor> VoVNetImpl::forward(torch::Tensor x){
   return outputs;
 }
 
+std::shared_ptr<VoVNetImpl> VoVNetImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::shared_ptr<VoVNetImpl> copy = std::make_shared<VoVNetImpl>();
+  auto named_params = named_parameters();
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_parameters()){
+    i.value().copy_(named_params[i.key()]);
+  }
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
+
 void VoVNetImpl::initialize_weights(){
   for(auto& i : named_parameters()){
     if(i.key().find("conv") != std::string::npos)

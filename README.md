@@ -90,16 +90,16 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409
 # TODO
 - [ ] concat dataset
 - [x] python jit -> cpp model code
-- [ ] multi GPU training
+- [ ] multi GPU training(code complete but bug exists in libtorch)
 - [ ] cmake install
 - [ ] clean up code
 
 # Requirements
-Yaml-cpp
-gtest
-libtorch
-rapidjson
-opencv
+* Yaml-cpp
+* gtest
+* libtorch
+* rapidjson
+* opencv
 
 # MODELS
 Download into /models 

@@ -1,8 +1,10 @@
 #include "rpn/loss.h"
-#include "smooth_l1_loss.h"
-#include "defaults.h"
 #include "rpn/utils.h"
+
 #include <cassert>
+
+#include <smooth_l1_loss.h>
+#include <defaults.h>
 
 
 namespace rcnn{

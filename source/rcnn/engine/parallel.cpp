@@ -28,7 +28,6 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
   // > possibly on another thread, where the exception may be rethrown [...].
   // https://en.cppreference.com/w/cpp/error/exception_ptr
   std::exception_ptr exception;
-
   at::parallel_for(
       /*begin=*/0,
       /*end=*/modules.size(),
@@ -40,9 +39,17 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
             auto loss_map = modules[index]->forward<std::map<std::string, torch::Tensor>>(inputs[index], targets[index]);
             auto to_device = (devices ? (*devices)[index] : inputs[index].get_tensors().device());
             
-            torch::Tensor loss = torch::zeros({1}).to(to_device);
-            for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-              loss += (i->second).to(to_device);
+            //remove TODO
+            //torch::Tensor loss = torch::zeros({1}).to(to_device).set_requires_grad(true);
+            for(auto i = loss_map.begin(); i != loss_map.end(); ++i){
+              if(i == loss_map.begin()){
+                loss_map["loss"] = i->second;
+              }
+              else{
+                loss_map["loss"] = loss_map["loss"] + i->second;
+              }
+            }
+            // loss_map["loss"] = loss;
             // output =
             //     output.to(devices ? (*devices)[index] : inputs[index].device());
             std::lock_guard<std::mutex> lock(mutex);
@@ -95,8 +102,9 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     for(auto& box : targets)
       target_device.push_back(box.To(devices->front()));
     auto loss_map = module->forward<std::map<std::string, torch::Tensor>>(images, target_device);//.to(*output_device);
-    for(auto i = loss_map.begin(); i != loss_map.end(); ++i)
-        loss += i->second;
+    for(auto i = loss_map.begin(); i != loss_map.end(); ++i){
+      loss += i->second;
+    }
     loss_map["loss"] = loss;
     return std::make_pair(loss, loss_map);
   }
@@ -110,52 +118,40 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
   input.set_requires_grad(true);
   auto scattered_tensors = fmap<torch::Tensor>(scatter.apply({std::move(input)}));
   std::vector<rcnn::structures::ImageList> scattered_inputs;
-  for(auto& tensor : scattered_tensors)
-    scattered_inputs.emplace_back(tensor, images.get_image_sizes());
+  int tensor_index = 0;
+  for(auto& tensor : scattered_tensors){
+    std::vector<std::pair<int64_t, int64_t>> slice;
+    for(int i = 0; i < tensor.size(0); ++i)
+      slice.push_back(images.get_image_sizes().at(i + tensor_index));
+    scattered_inputs.emplace_back(tensor, slice);
+    tensor_index += tensor.size(0);
+  }
   
   //handle target bounding_box
   std::vector<std::vector<rcnn::structures::BoxList>> scattered_targets;
-  
-//   std::vector<torch::Tensor> labels;
-//   std::vector<torch::Tensor> bboxes;
-//   for(auto& box : targets){
-//     labels.push_back(box.GetField("labels"))
-//     bboxes.push_back(box.get_bbox());
-//   }
-//   torch::Tensor bboxes_tensor = torch::cat(bboxes, 0), labels_tensor = torch::cat(labels, 0);
-//   input = torch::cat({bboxes_tensor, labels_tensor}, 1);
-
-//   scattered_tensors = fmap<torch::Tensor>(scatter.apply({std::move(input)}));
-//   int box_index = 0;
-//   for(auto& boxes : scattered_tensors){
-//     std::vector<rcnn::structures::BoxList> tmp;
-//     for(int i = 0; i < boxes.size(0); ++i){
-//       targets[i].set_bbox();
-//       targets[i].AddField();
-
-//     }
-//   }
 
   int box_index = 0;
-  for(auto& images : scattered_inputs){
-    int size = images.get_tensors().size(0);
-    std::vector<rcnn::structures::BoxList> slice{targets.begin() + box_index, targets.begin() + box_index + size};
-    for(auto& i : slice)
-      i = i.To(images.get_tensors().device());
+  for(auto& scattered_images : scattered_inputs){
+    int size = scattered_images.get_tensors().size(0);
+    std::vector<rcnn::structures::BoxList> slice;
+    slice.reserve(size);
+    for(size_t index = 0; index < size; ++index)
+      slice.push_back(targets.at(box_index + index).To(scattered_images.get_tensors().device()));
     scattered_targets.push_back(slice);
     box_index += size;
   }
 
-  auto replicas = torch::nn::parallel::replicate(module, *devices);
+  auto replicas = torch::nn::parallel::replicate<rcnn::modeling::GeneralizedRCNNImpl>(module, *devices);
   std::vector<std::map<std::string, torch::Tensor>> outputs = parallel_apply(replicas, scattered_inputs, scattered_targets, *devices);
-  std::vector<torch::Tensor> total_loss(outputs.size());
+  std::vector<torch::Tensor> total_loss;
+  total_loss.reserve(outputs.size());
   for(auto& loss_map : outputs)
-    total_loss.push_back(loss_map["loss"]);
+    total_loss.push_back(loss_map["loss"].unsqueeze(0));
   
-  for(int start = 1; start < outputs.size(); ++start){
-    for(auto i = outputs[start].begin(); i != outputs[start].end(); ++i)
-      outputs[0][i->first] += i->second;
-  }
+  //to run this
+  //this bug must be fixed
+  //https://github.com/pytorch/pytorch/pull/20286
+  //waiting for release this version...
   std::cout << "end loss cal\n";
   return std::make_pair(torch::autograd::Gather(*output_device, dim)
       .apply(fmap<torch::autograd::Variable>(std::move(total_loss)))

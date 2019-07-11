@@ -4,7 +4,7 @@
 namespace rcnn{
 namespace modeling{
 
-CombinedROIHeadsImpl::CombinedROIHeadsImpl(std::set<std::string> heads, int64_t in_channels){
+CombinedROIHeadsImpl::CombinedROIHeadsImpl(std::set<std::string> heads, int64_t in_channels):in_channels_(in_channels){
   if(heads.count("mask"))
     mask = register_module("mask", BuildROIMaskHead(in_channels));
   if(heads.count("box"))
@@ -53,6 +53,29 @@ std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::
   }
 
   return std::make_tuple(x, detections, losses);
+}
+
+std::shared_ptr<CombinedROIHeadsImpl> CombinedROIHeadsImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::set<std::string> heads;
+  if(box){
+    heads.insert("box");
+  }
+  if(mask){
+    heads.insert("mask");
+  }
+  std::shared_ptr<CombinedROIHeadsImpl> copy = std::make_shared<CombinedROIHeadsImpl>(heads, in_channels_);
+  auto named_params = named_parameters();
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_parameters()){
+    i.value().copy_(named_params[i.key()]);
+  }
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
 }
 
 

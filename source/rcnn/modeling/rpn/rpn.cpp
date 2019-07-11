@@ -1,5 +1,6 @@
 #include "rpn/rpn.h"
-#include "defaults.h"
+
+#include <defaults.h>
 
 
 namespace rcnn{
@@ -40,14 +41,31 @@ RPNModuleImpl::RPNModuleImpl(int64_t in_channels)
   box_selector_train_(register_module("box_selector_train", MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/true))),
   box_selector_test_(register_module("box_selector_test", MakeRPNPostprocessor(rpn_box_coder_, /*is_train=*/false))),
   loss_evaluator_(MakeRPNLossEvaluator(rpn_box_coder_)),
-  rpn_only_(rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})){}
+  rpn_only_(rcnn::config::GetCFG<bool>({"MODEL", "RPN_ONLY"})),
+  in_channels_(in_channels){}
+
+std::shared_ptr<RPNModuleImpl> RPNModuleImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::shared_ptr<RPNModuleImpl> copy = std::make_shared<RPNModuleImpl>(in_channels_);
+  auto named_params = named_parameters();
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_parameters()){
+    i.value().copy_(named_params[i.key()]);
+  }
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
 
 std::pair<std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> RPNModuleImpl::forward(rcnn::structures::ImageList& images, std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList> targets){
   //given targets
   std::vector<torch::Tensor> objectness, rpn_box_regression;
   std::tie(objectness, rpn_box_regression) = head_->forward(features);
   std::vector<std::vector<rcnn::structures::BoxList>> anchors = anchor_generator_(images, features);
-
+  
   if(is_training()){
     return forward_train(anchors, objectness, rpn_box_regression, targets);
   }

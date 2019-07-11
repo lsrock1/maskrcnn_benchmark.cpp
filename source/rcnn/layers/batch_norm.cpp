@@ -1,5 +1,6 @@
 #include "batch_norm.h"
 
+
 namespace rcnn{
 namespace layers{
 
@@ -8,6 +9,18 @@ FrozenBatchNorm2dImpl::FrozenBatchNorm2dImpl(int64_t dimension)
   bias(register_buffer("bias", torch::zeros(dimension))),
   mean(register_buffer("running_mean", torch::zeros(dimension))),
   var(register_buffer("running_var", torch::ones(dimension))){};
+
+std::shared_ptr<FrozenBatchNorm2dImpl> FrozenBatchNorm2dImpl::clone(torch::optional<torch::Device> device) const{
+  torch::NoGradGuard no_grad;
+  std::shared_ptr<FrozenBatchNorm2dImpl> copy = std::make_shared<FrozenBatchNorm2dImpl>(mean.size(0));
+  auto named_bufs = named_buffers();
+  for(auto& i : copy->named_buffers()){
+    i.value().copy_(named_bufs[i.key()]);
+  }
+  if(device.has_value())
+    copy->to(device.value());
+  return copy;
+}
 
 torch::Tensor FrozenBatchNorm2dImpl::forward(torch::Tensor x){
     // TODO INTEGRATION
