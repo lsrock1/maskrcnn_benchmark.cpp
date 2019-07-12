@@ -103,8 +103,8 @@ __launch_bounds__(256) static __global__
         }    
     } 
 
-    torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
-                                float low_th, float high_th){
+torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
+                            float low_th, float high_th){
     
     int gt = match_quality_matrix.size(0);
     long long preds = match_quality_matrix.size(1);

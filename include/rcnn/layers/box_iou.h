@@ -10,10 +10,9 @@ namespace layers{
 torch::Tensor box_iou(const torch::Tensor& area_a,
                const torch::Tensor& area_b,
                const torch::Tensor& box_a,
-               const torch::Tensor& box_b,
-               const bool cuda_extension = false) {
+               const torch::Tensor& box_b) {
 
-  if (box_a.is_cuda() && box_b.is_cuda() && cuda_extension) {
+  if (box_a.is_cuda() && box_b.is_cuda()) {
 #ifdef WITH_CUDA
     // TODO raise error if not compiled with CUDA
     return box_iou_cuda(box_a, box_b);

@@ -1,4 +1,6 @@
 #include "matcher.h"
+#include <match_proposals.h>
+
 #include <cassert>
 
 
@@ -11,24 +13,25 @@ Matcher::Matcher(float high_threshold, float low_threshold, bool allow_low_quali
                  allow_low_quality_matches_(allow_low_quality_matches){}
 
 torch::Tensor Matcher::operator()(torch::Tensor& match_quality_matrix){
+  return rcnn::layers::match_proposals(match_quality_matrix, allow_low_quality_matches_, low_threshold_, high_threshold_);
   //gt x predicted
   //select highest gt per predicted
-  assert(match_quality_matrix.numel() != 0);
-  torch::Tensor matched_vals, matches, all_matches;
-  std::tie(matched_vals, matches) = match_quality_matrix.max(/*dim=*/0);
-  if(allow_low_quality_matches_)
-    all_matches = matches.clone();
-  torch::Tensor upper_threshold = matched_vals >= high_threshold_;
+  // assert(match_quality_matrix.numel() != 0);
+  // torch::Tensor matched_vals, matches, all_matches;
+  // std::tie(matched_vals, matches) = match_quality_matrix.max(/*dim=*/0);
+  // if(allow_low_quality_matches_)
+  //   all_matches = matches.clone();
+  // torch::Tensor upper_threshold = matched_vals >= high_threshold_;
 
-  torch::Tensor below_low_threshold = matched_vals < low_threshold_;
-  torch::Tensor between_thresholds = (matched_vals >= low_threshold_).__and__(matched_vals < high_threshold_);
+  // torch::Tensor below_low_threshold = matched_vals < low_threshold_;
+  // torch::Tensor between_thresholds = (matched_vals >= low_threshold_).__and__(matched_vals < high_threshold_);
 
-  matches.masked_fill_(below_low_threshold, Matcher::BELOW_LOW_THRESHOLD);
-  matches.masked_fill_(between_thresholds, Matcher::BETWEEN_THRESHOLDS);
+  // matches.masked_fill_(below_low_threshold, Matcher::BELOW_LOW_THRESHOLD);
+  // matches.masked_fill_(between_thresholds, Matcher::BETWEEN_THRESHOLDS);
 
-  if(allow_low_quality_matches_)
-    SetLowQualityMatches(matches, all_matches, match_quality_matrix);
-  return matches;
+  // if(allow_low_quality_matches_)
+  //   SetLowQualityMatches(matches, all_matches, match_quality_matrix);
+  // return matches;
 }
 
 void Matcher::SetLowQualityMatches(torch::Tensor& matches, torch::Tensor& all_matches, torch::Tensor& match_quality_matrix){

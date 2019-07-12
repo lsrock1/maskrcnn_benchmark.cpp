@@ -1,4 +1,5 @@
 #include "box_coder.h"
+#include <box_encode.h>
 
 
 namespace rcnn{
@@ -9,6 +10,7 @@ BoxCoder::BoxCoder(std::vector<float> weights, double bbox_xform_clip)
                    bbox_xform_clip_(bbox_xform_clip){}
 
 torch::Tensor BoxCoder::encode(torch::Tensor reference_boxes, torch::Tensor proposals){
+  return rcnn::layers::box_encode(reference_boxes, proposals, weights_[0], weights_[1], weights_[2], weights_[3]);
   int TO_REMOVE = 1;
   torch::Tensor ex_widths = proposals.select(1, 2) - proposals.select(1, 0) + TO_REMOVE;
   torch::Tensor ex_heights = proposals.select(1, 3) - proposals.select(1, 1) + TO_REMOVE;

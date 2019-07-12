@@ -9,9 +9,9 @@
 namespace rcnn{
 namespace layers{
 torch::Tensor match_proposals(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
-                                float low_th, float high_th, const bool cuda_extension=false) {
+                                float low_th, float high_th) {
 
-  if (match_quality_matrix.is_cuda() && cuda_extension) {
+  if (match_quality_matrix.is_cuda()) {
 #ifdef WITH_CUDA
     // TODO raise error if not compiled with CUDA
     return match_proposals_cuda(match_quality_matrix, allow_low_quality_matches, low_th, high_th);

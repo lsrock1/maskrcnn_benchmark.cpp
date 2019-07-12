@@ -83,9 +83,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 
 # Warning
 ### In Progress.  
-* It doesn't support multi dataset training(like coco2014 with coco2014valminusminival, use coco2017 instead)
-* It doesn't support training yet.(only support single gpu training but not tested).  
-* It only tested in pre-trained model from python maskrcnn-benchmark.  
+* It doesn't support training yet. 
 
 # TODO
 - [ ] concat dataset

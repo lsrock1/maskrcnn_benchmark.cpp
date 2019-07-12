@@ -116,5 +116,12 @@ torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh);
 torch::Tensor compute_flow_cuda(const torch::Tensor& boxes,
                              const int height,
                              const int width);
+
+std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor anchors, float wx, float wy, float ww, float wh);
+
+torch::Tensor box_iou_cuda(torch::Tensor box1, torch::Tensor box2);
+
+torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
+                            float low_th, float high_th);
 }
 }

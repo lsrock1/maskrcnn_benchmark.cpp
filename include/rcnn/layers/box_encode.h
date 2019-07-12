@@ -9,9 +9,9 @@
 namespace rcnn{
 namespace layers{
 
-torch::Tensor box_encode(torch::Tensor reference_boxes, torch::Tensor proposals, float wx, float wy, float ww, float wh, bool cuda_extension) {
+torch::Tensor box_encode(torch::Tensor reference_boxes, torch::Tensor proposals, float wx, float wy, float ww, float wh) {
 
-  if (reference_boxes.is_cuda() && proposals.is_cuda() && cuda_extension) {
+  if (reference_boxes.is_cuda() && proposals.is_cuda()) {
 #ifdef WITH_CUDA
     // TODO raise error if not compiled with CUDA
     return torch::stack(box_encode_cuda(reference_boxes, proposals, wx, wy, ww, wh), 1);

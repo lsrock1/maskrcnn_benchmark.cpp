@@ -29,7 +29,6 @@ using namespace rcnn::data;
 using namespace rcnn::solver;
 using namespace rcnn::structures;
 using namespace rcnn::utils;
-// using namespace rcnn::utils;
 using namespace std;
 
 void do_train(){
