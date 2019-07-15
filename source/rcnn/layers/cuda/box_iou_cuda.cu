@@ -54,7 +54,9 @@ torch::Tensor box_iou_cuda(torch::Tensor box1, torch::Tensor box2){
 
     int minGridSize;
     int blockSize;
-    
+    int current_device;
+    THCudaCheck(cudaGetDevice(&current_device));
+    THCudaCheck(cudaSetDevice(box1.get_device()));
     cudaOccupancyMaxPotentialBlockSize(&minGridSize,
                                        &blockSize,
                                        (void*) box_iou_cuda_kernel,
@@ -74,6 +76,7 @@ torch::Tensor box_iou_cuda(torch::Tensor box1, torch::Tensor box2){
                                                                   (float4*) box2.data<float>(), 
                                                                   M, N, 
                                                                   idxJump);
+    THCudaCheck(cudaSetDevice(current_device));
     return box_iou;
 }
 

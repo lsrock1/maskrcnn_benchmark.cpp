@@ -36,7 +36,7 @@ std::vector<std::map<std::string, torch::Tensor>> parallel_apply(
           int64_t index, int64_t stop) {
         for (; index < stop; ++index) {
           try {
-            auto loss_map = modules[index]->forward<std::map<std::string, torch::Tensor>>(inputs[index], targets[index]);
+            std::map<std::string, torch::Tensor> loss_map = modules[index]->forward<std::map<std::string, torch::Tensor>>(inputs[index], targets[index]);
             auto to_device = (devices ? (*devices)[index] : inputs[index].get_tensors().device());
             
             //remove TODO
@@ -80,7 +80,6 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     int64_t dim) {
   if (!devices) {
     const auto device_count = torch::cuda::device_count();
-    std::cout << device_count << " devices detected\n";
 
     // TORCH_CHECK(
     //     device_count > 0, "Expected at least one CUDA device to be available");
@@ -94,7 +93,7 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
     output_device = devices->front();
   }
 
-  if (devices->size() == 1) {
+  if (devices->size() >= 1) {
     torch::Tensor loss = torch::zeros({1}).to(devices->front());
     module->to(devices->front());
     images = images.to(devices->front());

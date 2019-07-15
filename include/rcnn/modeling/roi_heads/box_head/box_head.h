@@ -18,8 +18,8 @@ namespace{
 class ROIBoxHeadImpl : public torch::nn::Module{
   public:
     ROIBoxHeadImpl(int64_t in_channels);
-    std::tuple<torch::Tensor, proposals, losses> forward(std::vector<torch::Tensor> features, std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets);
-    std::tuple<torch::Tensor, proposals, losses> forward(std::vector<torch::Tensor> features, std::vector<rcnn::structures::BoxList> proposals);
+    std::tuple<torch::Tensor, proposals, losses> forward(std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& proposals, std::vector<rcnn::structures::BoxList>& targets);
+    std::tuple<torch::Tensor, proposals, losses> forward(std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& proposals);
 
   private:
     torch::nn::Sequential feature_extractor_;

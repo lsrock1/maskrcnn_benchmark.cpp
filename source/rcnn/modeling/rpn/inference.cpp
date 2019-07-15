@@ -16,7 +16,7 @@ RPNPostProcessorImpl::RPNPostProcessorImpl(const int64_t pre_nms_top_n, const in
                                  fpn_post_nms_top_n_(fpn_post_nms_top_n),
                                  fpn_post_nms_per_batch_(fpn_post_nms_per_batch){}
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std::vector<rcnn::structures::BoxList>& proposals, std::vector<rcnn::structures::BoxList>& targets){
   auto device = proposals[0].get_bbox().device();
   std::vector<rcnn::structures::BoxList> return_proposals;
   return_proposals.reserve(proposals.size());
@@ -32,7 +32,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std:
   return return_proposals;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFeatureMap(std::vector<rcnn::structures::BoxList> anchors, torch::Tensor objectness, torch::Tensor box_regression){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFeatureMap(std::vector<rcnn::structures::BoxList>& anchors, torch::Tensor objectness, torch::Tensor box_regression){
   auto device = objectness.device();
   int N = objectness.size(0), A = objectness.size(1), H = objectness.size(2), W = objectness.size(3);
   objectness = PermuteAndFlatten(objectness, N, A, 1, H, W).view({N, -1});
@@ -44,7 +44,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
 
   int64_t pre_nms_top_n = std::min(pre_nms_top_n_, num_anchors);
   torch::Tensor topk_idx;
-  torch::Tensor origi = objectness;
+  // torch::Tensor origi = objectness_permuted;
   std::tie(objectness, topk_idx) = objectness.topk(pre_nms_top_n, /*dim=*/1, /*largest=*/true, /*sorted=*/true);
   std::vector<torch::Tensor> box_regression_vec;
   box_regression_vec.reserve(topk_idx.size(0));
@@ -88,7 +88,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   return result;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>> anchors, std::vector<torch::Tensor> objectness, std::vector<torch::Tensor> box_regression){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& box_regression){
   //anchors : imgs<features<>>
   int num_levels = objectness.size();//== num_feature_maps
   int num_imgs = anchors.size();
@@ -97,8 +97,9 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
   std::vector<std::vector<rcnn::structures::BoxList>> anchors_per_feature_maps;
   anchors_per_feature_maps.reserve(num_levels);
 
+  std::vector<rcnn::structures::BoxList> bucket;
   for(int j = 0; j < num_levels; ++j){
-    std::vector<rcnn::structures::BoxList> bucket;
+    bucket.clear();
     bucket.reserve(anchors.size());
     for(int i = 0; i < anchors.size(); ++i){
       bucket.push_back(anchors[i][j]);
@@ -115,7 +116,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
   std::vector<std::vector<rcnn::structures::BoxList>> boxlists;
   boxlists.reserve(sampled_boxes[0].size());//image{features }
   for(int j = 0; j < sampled_boxes[0].size(); ++j){
-    std::vector<rcnn::structures::BoxList> bucket;
+    bucket.clear();
     bucket.reserve(num_levels);
     for(int i = 0; i < num_levels; ++i){
       bucket.push_back(sampled_boxes[i][j]);
@@ -135,7 +136,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
   return return_boxlists;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>> anchors, std::vector<torch::Tensor> objectness, std::vector<torch::Tensor> box_regression, std::vector<rcnn::structures::BoxList> targets){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector<std::vector<rcnn::structures::BoxList>>& anchors, std::vector<torch::Tensor>& objectness, std::vector<torch::Tensor>& box_regression, std::vector<rcnn::structures::BoxList>& targets){
   std::vector<rcnn::structures::BoxList> boxlists = forward(anchors, objectness, box_regression);
   if(is_training())
     return AddGtProposals(boxlists, targets);
@@ -143,9 +144,9 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
     return boxlists;
 }
 
-std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList> boxlists){
+std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers(std::vector<rcnn::structures::BoxList>& boxlists){
   int num_images = boxlists.size();
-
+  torch::Tensor objectness, inds_sorted;
   if(is_training() && fpn_post_nms_per_batch_){
     //to all images
     std::vector<torch::Tensor> objectness_vec;
@@ -156,11 +157,11 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers
       objectness_vec.push_back(boxlist.GetField("objectness"));
       box_sizes.push_back(boxlist.Length());
     }
-    torch::Tensor objectness = torch::cat(objectness_vec, 0);
+    objectness = torch::cat(objectness_vec, 0);
 
     int64_t post_nms_top_n = std::min(fpn_post_nms_top_n_, objectness.size(0));
-    torch::Tensor inds_sorted = std::get<1>(torch::topk(objectness, post_nms_top_n, 0, /*largest*/true, /*sorted=*/true));
-    torch::Tensor inds_mask = torch::zeros_like(objectness, torch::TensorOptions().dtype(torch::kUInt8));
+    inds_sorted = std::get<1>(torch::topk(objectness, post_nms_top_n, 0, /*largest*/true, /*sorted=*/true));
+    torch::Tensor inds_mask = torch::zeros_like(objectness, torch::TensorOptions().dtype(torch::kUInt8)).to(inds_sorted.device());
     inds_mask.index_fill_(0, inds_sorted, 1);
 
     std::vector<torch::Tensor> inds_mask_vec = inds_mask.split_with_sizes(box_sizes, /*dim=*/0);
@@ -171,9 +172,9 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers
   else{
     //to each image
     for(int i = 0; i < num_images; ++i){
-      torch::Tensor objectness = boxlists[i].GetField("objectness");
+      objectness = boxlists[i].GetField("objectness");
       int64_t post_nms_top_n = std::min(fpn_post_nms_top_n_, objectness.size(0));
-      torch::Tensor inds_sorted = std::get<1>(torch::topk(objectness, post_nms_top_n, 0, /*largest*/true, /*sorted=*/true));
+      inds_sorted = std::get<1>(torch::topk(objectness, post_nms_top_n, 0, /*largest*/true, /*sorted=*/true));
       boxlists[i] = boxlists[i][inds_sorted];
     }
   }

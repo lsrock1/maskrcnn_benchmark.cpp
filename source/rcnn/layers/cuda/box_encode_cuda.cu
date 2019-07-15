@@ -53,9 +53,11 @@ __global__ void box_encode_kernel(float *targets_dx, float *targets_dy, float *t
 
 std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor anchors, float wx, float wy, float ww, float wh){
    
-    int minGridSize;
-    int blockSize;
-    
+  int minGridSize;
+  int blockSize;
+  int current_device;
+  THCudaCheck(cudaGetDevice(&current_device));
+  THCudaCheck(cudaSetDevice(boxes.get_device()));
     cudaOccupancyMaxPotentialBlockSize(&minGridSize,
                                        &blockSize,
                                        (void*) box_encode_kernel,
@@ -85,7 +87,7 @@ std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor an
     result.push_back(targets_dy);
     result.push_back(targets_dw);
     result.push_back(targets_dh);  
-    
+    THCudaCheck(cudaSetDevice(current_device));
     return result;
 }
 

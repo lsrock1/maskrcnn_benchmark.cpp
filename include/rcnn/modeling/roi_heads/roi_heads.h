@@ -13,8 +13,8 @@ class CombinedROIHeadsImpl : public torch::nn::Module{
 
 public:
   CombinedROIHeadsImpl(std::set<std::string> heads, int64_t in_channels);
-  std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> forward(std::vector<torch::Tensor> features, std::vector<rcnn::structures::BoxList> proposals, std::vector<rcnn::structures::BoxList> targets);
-  std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> forward(std::vector<torch::Tensor> features, std::vector<rcnn::structures::BoxList> proposals);
+  std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> forward(std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& proposals, std::vector<rcnn::structures::BoxList> targets);
+  std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> forward(std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& proposals);
   std::shared_ptr<CombinedROIHeadsImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
 
 private:

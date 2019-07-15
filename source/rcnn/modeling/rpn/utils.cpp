@@ -1,6 +1,8 @@
 #include "rpn/utils.h"
-#include "cat.h"
 #include <cassert>
+#include <iostream>
+
+#include <cat.h>
 
 
 namespace rcnn{
@@ -13,7 +15,7 @@ torch::Tensor PermuteAndFlatten(torch::Tensor& layer, int64_t N, int64_t A, int6
   return layer;
 }
 
-std::pair<torch::Tensor, torch::Tensor> ConcatBoxPredictionLayers(std::vector<torch::Tensor> box_cls, std::vector<torch::Tensor> box_regression){
+std::pair<torch::Tensor, torch::Tensor> ConcatBoxPredictionLayers(std::vector<torch::Tensor>& box_cls, std::vector<torch::Tensor>& box_regression){
   std::vector<torch::Tensor> box_cls_flattened;
   box_cls_flattened.reserve(box_cls.size());
   std::vector<torch::Tensor> box_regression_flattened;

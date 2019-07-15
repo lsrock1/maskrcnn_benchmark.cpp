@@ -1,4 +1,5 @@
 #include "rpn/rpn.h"
+#include <iostream>
 
 #include <defaults.h>
 
@@ -11,7 +12,7 @@ RPNHeadImpl::RPNHeadImpl(int64_t in_channels, int64_t num_anchors)
   cls_logits_(register_module("cls_logits", torch::nn::Conv2d(torch::nn::Conv2dOptions(in_channels, num_anchors, 1)))),
   bbox_pred_(register_module("bbox_pred", torch::nn::Conv2d(torch::nn::Conv2dOptions(in_channels, num_anchors * 4, 1))))
 {
-  for(auto &param : this->named_parameters()){
+  for(auto &param : named_parameters()){
     if(param.key().find("weight") != std::string::npos) {
       torch::nn::init::normal_(param.value(), 0, 0.01);
     }
@@ -21,13 +22,13 @@ RPNHeadImpl::RPNHeadImpl(int64_t in_channels, int64_t num_anchors)
   }
 }
 
-std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNHeadImpl::forward(std::vector<torch::Tensor> x){
-  std::vector<torch::Tensor> logits;
+std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNHeadImpl::forward(std::vector<torch::Tensor>& x){
+  std::vector<torch::Tensor> logits, bbox_reg;
   logits.reserve(x.size());
-  std::vector<torch::Tensor> bbox_reg;
   bbox_reg.reserve(x.size());
+  torch::Tensor t;
   for(auto& feature: x){
-    torch::Tensor t = conv_->forward(feature).relu_();
+    t = conv_->forward(feature).relu_();
     logits.push_back(cls_logits_->forward(t));
     bbox_reg.push_back(bbox_pred_->forward(t));
   }

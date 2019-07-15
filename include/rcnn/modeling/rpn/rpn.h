@@ -17,7 +17,7 @@ class RPNHeadImpl : public torch::nn::Module{
 
 public:
   RPNHeadImpl(int64_t in_channels, int64_t num_anchors);
-  std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> forward(std::vector<torch::Tensor> x); 
+  std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> forward(std::vector<torch::Tensor>& x); 
 
 private:
   torch::nn::Conv2d conv_;

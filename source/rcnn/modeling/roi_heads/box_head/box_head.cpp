@@ -14,9 +14,9 @@ ROIBoxHeadImpl::ROIBoxHeadImpl(int64_t in_channels)
   predictor_ = register_module("predictor", MakeROIBoxPredictor(out_channels));
 }
 
-std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector<torch::Tensor> features, 
-                                                                     std::vector<rcnn::structures::BoxList> proposals, 
-                                                                     std::vector<rcnn::structures::BoxList> targets)
+std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector<torch::Tensor>& features, 
+                                                                     std::vector<rcnn::structures::BoxList>& proposals, 
+                                                                     std::vector<rcnn::structures::BoxList>& targets)
 {
   if(is_training()){
     {
@@ -27,8 +27,8 @@ std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector
   return forward(features, proposals);
 }
 
-std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector<torch::Tensor> features, 
-                                                                     std::vector<rcnn::structures::BoxList> proposals)
+std::tuple<torch::Tensor, proposals, losses> ROIBoxHeadImpl::forward(std::vector<torch::Tensor>& features, 
+                                                                     std::vector<rcnn::structures::BoxList>& proposals)
 {
   torch::Tensor x = feature_extractor_->forward(features, proposals);
   torch::Tensor class_logits, box_regression;

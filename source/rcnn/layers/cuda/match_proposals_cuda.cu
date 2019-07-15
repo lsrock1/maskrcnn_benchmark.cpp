@@ -105,7 +105,9 @@ __launch_bounds__(256) static __global__
 
 torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
                             float low_th, float high_th){
-    
+    int current_device;
+    THCudaCheck(cudaGetDevice(&current_device));
+    THCudaCheck(cudaSetDevice(match_quality_matrix.get_device()));
     int gt = match_quality_matrix.size(0);
     long long preds = match_quality_matrix.size(1);
     float *match_quality_data = match_quality_matrix.data<float>();
@@ -154,7 +156,7 @@ torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allo
                                                                     allow_low_quality_matches, 
                                                                     low_th, 
                                                                     high_th);
-                                                                       
+    THCudaCheck(cudaSetDevice(current_device));
     return result;
 
 }

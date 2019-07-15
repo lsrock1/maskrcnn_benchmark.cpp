@@ -206,19 +206,19 @@ BottleneckImpl::BottleneckImpl(
 };
 
 torch::Tensor BottleneckImpl::forward(torch::Tensor x){
-    torch::Tensor identity;
-    if(downsample_){
-        identity = downsample_->forward(x);
-    }
-    else{
-        identity = x;
-    }
+  torch::Tensor identity;
+  if(downsample_){
+    identity = downsample_->forward(x);
+  }
+  else{
+    identity = x;
+  }
 
-    x = bn1_->forward(conv1_->forward(x)).relu_();
-    x = bn2_->forward(conv2_->forward(x)).relu_();
-    x = bn3_->forward(conv3_->forward(x));
-    x += identity;
-    return x.relu_();
+  x = bn1_->forward(conv1_->forward(x)).relu_();
+  x = bn2_->forward(conv2_->forward(x)).relu_();
+  x = bn3_->forward(conv3_->forward(x));
+  x += identity;
+  return x.relu_();
 }
 
 BaseStemImpl::BaseStemImpl(){

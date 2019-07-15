@@ -1,6 +1,7 @@
 #include "rpn/anchor_generator.h"
-#include "defaults.h"
 #include <cassert>
+
+#include <defaults.h>
 
 
 namespace rcnn{
@@ -108,24 +109,25 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
     std::vector<torch::Tensor> anchors;
     anchors.reserve(grid_sizes.size());
     int64_t stride, grid_height, grid_width;
-    torch::Tensor base_anchors;
+    torch::Tensor base_anchors, shifts_x, shifts_y, shift_x, shift_y, shifts;
     for(auto i = 0; i < grid_sizes.size(); ++i){
       grid_height = std::get<0>(grid_sizes[i]);
       grid_width = std::get<1>(grid_sizes[i]);
       stride = strides_[i];
       base_anchors = (*cell_anchors_)[i];
       
-      torch::Tensor shifts_x = torch::arange(
+      shifts_x = torch::arange(
         /*start=*/0, /*end=*/grid_width * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat32).device(base_anchors.device())
       );
-      torch::Tensor shifts_y = torch::arange(
+      shifts_y = torch::arange(
         /*start=*/0, /*end=*/grid_height * stride, /*step=*/stride, torch::TensorOptions().dtype(torch::kFloat32).device(base_anchors.device())
       );
       auto meshxy = torch::meshgrid({shifts_y, shifts_x});
-      torch::Tensor shift_y = meshxy[0], shift_x = meshxy[1];
+      shift_y = meshxy[0];
+      shift_x = meshxy[1];
       shift_x = shift_x.reshape({-1});
       shift_y = shift_y.reshape({-1});
-      torch::Tensor shifts = torch::stack({shift_x, shift_y, shift_x, shift_y}, /*dim=*/1);
+      shifts = torch::stack({shift_x, shift_y, shift_x, shift_y}, /*dim=*/1);
 
       anchors.push_back(
           (shifts.view({-1, 1, 4}) + base_anchors.view({1, -1, 4})).reshape({-1, 4})
@@ -137,8 +139,9 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
   std::vector<int64_t> AnchorGeneratorImpl::NumAnchorsPerLocation(){
     std::vector<int64_t> num_anchors;
     num_anchors.reserve(cell_anchors_->size());
-    for(int i = 0; i < cell_anchors_->size(); ++i)
+    for(int i = 0; i < cell_anchors_->size(); ++i){
       num_anchors.push_back((*cell_anchors_)[i].size(0));
+    }
     return num_anchors;
   }
   
@@ -152,8 +155,10 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
     std::vector<torch::Tensor> anchors_over_all_feature_maps = GridAnchors(grid_sizes);
     auto image_sizes = image_list.get_image_sizes();
     anchors.reserve(image_sizes.size());
+    std::vector<rcnn::structures::BoxList> anchors_in_image;
+
     for(auto& image_size: image_sizes){
-      std::vector<rcnn::structures::BoxList> anchors_in_image;
+      anchors_in_image.clear();
       anchors_in_image.reserve(anchors_over_all_feature_maps.size());
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");

@@ -11,8 +11,8 @@ CombinedROIHeadsImpl::CombinedROIHeadsImpl(std::set<std::string> heads, int64_t 
     box = register_module("box", BuildROIBoxHead(in_channels));
 }
 
-std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> CombinedROIHeadsImpl::forward(std::vector<torch::Tensor> features, 
-                                                                                                                std::vector<rcnn::structures::BoxList> proposals, 
+std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> CombinedROIHeadsImpl::forward(std::vector<torch::Tensor>& features, 
+                                                                                                                std::vector<rcnn::structures::BoxList>& proposals, 
                                                                                                                 std::vector<rcnn::structures::BoxList> targets)
 {
   std::map<std::string, torch::Tensor> losses;
@@ -37,11 +37,10 @@ std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::
   return std::make_tuple(x, detections, losses);
 }
 
-std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> CombinedROIHeadsImpl::forward(std::vector<torch::Tensor> features, std::vector<rcnn::structures::BoxList> proposals){
-  std::map<std::string, torch::Tensor> losses;
+std::tuple<torch::Tensor, std::vector<rcnn::structures::BoxList>, std::map<std::string, torch::Tensor>> CombinedROIHeadsImpl::forward(std::vector<torch::Tensor>& features, std::vector<rcnn::structures::BoxList>& proposals){
+  std::map<std::string, torch::Tensor> losses, loss_box;
   torch::Tensor x;
   std::vector<rcnn::structures::BoxList> detections;
-  std::map<std::string, torch::Tensor> loss_box;
   
   std::tie(x, detections, loss_box) = box->forward(features, proposals);
   losses.insert(loss_box.begin(), loss_box.end());

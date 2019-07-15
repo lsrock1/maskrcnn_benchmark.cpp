@@ -51,9 +51,10 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   
   std::vector<rcnn::structures::BoxList> results;
   results.reserve(proposals_per_img.size());
+  rcnn::structures::BoxList boxlist;
 
   for(size_t i = 0; i < proposals_per_img.size(); ++i){
-    rcnn::structures::BoxList boxlist = prepare_boxlist(proposals_per_img[i], class_prob_per_img[i], image_shapes[i]);
+    boxlist = prepare_boxlist(proposals_per_img[i], class_prob_per_img[i], image_shapes[i]);
     boxlist = boxlist.ClipToImage(false);
     if(!bbox_aug_enabled_)
       boxlist = filter_results(boxlist, num_classes);
@@ -72,18 +73,21 @@ rcnn::structures::BoxList PostProcessorImpl::prepare_boxlist(torch::Tensor boxes
 }
 
 rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::BoxList boxlist, int num_classes){
-  torch::Tensor boxes = boxlist.get_bbox().reshape({-1, num_classes * 4});
-  torch::Tensor scores = boxlist.GetField("scores").reshape({-1, num_classes});
+  torch::Tensor boxes = boxlist.get_bbox().reshape({-1, num_classes * 4}),
+  scores = boxlist.GetField("scores").reshape({-1, num_classes}),
+  inds_all = scores > score_thresh_,
+  inds, scores_i, boxes_i;
+  rcnn::structures::BoxList boxlist_for_class;
+
   auto device = scores.device();
   std::vector<rcnn::structures::BoxList> results_vec;
   results_vec.reserve(num_classes);
-  torch::Tensor inds_all = scores > score_thresh_;
 
   for(size_t i = 1; i < num_classes; ++i){
-    torch::Tensor inds = inds_all.select(1, i).nonzero().squeeze(1);
-    torch::Tensor scores_i = scores.index_select(0, inds).select(1, i);
-    torch::Tensor boxes_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
-    rcnn::structures::BoxList boxlist_for_class = rcnn::structures::BoxList(boxes_i, boxlist.get_size(), "xyxy");
+    inds = inds_all.select(1, i).nonzero().squeeze(1);
+    scores_i = scores.index_select(0, inds).select(1, i);
+    boxes_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
+    boxlist_for_class = rcnn::structures::BoxList(boxes_i, boxlist.get_size(), "xyxy");
     boxlist_for_class.AddField("scores", scores_i);
     boxlist_for_class = boxlist_for_class.nms(nms_);
     int64_t num_labels = boxlist_for_class.Length();
