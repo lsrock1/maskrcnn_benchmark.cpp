@@ -119,12 +119,12 @@ torch::optional<std::vector<size_t>> GroupedBatchSampler::next(size_t batch_size
 }
 
 void GroupedBatchSampler::reset(torch::optional<size_t> new_size){
-  _batches = _prepare_batches();
+  //_batches = _prepare_batches();
   index_ = 0;
 }
 
 void GroupedBatchSampler::reset(){
-  _batches = _prepare_batches();
+  //_batches = _prepare_batches();
   index_ = 0;
 }
 
