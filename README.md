@@ -70,7 +70,7 @@ datasets
 #### [VoVNet](https://arxiv.org/abs/1904.09730)
 #### ResNets are 1x and VoVNets are 2x
 
-backbone | type | lr sched | inference total batch | inference time(s/im) | box AP | faster
+backbone | type | lr sched | inference total batch | inference time(s/im) | box AP | Speed Improvement
 -- | -- | -- | -- | -- | -- | --
 R-50-FPN(python) | Fast | 1x | 8 | 0.05989 | 0.368 | 0
 R-50-FPN(cpp) | Fast | 1x | 8 | 0.05520 | 0.368 | 7.8%
