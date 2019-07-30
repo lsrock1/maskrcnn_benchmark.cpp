@@ -83,7 +83,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 
 # Warning
 ### In Progress.  
-* It doesn't support training yet. 
+* It doesn't support training yet.(waiting for next libtorch release)
 
 # TODO
 - [ ] concat dataset
