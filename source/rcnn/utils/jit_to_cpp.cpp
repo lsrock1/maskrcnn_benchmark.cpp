@@ -7,21 +7,21 @@
 namespace rcnn{
 namespace utils{
 
-void recur(std::shared_ptr<torch::jit::script::Module> module, std::string name, std::map<std::string, torch::Tensor>& saved){
+void recur(torch::jit::script::Module& module, std::string name, std::map<std::string, torch::Tensor>& saved){
   std::string new_name;
   if(name.compare("") != 0)
     new_name = name + ".";
   
-  for(auto& u : module->get_parameters()){
+  for(auto u : module.get_parameters()){
     torch::Tensor tensor = u.value().toTensor();
     saved[new_name + u.name()] = tensor;
   }
-  for(auto& u : module->get_attributes()){
+  for(auto u : module.get_attributes()){
     torch::Tensor tensor = u.value().toTensor();
     saved[new_name + u.name()] = tensor;
   }
-  for(auto& i : module->get_modules())
-    recur(i, new_name + i->name(), saved);
+  for(auto i : module.get_modules())
+    recur(i, new_name + i.name().name(), saved);
 }
 
 std::string ResNetMapper::backboneMapping(const std::string& name, torch::Tensor& value, std::map<std::string, torch::Tensor>& saved){

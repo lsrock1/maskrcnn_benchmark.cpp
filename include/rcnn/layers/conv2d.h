@@ -4,12 +4,13 @@
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/VariableTypeUtils.h>
 
+
 namespace rcnn{
 namespace layers{
 //Reference from https://gist.github.com/mikehamer/df0af5ec7ff98d3cae487975d0c921df
 torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape);
 
-struct _NewEmptyTensorOpBackward : public torch::autograd::Function{
+struct _NewEmptyTensorOpBackward : public torch::autograd::Node{
   torch::IntArrayRef shape;
   torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;
 };

@@ -76,7 +76,6 @@ torch::data::Example<cv::Mat, RCNNData> COCODataset::get(size_t idx){
     else
       ann++;
   }
-
   std::vector<std::vector<float>> boxes;
   for(auto& obj : anno)
     boxes.push_back(obj.bbox);
@@ -88,7 +87,6 @@ torch::data::Example<cv::Mat, RCNNData> COCODataset::get(size_t idx){
       index++;
     }
   }
-
   boxes_tensor = boxes_tensor.reshape({-1, 4});
   rcnn::structures::BoxList target{boxes_tensor, std::make_pair(static_cast<int64_t>(img.cols), static_cast<int64_t>(img.rows)), "xywh"};
   target = target.Convert("xyxy");
@@ -97,14 +95,12 @@ torch::data::Example<cv::Mat, RCNNData> COCODataset::get(size_t idx){
   for(int i = 0; i < anno.size(); ++i){
     classes[i] = json_category_id_to_contiguous_id[anno[i].category_id];
   }
-  
   target.AddField("labels", classes);
   std::vector<std::vector<std::vector<double>>> polys;
   for(auto& obj : anno)
     polys.push_back(obj.segmentation);
   auto mask = new rcnn::structures::SegmentationMask(polys, std::make_pair(static_cast<int64_t>(img.cols), static_cast<int64_t>(img.rows)), "poly");
   target.AddField("masks", mask);
-
   target = target.ClipToImage(true);
   RCNNData rcnn_data;
   rcnn_data.idx = idx;

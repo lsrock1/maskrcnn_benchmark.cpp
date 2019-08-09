@@ -177,7 +177,7 @@ int SegmentationMask::Length(){
 SegmentationMask SegmentationMask::operator[](torch::Tensor item){
   assert(item.sizes().size() == 1);
   std::vector<Polygons> selected_polygons;
-  if(item.dtype() == torch::kByte){
+  if(item.dtype().Match<bool>()){
     int length = item.size(0);
     for(size_t i = 0; i < length; ++i){
       if(item.select(0, i).item<bool>())

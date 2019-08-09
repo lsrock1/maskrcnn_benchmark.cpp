@@ -42,7 +42,7 @@ torch::Tensor ROIAlign_backward(const torch::Tensor& grad,
 
 torch::autograd::variable_list ROIAlignBackward::apply(torch::autograd::variable_list&& grads) {
     // Our function had one output, so we only expect 1 gradient
-  auto& grad = grads[0].data();
+  auto& grad = grads[0];
   auto rois = rois_.unpack();
 
     // Variable list to hold the gradients at the function's input variables
@@ -87,7 +87,7 @@ torch::Tensor ROIAlignImpl::forward(const torch::Tensor& x, torch::Tensor rois){
   torch::Tensor result = ROIAlign_forward(x_, rois_, spatial_scale_, pooled_height_, pooled_width_, sampling_ratio_);
   result = result.detach();
   if(torch::autograd::compute_requires_grad(x)){
-    auto grad_fn = std::shared_ptr<ROIAlignBackward>(new ROIAlignBackward(), torch::autograd::deleteFunction);
+    auto grad_fn = std::shared_ptr<ROIAlignBackward>(new ROIAlignBackward(), torch::autograd::deleteNode);
     grad_fn -> set_next_edges(torch::autograd::collect_next_edges(x));
     grad_fn -> rois_ = torch::autograd::SavedVariable(rois, false);
     grad_fn -> input_shape_ = x.sizes();

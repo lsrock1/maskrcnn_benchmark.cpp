@@ -338,7 +338,8 @@ BoxList BoxList::To(const torch::Device device){
 BoxList BoxList::operator[](torch::Tensor item){
   assert(item.sizes().size() == 1);
   item = item.to(bbox_.device());
-  if(item.dtype() == torch::kByte){
+  
+  if(item.dtype().Match<bool>()){
     BoxList bbox = BoxList(bbox_.masked_select(item.unsqueeze(1)).reshape({-1, 4}), size_, mode_);
     for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
       auto size_vector = (i->second).sizes().vec();

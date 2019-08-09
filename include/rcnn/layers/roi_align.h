@@ -45,7 +45,7 @@ private:
 
 TORCH_MODULE(ROIAlign);
 
-struct ROIAlignBackward : public torch::autograd::Function{
+struct ROIAlignBackward : public torch::autograd::Node{
   torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;
   void release_variables() override;
 

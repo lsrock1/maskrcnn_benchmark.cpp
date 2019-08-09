@@ -25,10 +25,10 @@ void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_d
     auto module = torch::jit::load(weight_dir);
     std::cout << "Load weight into memory\n";
     std::vector<std::string> names_in_pth;
-    for(auto& i : module->get_parameters()){
+    for(auto i : module.get_parameters()){
       names_in_pth.push_back(i.name());
     }
-    for(auto& i : module->get_attributes()){
+    for(auto i : module.get_attributes()){
       names_in_pth.push_back(i.name());
     }
     std::cout << "load end\n";
@@ -36,8 +36,8 @@ void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_d
     for(auto& i : model->named_parameters()){
       for(auto& name : names_in_pth){
         if(i.key().find(name) != std::string::npos){
-          auto param = module->find_parameter(name);
-          assert(param != nullptr);
+          auto param = module.find_parameter(name);
+          assert(param.has_value());
           i.value().copy_(param->value().toTensor());
           checker = false;
           std::cout << i.key() << " loaded from " << name << "\n";
@@ -49,8 +49,8 @@ void Checkpoint::load(rcnn::modeling::GeneralizedRCNN& model, std::string save_d
     for(auto& i : model->named_buffers()){
       for(auto& name : names_in_pth){
         if(i.key().find(name) != std::string::npos){
-          auto param = module->find_buffer(name);
-          assert(param != nullptr);
+          auto param = module.find_buffer(name);
+          assert(param.has_value());
           i.value().copy_(param->value().toTensor());
           checker = false;
           std::cout << i.key() << " loaded from " << name << "\n";
@@ -83,18 +83,18 @@ int Checkpoint::load(std::string weight_path){
   else{
     //no optimizer scheduler
     auto module = torch::jit::load(weight_path);
-    auto buffer = module->find_buffer("iteration");
+    auto buffer = module.find_buffer("iteration");
 
     // archive.load_from(weight_path);
-    if(buffer != nullptr)
+    if(buffer.has_value())
       return load_from_checkpoint();
     else{
       std::cout << "Load weight into memory\n";
       std::vector<std::string> names_in_pth;
-      for(auto& i : module->get_parameters()){
+      for(auto i : module.get_parameters()){
         names_in_pth.push_back(i.name());
       }
-      for(auto& i : module->get_attributes()){
+      for(auto i : module.get_attributes()){
         names_in_pth.push_back(i.name());
       }
       std::cout << "load end\n";
@@ -102,8 +102,8 @@ int Checkpoint::load(std::string weight_path){
       for(auto& i : model_->named_parameters()){
         for(auto& name : names_in_pth){
           if(i.key().find(name) != std::string::npos){
-            auto param = module->find_parameter(name);
-            assert(param != nullptr);
+            auto param = module.find_parameter(name);
+            assert(param.has_value());
             i.value().copy_(param->value().toTensor());
             checker = false;
             std::cout << i.key() << " loaded from " << name << "\n";
@@ -115,8 +115,8 @@ int Checkpoint::load(std::string weight_path){
       for(auto& i : model_->named_buffers()){
         for(auto& name : names_in_pth){
           if(i.key().find(name) != std::string::npos){
-            auto param = module->find_buffer(name);
-            assert(param != nullptr);
+            auto param = module.find_buffer(name);
+            assert(param.has_value());
             i.value().copy_(param->value().toTensor());
             checker = false;
             std::cout << i.key() << " loaded from " << name << "\n";

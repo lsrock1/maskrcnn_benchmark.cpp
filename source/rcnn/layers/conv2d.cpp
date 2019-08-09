@@ -52,7 +52,7 @@ torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_sh
   //auto result = torch::autograd::as_variable(tmp);
 
   if(torch::autograd::compute_requires_grad(x)){
-    auto grad_fn = std::shared_ptr<_NewEmptyTensorOpBackward>(new _NewEmptyTensorOpBackward(), torch::autograd::deleteFunction);
+    auto grad_fn = std::shared_ptr<_NewEmptyTensorOpBackward>(new _NewEmptyTensorOpBackward(), torch::autograd::deleteNode);
     grad_fn -> set_next_edges(torch::autograd::collect_next_edges(x));
     grad_fn -> shape = x.sizes();
     set_history(torch::autograd::flatten_tensor_args( result ), grad_fn);
