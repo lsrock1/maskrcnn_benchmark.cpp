@@ -95,7 +95,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 # Requirements
 * Yaml-cpp
 * gtest
-* libtorch > 1.2
+* libtorch >= 1.2
 * rapidjson
 * opencv
 
