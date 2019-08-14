@@ -33,11 +33,6 @@ make install
 //if you are using without cuda and get dyld: Library not loaded: @rpath/libmklml.dylib error
 //https://github.com/pytorch/pytorch/issues/14165
 
-//fix libtorch bug
-//https://github.com/pytorch/pytorch/pull/21134
-//in maskrcnn_benchmark.cpp/lib/libtorch/include/torch/csrc/autograd/VariableTypeUtils.h
-//insert #pramga once into the first line
-
 cd $INSTALL_DIR
 cd maskrcnn_benchmark.cpp
 mkdir build
