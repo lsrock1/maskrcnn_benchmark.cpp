@@ -39,8 +39,8 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> BalancedPositi
 
     pos_idx_per_image_mask.index_fill_(0, pos_idx_per_image, 1);
     neg_idx_per_image_mask.index_fill_(0, neg_idx_per_image, 1);
-    pos_idx.push_back(pos_idx_per_image_mask);
-    neg_idx.push_back(neg_idx_per_image_mask);
+    pos_idx.push_back(std::move(pos_idx_per_image_mask));
+    neg_idx.push_back(std::move(neg_idx_per_image_mask));
   }
   return std::make_pair(pos_idx, neg_idx);
 }

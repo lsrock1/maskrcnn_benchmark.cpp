@@ -25,11 +25,13 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   class_prob = torch::softmax(class_logits, -1);
 
   std::vector<std::pair<int64_t, int64_t>> image_shapes;
-  image_shapes.reserve(boxes.size());
   std::vector<int64_t> boxes_per_image;
-  boxes_per_image.reserve(boxes.size());
   std::vector<torch::Tensor> concat_boxes_vec;
+
+  image_shapes.reserve(boxes.size());
+  boxes_per_image.reserve(boxes.size());
   concat_boxes_vec.reserve(boxes.size());
+
   for(auto& box: boxes){
     image_shapes.push_back(box.get_size());
     boxes_per_image.push_back(box.Length());
@@ -58,7 +60,7 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
     boxlist = boxlist.ClipToImage(false);
     if(!bbox_aug_enabled_)
       boxlist = filter_results(boxlist, num_classes);
-    results.push_back(boxlist);
+    results.push_back(std::move(boxlist));
   }
 
   return results;
@@ -92,7 +94,7 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
     boxlist_for_class = boxlist_for_class.nms(nms_);
     int64_t num_labels = boxlist_for_class.Length();
     boxlist_for_class.AddField("labels", torch::full({num_labels}, static_cast<int>(i), torch::TensorOptions().dtype(torch::kInt64).device(device)));
-    results_vec.push_back(boxlist_for_class);
+    results_vec.push_back(std::move(boxlist_for_class));
   }
 
   rcnn::structures::BoxList results = rcnn::structures::BoxList::CatBoxList(results_vec);

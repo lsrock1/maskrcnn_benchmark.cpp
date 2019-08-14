@@ -31,11 +31,11 @@ std::pair<torch::Tensor, torch::Tensor> ConcatBoxPredictionLayers(std::vector<to
 
     //box_cls_per_level
     box_cls_flattened.push_back(
-      PermuteAndFlatten(box_cls[i], N, A, C, H, W)
+      std::move(PermuteAndFlatten(box_cls[i], N, A, C, H, W))
     );
 
     box_regression_flattened.push_back(
-      PermuteAndFlatten(box_regression[i], N, A, 4, H, W)
+      std::move(PermuteAndFlatten(box_regression[i], N, A, 4, H, W))
     );
   }
 

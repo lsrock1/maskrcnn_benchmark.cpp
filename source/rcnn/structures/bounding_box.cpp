@@ -39,16 +39,17 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   for(auto& boxlist: boxlists){
     compared_field = boxlist.Fields();
     std::sort(compared_field.begin(), compared_field.end());
-    cat_bbox.push_back(boxlist.get_bbox());
+    cat_bbox.push_back(std::move(boxlist.get_bbox()));
     assert(boxlist.get_size() == size);
     assert(boxlist.get_mode() == mode);
     assert(fields == compared_field);
   }
   BoxList cat_boxlists = BoxList(rcnn::layers::cat(cat_bbox, 0), size, mode);
+  std::vector<torch::Tensor> cat_field;
   for(auto& field: fields){
-    std::vector<torch::Tensor> cat_field;
+    cat_field.reserve(boxlists.size());
     for(auto& boxlist: boxlists){
-      cat_field.push_back(boxlist.GetField(field));
+      cat_field.push_back(std::move(boxlist.GetField(field)));
     }
     cat_boxlists.AddField(field, rcnn::layers::cat(cat_field, 0));
     cat_field.clear();
@@ -61,9 +62,9 @@ BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("cpu"){}
 //size<width, height>
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
     : device_(bbox.device()),
-      size_(image_size),
-      bbox_(bbox),
-      mode_(mode){};
+      size_(std::move(image_size)),
+      bbox_(std::move(bbox)),
+      mode_(std::move(mode)){};
 
 BoxList::~BoxList(){
   if(masks_)
@@ -96,29 +97,29 @@ BoxList& BoxList::operator=(const BoxList& other){
   return *this;
 }
 
-BoxList::BoxList(BoxList&& other) :device_(other.device_){
-  device_ = other.device_;
-  size_ = other.size_;
-  bbox_ = other.bbox_;
-  mode_ = other.mode_;
-  extra_fields_ = other.extra_fields_;
-  rles_ = other.rles_;
+BoxList::BoxList(BoxList&& other) noexcept :device_(other.device_) {
+  device_ = std::move(other.device_);
+  size_ = std::move(other.size_);
+  bbox_ = std::move(other.bbox_);
+  mode_ = std::move(other.mode_);
+  extra_fields_ = std::move(other.extra_fields_);
+  rles_ = std::move(other.rles_);
   if(other.masks_){
     masks_ = other.masks_;
     other.masks_ = nullptr;
   }
 }
 
-BoxList& BoxList::operator=(BoxList&& other){
+BoxList& BoxList::operator=(BoxList&& other) noexcept{
   if(this != &other){
     if(masks_)
       delete masks_;
-    device_ = other.device_;
-    size_ = other.size_;
-    bbox_ = other.bbox_;
-    mode_ = other.mode_;
-    extra_fields_ = other.extra_fields_;
-    rles_ = other.rles_;
+    device_ = std::move(other.device_);
+    size_ = std::move(other.size_);
+    bbox_ = std::move(other.bbox_);
+    mode_ = std::move(other.mode_);
+    extra_fields_ = std::move(other.extra_fields_);
+    rles_ = std::move(other.rles_);
     if(other.masks_){
       masks_ = other.masks_;
       other.masks_ = nullptr;
@@ -168,14 +169,14 @@ bool BoxList::HasField(const std::string field_name){
 }
 
 std::vector<std::string> BoxList::Fields(){
-    std::vector<std::string> keys;
-    for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
-      keys.push_back(i->first);
-    if(extra_fields_.count("mask") == 0 && rles_.size() > 0)
-      keys.push_back("mask");
-    if(masks_)
-      keys.push_back("masks");
-    return keys;
+  std::vector<std::string> keys;
+  for(auto i = extra_fields_.begin(); i != extra_fields_.end(); i++)
+    keys.push_back(i->first);
+  if(extra_fields_.count("mask") == 0 && rles_.size() > 0)
+    keys.push_back("mask");
+  if(masks_)
+    keys.push_back("masks");
+  return keys;
 }
 
 BoxList BoxList::Convert(const std::string mode){
@@ -184,21 +185,21 @@ BoxList BoxList::Convert(const std::string mode){
     std::tuple<XMin, YMin, XMax, YMax> splitted_box_coordinates = SplitIntoXYXY();
     torch::Tensor bbox_tensor;
     if(mode.compare("xyxy") == 0){
-        bbox_tensor = torch::cat({
-            std::get<0>(splitted_box_coordinates),
-            std::get<1>(splitted_box_coordinates),
-            std::get<2>(splitted_box_coordinates),
-            std::get<3>(splitted_box_coordinates),
-        }, -1);
+      bbox_tensor = torch::cat({
+          std::get<0>(splitted_box_coordinates),
+          std::get<1>(splitted_box_coordinates),
+          std::get<2>(splitted_box_coordinates),
+          std::get<3>(splitted_box_coordinates),
+      }, -1);
     }
     else{
-        int TO_REMOVE = 1;
-        bbox_tensor = torch::cat({
-            std::get<0>(splitted_box_coordinates),
-            std::get<1>(splitted_box_coordinates),
-            std::get<2>(splitted_box_coordinates) - std::get<0>(splitted_box_coordinates) + TO_REMOVE,
-            std::get<3>(splitted_box_coordinates) - std::get<1>(splitted_box_coordinates) + TO_REMOVE
-        }, -1);
+      int TO_REMOVE = 1;
+      bbox_tensor = torch::cat({
+          std::get<0>(splitted_box_coordinates),
+          std::get<1>(splitted_box_coordinates),
+          std::get<2>(splitted_box_coordinates) - std::get<0>(splitted_box_coordinates) + TO_REMOVE,
+          std::get<3>(splitted_box_coordinates) - std::get<1>(splitted_box_coordinates) + TO_REMOVE
+      }, -1);
     }
     BoxList bbox = BoxList(bbox_tensor, size_, mode);
     bbox.CopyExtraFields(*this);
@@ -210,7 +211,7 @@ BoxList BoxList::Convert(const std::string mode){
 }
 
 std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
-  if(this->mode_.compare("xyxy") == 0){
+  if(mode_.compare("xyxy") == 0){
     std::vector<torch::Tensor> splitted_box_coordinates = bbox_.split(1, /*dim=*/-1);
     return std::make_tuple(
       splitted_box_coordinates.at(0),
@@ -385,18 +386,18 @@ BoxList BoxList::operator[](torch::Tensor item){
 }
 
 BoxList BoxList::operator[](const int64_t index){
-    BoxList bbox = BoxList(this->bbox_[index].reshape({-1, 4}), this->size_, this->mode_);
-    for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
-        auto size_vector = (i->second).sizes().vec();
-        size_vector[0] = -1;
-        bbox.AddField(i->first, (i->second)[index].reshape(at::IntArrayRef(size_vector)));
-    }
-    if(rles_.size()){
-      bbox.set_rles(std::vector<coco::RLEstr>{rles_[index]});
-    }
-    if(masks_)
-      bbox.set_masks(new SegmentationMask((*masks_)[index]));
-    return bbox;
+  BoxList bbox = BoxList(bbox_[index].reshape({-1, 4}), size_, mode_);
+  for(auto i = extra_fields_.begin(); i != extra_fields_.end(); ++i){
+    auto size_vector = (i->second).sizes().vec();
+    size_vector[0] = -1;
+    bbox.AddField(i->first, (i->second)[index].reshape(at::IntArrayRef(size_vector)));
+  }
+  if(rles_.size()){
+    bbox.set_rles(std::vector<coco::RLEstr>{rles_[index]});
+  }
+  if(masks_)
+    bbox.set_masks(new SegmentationMask((*masks_)[index]));
+  return bbox;
 }
 
 int64_t BoxList::Length() const {

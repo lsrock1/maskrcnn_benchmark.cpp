@@ -27,7 +27,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::AddGtProposals(std:
   for(auto& gt_box: gt_boxes)
     gt_box.AddField("objectness", torch::ones(gt_box.Length(), torch::TensorOptions().device(device)));
   for(int i = 0; i < proposals.size(); ++i){
-    return_proposals.push_back(rcnn::structures::BoxList::CatBoxList(std::vector<rcnn::structures::BoxList> {proposals[i], gt_boxes[i]}));
+    return_proposals.push_back(std::move(rcnn::structures::BoxList::CatBoxList(std::vector<rcnn::structures::BoxList> {proposals[i], gt_boxes[i]})));
   }
   return return_proposals;
 }
@@ -49,7 +49,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   std::vector<torch::Tensor> box_regression_vec;
   box_regression_vec.reserve(topk_idx.size(0));
   for(int i = 0; i < topk_idx.size(0); ++i){
-    box_regression_vec.push_back(box_regression[i].index_select(0, topk_idx[i]));
+    box_regression_vec.push_back(std::move(box_regression[i].index_select(0, topk_idx[i])));
   }
   box_regression = torch::stack(box_regression_vec);
   
@@ -59,8 +59,8 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   concat_anchors_vec.reserve(anchors.size());
 
   for(auto& box: anchors){
-    image_shapes.push_back(box.get_size());
-    concat_anchors_vec.push_back(box.get_bbox());
+    image_shapes.push_back(std::move(box.get_size()));
+    concat_anchors_vec.push_back(std::move(box.get_bbox()));
   }
   
   torch::Tensor concat_anchors = torch::cat(concat_anchors_vec, /*dim=*/0).reshape({N, -1, 4});
@@ -68,7 +68,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
   concat_anchors_vec.clear();
   concat_anchors_vec.reserve(topk_idx.size(0));
   for(int i = 0; i < topk_idx.size(0); ++i){
-    concat_anchors_vec.push_back(concat_anchors[i].index_select(0, topk_idx[i]));
+    concat_anchors_vec.push_back(std::move(concat_anchors[i].index_select(0, topk_idx[i])));
   }
   concat_anchors = torch::stack(concat_anchors_vec);
   auto proposals = box_coder_.decode(box_regression.view({-1, 4}), concat_anchors.view({-1, 4}));
@@ -83,7 +83,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::ForwardForSingleFea
     boxlist = boxlist.ClipToImage(false);
     boxlist = boxlist.RemoveSmallBoxes(min_size_);
     boxlist = boxlist.nms(nms_thresh_, post_nms_top_n_, "objectness");
-    result.push_back(boxlist);
+    result.push_back(std::move(boxlist));
   }
   return result;
 }
@@ -102,15 +102,15 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
     bucket.clear();
     bucket.reserve(anchors.size());
     for(int i = 0; i < anchors.size(); ++i){
-      bucket.push_back(anchors[i][j]);
+      bucket.push_back(std::move(anchors[i][j]));
     }
-    anchors_per_feature_maps.push_back(bucket);
+    anchors_per_feature_maps.push_back(std::move(bucket));
   }
   assert(anchors_per_feature_maps.size() == num_levels && anchors_per_feature_maps[0].size() == num_imgs);
 
   //anchors images..{feature maps..}
   for(int i = 0; i < num_levels; ++i){
-    sampled_boxes.push_back(ForwardForSingleFeatureMap(anchors_per_feature_maps[i], objectness[i], box_regression[i]));
+    sampled_boxes.push_back(std::move(ForwardForSingleFeatureMap(anchors_per_feature_maps[i], objectness[i], box_regression[i])));
   }
 
   std::vector<std::vector<rcnn::structures::BoxList>> boxlists;
@@ -119,15 +119,15 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::forward(std::vector
     bucket.clear();
     bucket.reserve(num_levels);
     for(int i = 0; i < num_levels; ++i){
-      bucket.push_back(sampled_boxes[i][j]);
+      bucket.push_back(std::move(sampled_boxes[i][j]));
     }
-    boxlists.push_back(bucket);
+    boxlists.push_back(std::move(bucket));
   }
   
   std::vector<rcnn::structures::BoxList> return_boxlists;
   return_boxlists.reserve(boxlists.size());
   for(auto& boxlist : boxlists){
-    return_boxlists.push_back(rcnn::structures::BoxList::CatBoxList(boxlist));
+    return_boxlists.push_back(std::move(rcnn::structures::BoxList::CatBoxList(boxlist)));
   }
 
   if(num_levels > 1){
@@ -154,7 +154,7 @@ std::vector<rcnn::structures::BoxList> RPNPostProcessorImpl::SelectOverAllLayers
     std::vector<int64_t> box_sizes;
     box_sizes.reserve(boxlists.size());
     for(auto& boxlist: boxlists){
-      objectness_vec.push_back(boxlist.GetField("objectness"));
+      objectness_vec.push_back(std::move(boxlist.GetField("objectness")));
       box_sizes.push_back(boxlist.Length());
     }
     objectness = torch::cat(objectness_vec, 0);

@@ -20,6 +20,9 @@ public:
   Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode);
   Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size, std::string mode);
   Polygons(const Polygons& other);
+  Polygons(Polygons&& other) noexcept;
+  Polygons& operator=(const Polygons& other) = default;
+  Polygons& operator=(Polygons&& other) noexcept;
   Polygons Transpose(const Flip method);
   Polygons Crop(const std::tuple<int, int, int, int> box);
   Polygons Resize(std::pair<int, int> size);
@@ -41,9 +44,9 @@ public:
   SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode);
   SegmentationMask(std::vector<Polygons> polygons, std::pair<int, int> size, std::string mode);
   SegmentationMask(const SegmentationMask& other);
-  SegmentationMask(SegmentationMask&& other) = default;
+  SegmentationMask(SegmentationMask&& other) noexcept;
   SegmentationMask& operator=(const SegmentationMask& other) = default;
-  SegmentationMask& operator=(SegmentationMask&& other) = default;
+  SegmentationMask& operator=(SegmentationMask&& other) noexcept;
 
   SegmentationMask Transpose(const Flip method);
   SegmentationMask Crop(const std::tuple<int, int, int, int> box);

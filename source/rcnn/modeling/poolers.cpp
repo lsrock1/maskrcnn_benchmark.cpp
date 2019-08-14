@@ -18,7 +18,7 @@ torch::Tensor LevelMapper::operator()(std::vector<rcnn::structures::BoxList> box
   torch::Tensor s;
   std::vector<torch::Tensor> area_vec;
   for(auto& boxlist: boxlists){
-    area_vec.push_back(boxlist.Area());
+    area_vec.push_back(std::move(boxlist.Area()));
   }
   s = rcnn::layers::cat(area_vec, 0).sqrt_();
   torch::Tensor target_lvls = torch::floor(lvl0_ + torch::log2(s / s0_ + eps_));
@@ -31,7 +31,7 @@ PoolerImpl::PoolerImpl(std::pair<int, int> output_size, std::vector<float> scale
                map_levels_(LevelMapper(-torch::log2(torch::tensor(scales[0], torch::TensorOptions().dtype(torch::kF32))).item<int>(),
                                        -torch::log2(torch::tensor(scales.back(), torch::TensorOptions().dtype(torch::kF32))).item<int>())){
   for(int i = 0; i < scales.size(); ++i){
-    poolers_.push_back(register_module("pooler" + std::to_string(i+1), rcnn::layers::ROIAlign(output_size_, scales[i], sampling_ratio)));
+    poolers_.push_back(std::move(register_module("pooler" + std::to_string(i+1), rcnn::layers::ROIAlign(output_size_, scales[i], sampling_ratio))));
   }
 }
 
@@ -41,8 +41,8 @@ torch::Tensor PoolerImpl::ConvertToROIFormat(std::vector<rcnn::structures::BoxLi
   auto device = boxes[0].get_bbox().device();
   auto dtype = boxes[0].get_bbox().dtype();
   for(int i = 0; i < boxes.size(); ++i){
-    concat_boxes_vec.push_back(boxes[i].get_bbox());
-    ids_vec.push_back(torch::full({boxes[i].Length(), 1}, i, torch::TensorOptions().dtype(dtype).device(device)));
+    concat_boxes_vec.push_back(std::move(boxes[i].get_bbox()));
+    ids_vec.push_back(std::move(torch::full({boxes[i].Length(), 1}, i, torch::TensorOptions().dtype(dtype).device(device))));
   }
   torch::Tensor concat_boxes = rcnn::layers::cat(concat_boxes_vec, 0);
   torch::Tensor ids = rcnn::layers::cat(ids_vec, 0);

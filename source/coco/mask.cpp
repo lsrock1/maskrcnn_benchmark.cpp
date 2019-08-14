@@ -120,11 +120,12 @@ std::vector<RLEstr> frPoly(std::vector<std::vector<double>>& polygon, int h, int
   int n = polygon.size();
   RLEs Rs = RLEs(n);
   for(size_t i = 0; i < n; ++i){
-    double tmp[polygon[i].size()];
+    double* tmp = new double[polygon[i].size()];
     for(int j = 0; j < polygon[i].size(); ++j){
       tmp[j] = polygon[i][j];
     }
     coco::rleFrPoly(&(Rs._R[i]), tmp, static_cast<int>(polygon[i].size()/2), h, w);
+    delete[] tmp;
   }
   return Rs.toString();
 }

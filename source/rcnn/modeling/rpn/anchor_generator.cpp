@@ -65,7 +65,7 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
   std::vector<torch::Tensor> repeated_scale_anchors;
   repeated_scale_anchors.reserve(anchors.size(0));
   for(auto i = 0; i < anchors.size(0); ++i){
-    repeated_scale_anchors.push_back(RepeatAnchorScales(anchors[i], anchor_sizes_tensor));
+    repeated_scale_anchors.push_back(std::move(RepeatAnchorScales(anchors[i], anchor_sizes_tensor)));
   }
   
   return torch::cat(repeated_scale_anchors, /*dim=*/0);
@@ -93,13 +93,13 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
     std::vector<torch::Tensor> cell_anchors;
     if(anchor_strides.size() == 1){
       int64_t anchor_stride = anchor_strides[0];
-      cell_anchors.push_back(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat32));
+      cell_anchors.push_back(std::move(GenerateAnchors(anchor_stride, sizes, aspect_ratios).toType(torch::kFloat32)));
     }
     else{
       cell_anchors.reserve(sizes.size());
       assert(anchor_strides.size() == sizes.size());
       for(int i = 0; i < sizes.size(); ++i){
-        cell_anchors.push_back(GenerateAnchors(anchor_strides[i], std::vector<int64_t> {sizes[i]}, aspect_ratios).toType(torch::kFloat32));
+        cell_anchors.push_back(std::move(GenerateAnchors(anchor_strides[i], std::vector<int64_t> {sizes[i]}, aspect_ratios).toType(torch::kFloat32)));
       }
     }
     cell_anchors_->extend(cell_anchors);
@@ -130,7 +130,7 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
       shifts = torch::stack({shift_x, shift_y, shift_x, shift_y}, /*dim=*/1);
 
       anchors.push_back(
-          (shifts.view({-1, 1, 4}) + base_anchors.view({1, -1, 4})).reshape({-1, 4})
+          std::move((shifts.view({-1, 1, 4}) + base_anchors.view({1, -1, 4})).reshape({-1, 4}))
       );
     }
     return anchors;
@@ -163,9 +163,9 @@ torch::Tensor GenerateAnchors(int64_t base_size, std::vector<int64_t> anchor_siz
       for(auto& anchors_per_feature_map: anchors_over_all_feature_maps){
         rcnn::structures::BoxList boxlist(anchors_per_feature_map, std::make_pair(std::get<1>(image_size), std::get<0>(image_size)), /*mode=*/"xyxy");
         AddVisibilityTo(boxlist);
-        anchors_in_image.push_back(boxlist);
+        anchors_in_image.push_back(std::move(boxlist));
       }
-      anchors.push_back(anchors_in_image);
+      anchors.push_back(std::move(anchors_in_image));
     }
     return anchors;
   }

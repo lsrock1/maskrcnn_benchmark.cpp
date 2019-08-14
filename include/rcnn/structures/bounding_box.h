@@ -29,8 +29,8 @@ public:
   ~BoxList();
   BoxList(const BoxList& other);
   BoxList& operator=(const BoxList& other);
-  BoxList(BoxList&& other);
-  BoxList& operator=(BoxList&& other);
+  BoxList(BoxList&& other) noexcept;
+  BoxList& operator=(BoxList&& other) noexcept;
 
   BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode="xyxy");
   
