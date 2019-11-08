@@ -26,7 +26,7 @@ void jit_to_cpp(std::string weight_dir, std::string config_path, std::vector<std
   torch::NoGradGuard guard;
 
   for(auto& weight_file : weight_files){
-    auto& module_part = torch::jit::load(weight_dir + "/" + weight_file);
+    auto module_part = torch::jit::load(weight_dir + "/" + weight_file);
     recur(module_part, weight_file.substr(0, weight_file.size()-4), saved);
   }
 

@@ -48,7 +48,7 @@ ImageList ToImageList(std::vector<torch::Tensor> tensors, int size_divisible){
   //each tensor dimension in vec == 4
   int64_t max_height = 0;
   int64_t max_width = 0;
-  for(int i = 0; i < tensors.size(); ++i){
+  for(size_t i = 0; i < tensors.size(); ++i){
     if(tensors[i].size(2) > max_height){
       max_height = tensors[i].size(2);
     }
@@ -66,7 +66,7 @@ ImageList ToImageList(std::vector<torch::Tensor> tensors, int size_divisible){
   
   torch::Tensor batched_imgs = torch::full({static_cast<int64_t>(tensors.size()), 3, max_height, max_width}, /*fill_value=*/0, torch::TensorOptions().dtype(torch::kF32).device(tensors[0].device()));
   std::vector<std::pair<Height, Width>> image_sizes;
-  for(int i = 0; i < tensors.size(); ++i){
+  for(size_t i = 0; i < tensors.size(); ++i){
     batched_imgs[i].narrow(/*dim=*/1, /*start=*/0, /*length=*/tensors[i].size(2))
                 .narrow(/*dim=*/2, /*start=*/0, /*length=*/tensors[i].size(3)).copy_(tensors[i][0]);
     image_sizes.push_back(std::make_pair(tensors[i].size(2), tensors[i].size(3)));

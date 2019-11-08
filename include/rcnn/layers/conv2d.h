@@ -1,31 +1,38 @@
 #pragma once
 #include <torch/torch.h>
-#include <string>
-#include <torch/csrc/autograd/function.h>
-#include <torch/csrc/autograd/VariableTypeUtils.h>
 
+using namespace torch::autograd;
 
-namespace rcnn{
-namespace layers{
-//Reference from https://gist.github.com/mikehamer/df0af5ec7ff98d3cae487975d0c921df
-torch::Tensor _NewEmptyTensorOp(const torch::Tensor x, torch::IntArrayRef new_shape);
+namespace rcnn {
+namespace layers {
 
-struct _NewEmptyTensorOpBackward : public torch::autograd::Node{
-  torch::IntArrayRef shape;
-  torch::autograd::variable_list apply(torch::autograd::variable_list&& grads) override;
+class _NewEmptyTensorOp : public torch::autograd::Function<_NewEmptyTensorOp> {
+
+public:
+  static inline Variable forward(AutogradContext *ctx, const Variable& x, std::vector<int64_t> new_shape) {
+    ctx->saved_data["shape"] = x.sizes();
+    return torch::empty(new_shape, x.options());
+  }
+
+  static inline variable_list backward(AutogradContext *ctx, variable_list grad_outputs) {
+    auto shape = ctx->saved_data["shape"].toIntListRef();
+    const Variable grad_output = grad_outputs[0];
+    return variable_list{_NewEmptyTensorOp::apply(grad_output, shape.vec()), Variable()};
+  }
+
 };
 
-class Conv2dImpl : public torch::nn::Conv2dImpl{
-  public:
-    Conv2dImpl(torch::nn::Conv2dOptions conv2dOptions): torch::nn::Conv2dImpl(conv2dOptions){};
-    torch::Tensor forward(const Tensor& input);
+class Conv2dImpl : public torch::nn::Conv2dImpl {
+
+public:
+  Conv2dImpl(torch::nn::Conv2dOptions conv2dOptions): torch::nn::Conv2dImpl(conv2dOptions){};
+  torch::Tensor forward(const torch::Tensor& input);
+
 };
 
 TORCH_MODULE(Conv2d);
 
-void check_size_scale_factor(int dim);
-torch::IntArrayRef output_size(int dim);
 torch::Tensor interpolate(torch::Tensor input, torch::IntArrayRef size/* , float scale_factor, std::string mode, bool align_corners*/);
 
-}//layers
-}//rcnn
+} // namespace layers
+} // namespace rcnn

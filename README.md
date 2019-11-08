@@ -11,27 +11,27 @@ export INSTALL_DIR=$PWD
 git clone --recursive https://github.com/lsrock1/maskrcnn_benchmark.cpp.git
 cd $INSTALL_DIR
 
-//opencv install
-//ABI=0 is really important
+// if opencv is not installed
+// opencv install
 cd maskrcnn_benchmark.cpp/lib/opencv
 mkdir build
 cd build
-cmake -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 ..
+cmake ..
 make install
 
-//yaml-cpp install
-//ABI=0 is really important
+// if yaml-cpp is not installed
+// yaml-cpp install
 cd $INSTALL_DIR
 cd maskrcnn_benchmark.cpp/lib/yaml-cpp
 mkdir build
 cd build
-cmake -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 ..
+cmake ..
 make install
 
-//Download pytorch cpp
-//place libtorch folder in lib directory
-//if you are using without cuda and get dyld: Library not loaded: @rpath/libmklml.dylib error
-//https://github.com/pytorch/pytorch/issues/14165
+// Download pytorch cpp (cxx11 ABI)
+// place libtorch folder in maskrcnn_benchmark.cpp/lib directory
+// if you are using without cuda and get dyld: Library not loaded: @rpath/libmklml.dylib error
+// https://github.com/pytorch/pytorch/issues/14165
 
 cd $INSTALL_DIR
 cd maskrcnn_benchmark.cpp
@@ -78,14 +78,14 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 
 # Warning
 ### In Progress.  
-* It doesn't support training yet.(waiting for next libtorch release)
+* It doesn't support training yet.(Testing!)
 
 # TODO
 - [ ] concat dataset
 - [x] python jit -> cpp model code
 - [ ] multi GPU training(code complete but bug exists in libtorch)
 - [ ] cmake install
-- [ ] clean up code
+- [...] clean up code
 
 # Requirements
 * Yaml-cpp

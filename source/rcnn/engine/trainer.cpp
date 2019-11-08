@@ -93,7 +93,7 @@ void do_train(){
 
     for(auto i = loss_map.begin(); i != loss_map.end(); ++i){
       if(i == loss_map.begin()){
-        loss_map["loss"] = loss;
+        loss_map["loss"] = i->second;
       }
       else{
         loss_map["loss"] = loss_map["loss"] + i->second;

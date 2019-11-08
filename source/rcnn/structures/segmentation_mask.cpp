@@ -13,7 +13,7 @@ torch::Tensor ArrayToTensor(coco::Masks mask){
   int shape = mask._h * mask._n * mask._w;
   torch::Tensor mask_tensor = torch::empty({shape});
   float* data = mask_tensor.data<float>();
-  for(size_t i = 0; i < shape; ++i){
+  for(int i = 0; i < shape; ++i){
     data[i] = static_cast<float>(mask._mask[i]);
   }
   delete[] mask._mask;
@@ -49,6 +49,8 @@ Polygons& Polygons::operator=(Polygons&& other) noexcept{
   polygons_ = std::move(other.polygons_);
   size_ = std::move(other.size_);
   mode_ = std::move(other.mode_);
+
+  return *this;
 }
 
 Polygons Polygons::Transpose(const Flip method){
@@ -158,6 +160,8 @@ SegmentationMask& SegmentationMask::operator=(SegmentationMask&& other) noexcept
   polygons_ = std::move(other.polygons_);
   size_ = std::move(other.size_);
   mode_ = std::move(other.mode_);
+
+  return *this;
 }
 
 SegmentationMask::SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode) :size_(std::move(size)), mode_(std::move(mode)){
@@ -172,7 +176,7 @@ SegmentationMask SegmentationMask::Transpose(const Flip method){
   std::vector<Polygons> flipped;
   flipped.reserve(polygons_.size());
   for(auto& poly : polygons_)
-    flipped.push_back(std::move(poly.Transpose(method)));
+    flipped.push_back(poly.Transpose(method));
 
   return SegmentationMask(flipped, size_, mode_);
 }
@@ -182,7 +186,7 @@ SegmentationMask SegmentationMask::Crop(const std::tuple<int, int, int, int> box
   std::vector<Polygons> cropped;
   cropped.reserve(polygons_.size());
   for(auto& poly : polygons_)
-    cropped.push_back(std::move(poly.Crop(box)));
+    cropped.push_back(poly.Crop(box));
   return SegmentationMask(cropped, std::make_pair(w, h), mode_);
 }
 
@@ -200,7 +204,7 @@ SegmentationMask SegmentationMask::Resize(std::pair<int, int> size){
   std::vector<Polygons> scaled;
   scaled.reserve(polygons_.size());
   for(auto& poly : polygons_)
-    scaled.push_back(std::move(poly.Resize(size)));
+    scaled.push_back(poly.Resize(size));
   return SegmentationMask(scaled, size, mode_);
 }
 
@@ -217,7 +221,7 @@ SegmentationMask SegmentationMask::operator[](torch::Tensor item){
   std::vector<Polygons> selected_polygons;
   if(item.dtype().Match<bool>()){
     int length = item.size(0);
-    for(size_t i = 0; i < length; ++i){
+    for(int i = 0; i < length; ++i){
       if(item.select(0, i).item<bool>())
         selected_polygons.push_back(polygons_[i]);
     }
@@ -226,7 +230,7 @@ SegmentationMask SegmentationMask::operator[](torch::Tensor item){
   else{
     //index_select
     int length = item.size(0);
-    for(size_t i = 0; i < length; ++i){
+    for(int i = 0; i < length; ++i){
       selected_polygons.push_back(polygons_[item.select(0, i).item<int64_t>()]);
     }
     return SegmentationMask(selected_polygons, size_, mode_);
@@ -241,7 +245,7 @@ torch::Tensor SegmentationMask::GetMaskTensor(){
   std::vector<torch::Tensor> masks;
   masks.reserve(polygons_.size());
   for(auto& poly : polygons_)
-    masks.push_back(std::move(poly.GetMaskTensor()));
+    masks.push_back(poly.GetMaskTensor());
   return torch::stack(masks);
 }
 

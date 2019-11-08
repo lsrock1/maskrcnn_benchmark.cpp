@@ -1,9 +1,8 @@
 #pragma once
 #include <torch/torch.h>
 
-
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
 
 class FrozenBatchNorm2dImpl : public torch::nn::Module {
   
@@ -14,11 +13,14 @@ public:
 
 private:
   torch::Tensor weight, bias, mean, var;
+  
 };
 
 TORCH_MODULE(FrozenBatchNorm2d);
 
-FrozenBatchNorm2d BatchNorm(int64_t channels);
+inline FrozenBatchNorm2d BatchNorm(int64_t channels) {
+  return FrozenBatchNorm2d(channels);
+}
 
-}//layers
-}//rcnn
+} // namespace layers
+} // namespace rcnn

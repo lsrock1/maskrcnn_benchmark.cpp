@@ -1,17 +1,17 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #pragma once
-#include "cpu/vision_cpu.h"
+#include <cpu/vision_cpu.h>
 
 #ifdef WITH_CUDA
-#include "cuda/vision_cuda.h"
+#include <cuda/vision_cuda.h>
 #endif
-#include <iostream>
 
-namespace rcnn{
-namespace layers{
-torch::Tensor nms(const torch::Tensor& dets,
-               const torch::Tensor& scores,
-               const float threshold) {
+namespace rcnn {
+namespace layers {
+
+inline torch::Tensor nms(const torch::Tensor& dets,
+                         const torch::Tensor& scores,
+                         const float threshold) {
 
   if (dets.is_cuda()) {
 #ifdef WITH_CUDA
@@ -25,8 +25,9 @@ torch::Tensor nms(const torch::Tensor& dets,
 #endif
   }
 
-  at::Tensor result = nms_cpu(dets, scores, threshold);
+  torch::Tensor result = nms_cpu(dets, scores, threshold);
   return result;
 }
-}//layers
-}//rcnn
+
+} // namespace layers
+} // namespace rcnn

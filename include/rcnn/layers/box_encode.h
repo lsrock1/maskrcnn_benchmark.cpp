@@ -5,11 +5,10 @@
 #include "cuda/vision_cuda.h"
 #endif
 
+namespace rcnn {
+namespace layers {
 
-namespace rcnn{
-namespace layers{
-
-torch::Tensor box_encode(torch::Tensor reference_boxes, torch::Tensor proposals, float wx, float wy, float ww, float wh) {
+inline torch::Tensor box_encode(torch::Tensor reference_boxes, torch::Tensor proposals, float wx, float wy, float ww, float wh) {
 
   if (reference_boxes.is_cuda() && proposals.is_cuda()) {
 #ifdef WITH_CUDA
@@ -23,5 +22,6 @@ torch::Tensor box_encode(torch::Tensor reference_boxes, torch::Tensor proposals,
   torch::Tensor result = box_encode_cpu(reference_boxes, proposals, wx, wy, ww, wh);
   return result;
 }
-}//layers
-}//rcnn
+
+} // namespace layers
+} // namespace rcnn

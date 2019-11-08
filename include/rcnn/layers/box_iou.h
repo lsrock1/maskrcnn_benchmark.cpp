@@ -5,12 +5,13 @@
 #include "cuda/vision_cuda.h"
 #endif
 
-namespace rcnn{
-namespace layers{
-torch::Tensor box_iou(const torch::Tensor& area_a,
-               const torch::Tensor& area_b,
-               const torch::Tensor& box_a,
-               const torch::Tensor& box_b) {
+namespace rcnn {
+namespace layers {
+
+inline torch::Tensor box_iou(const torch::Tensor& area_a,
+                             const torch::Tensor& area_b,
+                             const torch::Tensor& box_a,
+                             const torch::Tensor& box_b) {
 
   if (box_a.is_cuda() && box_b.is_cuda()) {
 #ifdef WITH_CUDA
@@ -24,5 +25,6 @@ torch::Tensor box_iou(const torch::Tensor& area_a,
   torch::Tensor result = box_iou_cpu(area_a, area_b, box_a, box_b);
   return result;
 }
-}//layers
-}//rcnn
+
+} // namespace layers
+} // namespace rcnn

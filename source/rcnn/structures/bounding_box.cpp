@@ -39,7 +39,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   for(auto& boxlist: boxlists){
     compared_field = boxlist.Fields();
     std::sort(compared_field.begin(), compared_field.end());
-    cat_bbox.push_back(std::move(boxlist.get_bbox()));
+    cat_bbox.push_back(boxlist.get_bbox());
     assert(boxlist.get_size() == size);
     assert(boxlist.get_mode() == mode);
     assert(fields == compared_field);
@@ -49,7 +49,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   for(auto& field: fields){
     cat_field.reserve(boxlists.size());
     for(auto& boxlist: boxlists){
-      cat_field.push_back(std::move(boxlist.GetField(field)));
+      cat_field.push_back(boxlist.GetField(field));
     }
     cat_boxlists.AddField(field, rcnn::layers::cat(cat_field, 0));
     cat_field.clear();
@@ -351,7 +351,7 @@ BoxList BoxList::operator[](torch::Tensor item){
     }
     if(rles_.size()){
       std::vector<coco::RLEstr> tmp;
-      assert(rles_.size() == item.size(0));
+      assert(static_cast<int64_t>(rles_.size()) == item.size(0));
       for(int i = 0; i < item.size(0); ++i){
         if(item.select(0, i).item<int>())
           tmp.push_back(rles_[i]);

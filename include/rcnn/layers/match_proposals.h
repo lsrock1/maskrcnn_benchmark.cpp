@@ -1,15 +1,17 @@
 #pragma once
-#include "cpu/vision_cpu.h"
+#include <cpu/vision_cpu.h>
 
 #ifdef WITH_CUDA
-#include "cuda/vision_cuda.h"
+#include <cuda/vision_cuda.h>
 #endif
 
+namespace rcnn {
+namespace layers {
 
-namespace rcnn{
-namespace layers{
-torch::Tensor match_proposals(torch::Tensor match_quality_matrix, bool allow_low_quality_matches, 
-                                float low_th, float high_th) {
+inline torch::Tensor match_proposals(torch::Tensor match_quality_matrix,
+                                     bool allow_low_quality_matches,
+                                     float low_th,
+                                     float high_th) {
 
   if (match_quality_matrix.is_cuda()) {
 #ifdef WITH_CUDA
@@ -23,5 +25,6 @@ torch::Tensor match_proposals(torch::Tensor match_quality_matrix, bool allow_low
   torch::Tensor result = match_proposals_cpu(match_quality_matrix, allow_low_quality_matches, low_th, high_th);
   return result;
 }
-}//layers
-}//rcnn
+
+} // namespace layers
+} // namespace rcnn

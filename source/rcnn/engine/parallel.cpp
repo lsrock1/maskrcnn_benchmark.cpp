@@ -83,10 +83,10 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
 
     // TORCH_CHECK(
     //     device_count > 0, "Expected at least one CUDA device to be available");
-    devices = std::vector<Device>();
+    devices = std::vector<torch::Device>();
     devices->reserve(device_count);
     for (size_t index = 0; index < device_count; ++index) {
-      devices->emplace_back(kCUDA, index);
+      devices->emplace_back(torch::kCUDA, index);
     }
   }
   if (!output_device) {
