@@ -1,4 +1,6 @@
 # maskrcnn_benchmark.cpp
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ac72184a19964cfda7c306cb8b1877d8)](https://www.codacy.com/manual/lsrock1/maskrcnn_benchmark.cpp?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lsrock1/maskrcnn_benchmark.cpp&amp;utm_campaign=Badge_Grade)
+
 faster rcnn cpp implementation based on maskrcnn-benchmark
 
 # Codes
@@ -85,7 +87,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 - [x] python jit -> cpp model code
 - [ ] multi GPU training(code complete but bug exists in libtorch)
 - [ ] cmake install
-- [...] clean up code
+- [ ] clean up code
 
 # Requirements
 * Yaml-cpp
