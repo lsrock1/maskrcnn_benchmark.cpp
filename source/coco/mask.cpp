@@ -75,8 +75,10 @@ coco::siz RLEs::operator[](std::string key){
   if(key.compare("n") == 0){
     return _n;
   }
-  else
+  else {
     assert(false);
+    return _n;
+  }
 }
 
 std::vector<RLEstr> RLEs::toString(){

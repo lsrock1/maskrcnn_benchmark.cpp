@@ -36,7 +36,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   std::sort(fields.begin(), fields.end());
   std::vector<torch::Tensor> cat_bbox;
   
-  for(auto& boxlist: boxlists){
+  for (auto& boxlist: boxlists){
     compared_field = boxlist.Fields();
     std::sort(compared_field.begin(), compared_field.end());
     cat_bbox.push_back(boxlist.get_bbox());
@@ -46,7 +46,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   }
   BoxList cat_boxlists = BoxList(rcnn::layers::cat(cat_bbox, 0), size, mode);
   std::vector<torch::Tensor> cat_field;
-  for(auto& field: fields){
+  for (auto& field : fields) {
     cat_field.reserve(boxlists.size());
     for(auto& boxlist: boxlists){
       cat_field.push_back(boxlist.GetField(field));
@@ -57,14 +57,14 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   return cat_boxlists;
 }
 
-BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("cpu"){}
+BoxList::BoxList(): device_("cpu"), size_(std::make_pair(0, 0)), mode_("xyxy") {}
 
 //size<width, height>
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
     : device_(bbox.device()),
-      size_(std::move(image_size)),
       bbox_(std::move(bbox)),
-      mode_(std::move(mode)){};
+      size_(std::move(image_size)),
+      mode_(std::move(mode)) {};
 
 BoxList::~BoxList(){
   if(masks_)
@@ -210,8 +210,9 @@ BoxList BoxList::Convert(const std::string mode){
   }
 }
 
-std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
-  if(mode_.compare("xyxy") == 0){
+std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY() {
+  assert(mode_.compare("xyxy") == 0 || mode_.compare("xywh") == 0);
+  if (mode_.compare("xyxy") == 0) {
     std::vector<torch::Tensor> splitted_box_coordinates = bbox_.split(1, /*dim=*/-1);
     return std::make_tuple(
       splitted_box_coordinates.at(0),
@@ -219,7 +220,7 @@ std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
       splitted_box_coordinates.at(2),
       splitted_box_coordinates.at(3));
   }
-  else if(mode_.compare("xywh") == 0){
+  else {
     int TO_REMOVE = 1;
     std::vector<torch::Tensor> splitted_box_coordinates = bbox_.split(1, /*dim=*/-1);
     return std::make_tuple(
@@ -228,9 +229,6 @@ std::tuple<XMin, YMin, XMax, YMax> BoxList::SplitIntoXYXY(){
       splitted_box_coordinates.at(0) + (splitted_box_coordinates.at(2) - TO_REMOVE).clamp_min(0),
       splitted_box_coordinates.at(1) + (splitted_box_coordinates.at(3) - TO_REMOVE).clamp_min(0)
     );
-  }
-  else{
-    assert(false);
   }
 }
 

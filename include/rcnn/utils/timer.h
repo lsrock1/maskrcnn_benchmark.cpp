@@ -3,11 +3,10 @@
 #include <string>
 #include <chrono>
 
+namespace rcnn {
+namespace utils {
 
-namespace rcnn{
-namespace utils{
-
-class Timer{
+class Timer {
 
 public:
   Timer();
@@ -20,10 +19,10 @@ public:
   std::chrono::duration<double> total_time;
 
 private:
-   std::chrono::system_clock::time_point start_time;
+  std::chrono::system_clock::time_point start_time;
   double diff;
   int calls;
 };
 
-}
-}
+} // namespace utils
+} // namespace rcnn

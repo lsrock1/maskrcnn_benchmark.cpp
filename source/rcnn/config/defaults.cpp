@@ -4,11 +4,10 @@
 #include <cassert>
 #include <algorithm>
 
+namespace rcnn {
+namespace config {
 
-namespace rcnn{
-namespace config{
-
-void SetCFGFromFile(const std::string file_path){
+void SetCFGFromFile(const std::string& file_path){
   cfg = new YAML::Node(YAML::LoadFile(file_path));
   
   SetNode((*cfg)["MODEL"], YAML::Node());
@@ -179,7 +178,6 @@ void SetCFGFromFile(const std::string file_path){
   SetNode((*cfg)["TEST"]["BBOX_AUG"]["MAX_SIZE"], 4000);
   SetNode((*cfg)["TEST"]["BBOX_AUG"]["SCALE_H_FLIP"], false);
   
-
   //MISC OPTIONS
   SetNode((*cfg)["OUTPUT_DIR"], "../checkpoints");
   //default_config["PATH_CATALOG"], solver;
@@ -187,12 +185,12 @@ void SetCFGFromFile(const std::string file_path){
 }
 
 template<typename T>
-T GetCFG(std::initializer_list<const char*> node){
-  if(!cfg){
+T GetCFG(std::initializer_list<const char*> node) {
+  if (!cfg) {
     throw "Set Config file first";
   }
   std::vector<YAML::Node> tmp{*cfg};
-  for(auto i = node.begin(); i != node.end(); ++i){
+  for (auto i = node.begin(); i != node.end(); ++i) {
     tmp.push_back(tmp.back()[*i]);
   }
   return tmp.back().as<T>();
@@ -206,7 +204,7 @@ template double GetCFG<double>(std::initializer_list<const char*> node);
 template std::string GetCFG<std::string>(std::initializer_list<const char*> node);
 
 template<>
-std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node){
+std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*> node) {
   if(!cfg){
     assert(false);
   }
@@ -235,12 +233,12 @@ std::vector<float> GetCFG<std::vector<float>>(std::initializer_list<const char*>
 }
 
 template<>
-std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node){
-  if(!cfg){
+std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const char*> node) {
+  if (!cfg) {
     assert(false);
   }
   std::vector<YAML::Node> tmp{*cfg};
-  for(auto i = node.begin(); i != node.end(); ++i){
+  for (auto i = node.begin(); i != node.end(); ++i) {
     tmp.push_back(tmp.back()[*i]);
   }
   std::string svalue = tmp.back().as<std::string>();
@@ -258,25 +256,25 @@ std::vector<int64_t> GetCFG<std::vector<int64_t>>(std::initializer_list<const ch
     elements.push_back(std::stoi(token));
     svalue.erase(0, pos + 1);
   }
-  if(svalue.size() > 1){
+  if (svalue.size() > 1) {
     elements.push_back(std::stoi(svalue));
   }
   return elements;
 }
 
 template<>
-std::vector<std::string> GetCFG<std::vector<std::string>>(std::initializer_list<const char*> node){
-  if(!cfg){
+std::vector<std::string> GetCFG<std::vector<std::string>>(std::initializer_list<const char*> node) {
+  if (!cfg) {
     throw "Set Config file first";
   }
   std::vector<YAML::Node> tmp{*cfg};
-  for(auto i = node.begin(); i != node.end(); ++i){
+  for (auto i = node.begin(); i != node.end(); ++i) {
     tmp.push_back(tmp.back()[*i]);
   }
   std::string svalue = tmp.back().as<std::string>();
   std::vector<std::string> splitted;
-  // std::string svalue(name);
-  if(svalue.find("(") != std::string::npos && svalue.find(")") != std::string::npos && std::count(svalue.begin(), svalue.end(), ',') > 0){
+  
+  if (svalue.find("(") != std::string::npos && svalue.find(")") != std::string::npos && std::count(svalue.begin(), svalue.end(), ',') > 0) {
     
     size_t pos = 0;
     //remove white spaces
@@ -292,12 +290,12 @@ std::vector<std::string> GetCFG<std::vector<std::string>>(std::initializer_list<
       splitted.push_back(token);
       svalue.erase(0, pos + 1);
     }
-    if(svalue.size() > 1){
+    if (svalue.size() > 1) {
       splitted.push_back(svalue);
     }
   }
   return splitted;
 }
 
-}//mrcn
-}//configs
+} // namespace config
+} // namespace rcnn

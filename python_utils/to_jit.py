@@ -51,7 +51,7 @@ def main():
     model = build_detection_model(cfg)
     checkpoint = DetectronCheckpointer(cfg, model, save_dir=cfg.OUTPUT_DIR)
     _ = checkpoint.load(args.weight_path, None)
-    
+
     #backbone save
     backbone_tensor = torch.zeros(2, 3, 320, 320)
     tmp_model = output_tuple_or_tensor(model.backbone, backbone_tensor)

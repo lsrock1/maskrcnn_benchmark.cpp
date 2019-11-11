@@ -12,7 +12,7 @@ namespace structures{
 torch::Tensor ArrayToTensor(coco::Masks mask){
   int shape = mask._h * mask._n * mask._w;
   torch::Tensor mask_tensor = torch::empty({shape});
-  float* data = mask_tensor.data<float>();
+  float* data = mask_tensor.data_ptr<float>();
   for(int i = 0; i < shape; ++i){
     data[i] = static_cast<float>(mask._mask[i]);
   }
@@ -21,14 +21,13 @@ torch::Tensor ArrayToTensor(coco::Masks mask){
 }
 
 Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode)
-                  :mode_(std::move(mode)),
-                   size_(std::move(size))
-{
+                  :size_(std::move(size)),
+                   mode_(std::move(mode)) {
   polygons_.reserve(polygons.size());
   torch::Tensor tmp;
   for(auto& poly : polygons){
     tmp = torch::empty({static_cast<int64_t>(poly.size())}).to(torch::kF64);
-    double* data = tmp.data<double>();
+    double* data = tmp.data_ptr<double>();
     for(size_t i = 0; i < poly.size(); ++i){
       data[i] = poly[i];
     }
@@ -37,18 +36,18 @@ Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int
 }
 
 Polygons::Polygons(std::vector<torch::Tensor> polygons, std::pair<int, int> size, std::string mode)
-                  :mode_(std::move(mode)),
-                   size_(std::move(size)),
-                   polygons_(std::move(polygons)){}
+                  :size_(std::move(size)),
+                   mode_(std::move(mode)),
+                   polygons_(std::move(polygons)) {}
 
-Polygons::Polygons(const Polygons& other) :polygons_(other.polygons_), size_(other.size_), mode_(other.mode_){}
+Polygons::Polygons(const Polygons& other) :size_(other.size_), mode_(other.mode_), polygons_(other.polygons_) {}
 
-Polygons::Polygons(Polygons&& other) noexcept :polygons_(std::move(other.polygons_)), size_(std::move(other.size_)), mode_(std::move(other.mode_)){}
+Polygons::Polygons(Polygons&& other) noexcept :size_(std::move(other.size_)), mode_(std::move(other.mode_)), polygons_(std::move(other.polygons_)) {}
 
 Polygons& Polygons::operator=(Polygons&& other) noexcept{
-  polygons_ = std::move(other.polygons_);
   size_ = std::move(other.size_);
   mode_ = std::move(other.mode_);
+  polygons_ = std::move(other.polygons_);
 
   return *this;
 }
@@ -196,7 +195,10 @@ SegmentationMask SegmentationMask::Crop(torch::Tensor box){
   std::vector<Polygons> cropped;
   cropped.reserve(polygons_.size());
   for(auto& poly : polygons_)
-    cropped.push_back(std::move(poly.Crop(std::make_tuple(box.select(0, 0).item<int>(), box.select(0, 1).item<int>(), box.select(0, 2).item<int>(), box.select(0, 3).item<int>()))));
+    cropped.push_back(
+      poly.Crop(
+        std::make_tuple(box.select(0, 0).item<int>(), box.select(0, 1).item<int>(), box.select(0, 2).item<int>(), box.select(0, 3).item<int>())
+      ));
   return SegmentationMask(cropped, std::make_pair(w, h), mode_);
 }
 

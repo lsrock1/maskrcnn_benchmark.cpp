@@ -8,20 +8,17 @@
 #include <coco.h>
 #include <iostream>
 
-
-namespace rcnn{
-namespace data{
-
-using namespace rapidjson;
+namespace rcnn {
+namespace data {
 
 void DoCOCOEvaluation(COCODataset& dataset, 
-                 std::map<int64_t, rcnn::structures::BoxList>& predictions,
-                 std::string output_folder,
-                 std::set<std::string> iou_types,
-                 std::string ann_file){
+                      std::map<int64_t, rcnn::structures::BoxList>& predictions,
+                      const std::string& output_folder,
+                      std::set<std::string> iou_types,
+                      std::string ann_file){
   std::cout << "Preparing results for COCO format\n";
 
-  if(iou_types.count("bbox")){
+  if (iou_types.count("bbox")) {
     std::cout << "Preparing bbox results\n";
     prepare_for_coco_detection(output_folder, predictions, dataset);
   }
@@ -29,14 +26,14 @@ void DoCOCOEvaluation(COCODataset& dataset,
   std::cout << "Evaluation is not implemented!\n";
   std::cout << "Run python script\n";
   std::string types = "";
-  for(auto i = iou_types.begin(); i != iou_types.end(); ++i)
+  for (auto i = iou_types.begin(); i != iou_types.end(); ++i)
     types = types + " " + *i;
 
   system(("python ../python_utils/coco_eval.py " + ann_file + " " + output_folder + types).c_str());
 }
                  //TODO expected results
 
-void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcnn::structures::BoxList>& predictions, COCODataset& dataset){
+void prepare_for_coco_detection(const std::string& output_folder, std::map<int64_t, rcnn::structures::BoxList>& predictions, COCODataset& dataset) {
   Document coco_results;
   auto& a = coco_results.GetAllocator();
   coco_results.SetArray();
@@ -44,7 +41,7 @@ void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcn
   coco::Image image_info;
   rcnn::structures::BoxList prediction;
   torch::Tensor bboxes, scores, labels;
-  for(auto prediction_set = predictions.begin(); prediction_set != predictions.end(); ++prediction_set){
+  for (auto prediction_set = predictions.begin(); prediction_set != predictions.end(); ++prediction_set) {
     image_id = prediction_set->first;
     original_id = dataset.id_to_img_map[image_id];
     prediction = prediction_set->second;
@@ -61,7 +58,7 @@ void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcn
     scores = prediction.GetField("scores");
     labels = prediction.GetField("labels");
 
-    for(int i = 0; i < scores.size(0); ++i){
+    for (int i = 0; i < scores.size(0); ++i) {
       Value node(kObjectType);
       node.AddMember("image_id", original_id, a);
       node.AddMember("score", scores[i].item<double>(), a);
@@ -82,9 +79,9 @@ void prepare_for_coco_detection(std::string output_folder, std::map<int64_t, rcn
   coco_results.Accept(writer);
 }
 
-void prepare_for_coco_segmentation(std::string output_folder, std::vector<rcnn::structures::BoxList>& predictions, COCODataset& dataset){
+// void prepare_for_coco_segmentation(std::string output_folder, std::vector<rcnn::structures::BoxList>& predictions, COCODataset& dataset){
   
-}
+// }
 
-}
-}
+} // namespace data
+} // namespace rcnn

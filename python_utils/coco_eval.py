@@ -9,7 +9,7 @@ def do_coco_evaluation(
     iou_types
 ):
 
-    coco_results = {}
+    # coco_results = {}
     # if "bbox" in iou_types:
     #     logger.info("Preparing bbox results")
     #     coco_results["bbox"] = prepare_for_coco_detection(predictions, dataset)

@@ -18,11 +18,6 @@
 #include <chrono>
 #include <iostream>
 
-
-//TODO logger
-namespace rcnn{
-namespace engine{
-
 using namespace rcnn::modeling;
 using namespace rcnn::config;
 using namespace rcnn::data;
@@ -31,7 +26,11 @@ using namespace rcnn::structures;
 using namespace rcnn::utils;
 using namespace std;
 
-void do_train(){
+//TODO logger
+namespace rcnn {
+namespace engine {
+
+void do_train() {
   //meters
   auto meters = MetricLogger(" ");
   torch::Device device(GetCFG<std::string>({"MODEL", "DEVICE"}));
@@ -72,7 +71,7 @@ void do_train(){
   model->to(device);
   model->train();
   cout << "Start training\n";
-  for(auto& i : *data_loader){
+  for (auto& i : *data_loader) {
     data_time = chrono::system_clock::now() - end;
     iteration += 1;
     scheduler.step();
@@ -86,16 +85,17 @@ void do_train(){
     ImageList images = get<0>(i).to(device);
     vector<BoxList> targets;
     
-    for(auto& target : get<1>(i))
+    for (auto& target : get<1>(i)) {
       targets.push_back(target.To(device));
+    }
 
     map<string, torch::Tensor> loss_map = model->forward<map<string, torch::Tensor>>(images, targets);
 
-    for(auto i = loss_map.begin(); i != loss_map.end(); ++i){
-      if(i == loss_map.begin()){
+    for (auto i = loss_map.begin(); i != loss_map.end(); ++i) {
+      if (i == loss_map.begin()) {
         loss_map["loss"] = i->second;
       }
-      else{
+      else {
         loss_map["loss"] = loss_map["loss"] + i->second;
       }
     }
@@ -116,13 +116,17 @@ void do_train(){
     hours = eta_seconds/60/60 - days* 24;
     minutes = eta_seconds/60 - hours * 60 - days * 24 * 60;
     eta_string = to_string(days) + " day " + to_string(hours) + " h " + to_string(minutes) + " m";
-    if(iteration % 20 == 0 || iteration == max_iter){
+    if (iteration % 20 == 0 || iteration == max_iter) {
       cout << "eta: " << eta_string << meters.delimiter_ << "iter: " << iteration << meters.delimiter_ << meters << meters.delimiter_ << "lr: " << to_string(optimizer.get_lr()) << meters.delimiter_ << "max mem: " << "none\n";
     }
-    if(iteration % checkpoint_period == 0)
+
+    if (iteration % checkpoint_period == 0) {
       check_point.save("model_" + to_string(iteration) + ".pth", iteration);
-    if(iteration == max_iter)
+    }
+
+    if (iteration == max_iter) {
       check_point.save("model_final.pth", iteration);
+    }
   }
   
   chrono::duration<double> total_training_time = chrono::system_clock::now() - start_training_time;
@@ -132,5 +136,5 @@ void do_train(){
   cout << "Total training time: " << to_string(days) + " day " + to_string(hours) + " h " + to_string(minutes) + " m" << " ( " << total_training_time.count() / max_iter << "s / it)";
 }
 
-}
-}
+} // namespace engine
+} // namespace rcnn

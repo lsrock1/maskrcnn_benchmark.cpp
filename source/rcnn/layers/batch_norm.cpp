@@ -9,7 +9,7 @@ FrozenBatchNorm2dImpl::FrozenBatchNorm2dImpl(int64_t dimension)
     mean(register_buffer("running_mean", torch::zeros(dimension))),
     var(register_buffer("running_var", torch::ones(dimension))) {};
 
-std::shared_ptr<FrozenBatchNorm2dImpl> FrozenBatchNorm2dImpl::clone(torch::optional<torch::Device> device) const {
+std::shared_ptr<torch::nn::Module> FrozenBatchNorm2dImpl::clone(const torch::optional<torch::Device>& device) const {
   torch::NoGradGuard no_grad;
   std::shared_ptr<FrozenBatchNorm2dImpl> copy = std::make_shared<FrozenBatchNorm2dImpl>(mean.size(0));
   auto named_bufs = named_buffers();

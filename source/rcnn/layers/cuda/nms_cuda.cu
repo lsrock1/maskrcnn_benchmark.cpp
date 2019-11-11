@@ -9,8 +9,9 @@
 #include <iostream>
 #include "vision_cuda.h"
 
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
+
 int const threadsPerBlock = sizeof(unsigned long long) * 8;
 
 __device__ inline float devIoU(float const * const a, float const * const b) {
@@ -86,7 +87,7 @@ torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh) {
 
   const int col_blocks = THCCeilDiv(boxes_num, threadsPerBlock);
 
-  scalar_t* boxes_dev = boxes_sorted.data<scalar_t>();
+  scalar_t* boxes_dev = boxes_sorted.data_ptr<scalar_t>();
 
   THCState *state = at::globalContext().lazyInitCUDA(); // TODO replace with getTHCState
 
@@ -114,7 +115,7 @@ torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh) {
   memset(&remv[0], 0, sizeof(unsigned long long) * col_blocks);
 
   at::Tensor keep = at::empty({boxes_num}, boxes.options().dtype(at::kLong).device(at::kCPU));
-  int64_t* keep_out = keep.data<int64_t>();
+  int64_t* keep_out = keep.data_ptr<int64_t>();
 
   int num_to_keep = 0;
   for (int i = 0; i < boxes_num; i++) {
@@ -138,5 +139,6 @@ torch::Tensor nms_cuda(const torch::Tensor boxes, float nms_overlap_thresh) {
                          order_t.device(), keep.scalar_type())
                      }).sort(0, false));
 }
-}
-}
+
+} // namespace layers
+} // namespace rcnn

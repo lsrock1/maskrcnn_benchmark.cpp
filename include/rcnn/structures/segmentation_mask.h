@@ -1,11 +1,9 @@
 #pragma once
 #include <torch/torch.h>
 #include "mask.h"
-// #include <opencv4/opencv.hpp>
 
-
-namespace rcnn{
-namespace structures{
+namespace rcnn {
+namespace structures {
 
 enum Flip{
   FLIP_LEFT_RIGHT,
@@ -14,7 +12,7 @@ enum Flip{
 
 torch::Tensor ArrayToTensor(coco::Masks mask);
 
-class Polygons{
+class Polygons {
 
 public:
   Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int> size, std::string mode);
@@ -38,7 +36,7 @@ friend std::ostream& operator << (std::ostream& os, const Polygons& bml);
 
 };
 
-class SegmentationMask{
+class SegmentationMask {
 
 public:
   SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode);
@@ -107,5 +105,5 @@ friend std::ostream& operator << (std::ostream& os, const SegmentationMask& bml)
     
 // };
 
-}
-}
+} // namespace structures
+} // namespace rcnn

@@ -2,9 +2,8 @@
 #include <cassert>
 #include "defaults.h"
 
-
-namespace rcnn{
-namespace config{
+namespace rcnn {
+namespace config {
 
 const std::string DatasetCatalog::DATA_DIR = "../datasets";
 const std::map<std::string, args> DatasetCatalog::DATASETS{
@@ -20,8 +19,8 @@ const std::map<std::string, args> DatasetCatalog::DATASETS{
     args{{"img_dir", "coco/val2014"}, {"ann_file", "coco/annotations/instances_valminusminival2014.json"}}}
 };
 
-std::tuple<std::string, std::string, std::string> DatasetCatalog::operator[](std::string name){
-  if(name.find("coco") != std::string::npos){
+std::tuple<std::string, std::string, std::string> DatasetCatalog::operator[](std::string name) {
+  if (name.find("coco") != std::string::npos) {
     return std::make_tuple("COCODataset", DATA_DIR + "/" + DatasetCatalog::DATASETS.at(name).at("img_dir"), DATA_DIR + "/" + DatasetCatalog::DATASETS.at(name).at("ann_file"));
   }
   //no voc
@@ -51,15 +50,18 @@ const std::map<std::string, std::string> ModelCatalog::C2_DETECTRON_MODELS{
   {"37697547/e2e_keypoint_rcnn_R-50-FPN_1x", "08_42_54.kdzV35ao"}
 };
 
-std::string ModelCatalog::get(std::string name){
-  if(name.find("Caffe2Detectron/COCO") == 0)
+std::string ModelCatalog::get(std::string name) {
+  if (name.find("Caffe2Detectron/COCO") == 0) {
     return get_c2_detectron_12_2017_baselines(name);
-  if(name.find("ImageNetPretrained") == 0)
+  }
+
+  if (name.find("ImageNetPretrained") == 0) {
     return get_c2_imagenet_pretrained(name);
+  }
   assert(false);
 }
 
-std::string ModelCatalog::get_c2_imagenet_pretrained(std::string name){
+std::string ModelCatalog::get_c2_imagenet_pretrained(std::string name) {
   std::string prefix = "S3_C2_DETECTRON_URL";
   std::string image_net_prefix("ImageNetPretrained/");
   name = name.substr(image_net_prefix.size());
@@ -67,7 +69,7 @@ std::string ModelCatalog::get_c2_imagenet_pretrained(std::string name){
   return prefix + "/" + name;
 }
 
-std::string ModelCatalog::get_c2_detectron_12_2017_baselines(std::string name){
+std::string ModelCatalog::get_c2_detectron_12_2017_baselines(std::string name) {
   std::string prefix = "S3_C2_DETECTRON_URL";
   std::string dataset_tag = name.find("keypoint") != std::string::npos ? "keypoints_" : "";
   const std::string suffix = C2_DETECTRON_SUFFIX.at(0) + dataset_tag + C2_DETECTRON_SUFFIX.at(1) + dataset_tag + C2_DETECTRON_SUFFIX.at(2);
@@ -82,5 +84,5 @@ std::string ModelCatalog::get_c2_detectron_12_2017_baselines(std::string name){
   return prefix + "/" + model_id + "/12_2017_baselines/" + unique_name + "/" + suffix;
 }
 
-}
-}
+} // namespace config
+} // namespace rcnn

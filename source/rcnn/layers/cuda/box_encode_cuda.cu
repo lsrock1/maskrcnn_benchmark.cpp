@@ -4,11 +4,9 @@
 #include <THC/THCDeviceUtils.cuh>
 #include <torch/torch.h>
 #include <vector>
-#include <iostream>
 
-
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
 
 __global__ void box_encode_kernel(float *targets_dx, float *targets_dy, float *targets_dw, float *targets_dh,  
                                   float4 *boxes, float4 *anchors, float wx, float wy, float ww, float wh, 
@@ -46,12 +44,10 @@ __global__ void box_encode_kernel(float *targets_dx, float *targets_dy, float *t
         targets_dy[i] = wy * (gt_ctr_y - ex_ctr_y) / ex_h; 
         targets_dw[i] = ww * log(gt_w / ex_w); 
         targets_dh[i] = wh * log(gt_h / ex_h);          
-    }  
-
+    }
 }
 
-
-std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor anchors, float wx, float wy, float ww, float wh){
+std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor anchors, float wx, float wy, float ww, float wh) {
    
   int minGridSize;
   int blockSize;
@@ -73,12 +69,12 @@ std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor an
     dim3 blockDim(blockSize);
     int idxJump = minGridSize * blockSize;
     auto stream = at::cuda::getCurrentCUDAStream();
-    box_encode_kernel<<<gridDim,blockDim,0,stream.stream()>>>(targets_dx.data<float>(), 
-                                                              targets_dy.data<float>(), 
-                                                              targets_dw.data<float>(), 
-                                                              targets_dh.data<float>(), 
-                                                              (float4*) boxes.data<float>(), 
-                                                              (float4*) anchors.data<float>(), 
+    box_encode_kernel<<<gridDim,blockDim,0,stream.stream()>>>(targets_dx.data_ptr<float>(), 
+                                                              targets_dy.data_ptr<float>(), 
+                                                              targets_dw.data_ptr<float>(), 
+                                                              targets_dh.data_ptr<float>(), 
+                                                              (float4*) boxes.data_ptr<float>(), 
+                                                              (float4*) anchors.data_ptr<float>(), 
                                                               wx, wy, ww, wh, 
                                                               size, idxJump);
      
@@ -91,5 +87,5 @@ std::vector<torch::Tensor> box_encode_cuda(torch::Tensor boxes, torch::Tensor an
     return result;
 }
 
-}
-}
+} // namespace layers
+} // namespace rcnn

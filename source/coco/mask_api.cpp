@@ -1,18 +1,16 @@
 #include "mask_api.h"
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
-
-
-namespace coco{
 
 using namespace std;
 
-uint umin(uint a, uint b){
+namespace coco {
+
+uint umin(uint a, uint b) {
   return (a<b) ? a : b;
 }
 
-uint umax(uint a, uint b){ 
+uint umax(uint a, uint b) { 
   return (a>b) ? a : b; 
 }
 
@@ -46,10 +44,9 @@ void rlesFree(RLE **R, siz n) {
   for(i = 0; i < n; i++)
     rleFree((*R) + i);
   delete[] R;
-  R = nullptr;
 }
 
-void rleEncode(RLE *R, const byte *mask, siz h, siz w, siz n){
+void rleEncode(RLE *R, const byte *mask, siz h, siz w, siz n) {
   siz i, j, k, a = w * h; 
   uint c, *cnts; 
   byte p;
@@ -72,7 +69,7 @@ void rleEncode(RLE *R, const byte *mask, siz h, siz w, siz n){
   delete[] cnts;
 }
 
-void rleDecode(const RLE *R, byte *M, siz n){
+void rleDecode(const RLE *R, byte *M, siz n) {
   siz i, j, k;
   int index = 0;
   for(i = 0; i < n; i++ ){
@@ -87,32 +84,89 @@ void rleDecode(const RLE *R, byte *M, siz n){
 }
 
 void rleMerge(const RLE *R, RLE *M, siz n, int intersect) {
-  uint *cnts, c, ca, cb, cc, ct; int v, va, vb, vp;
-  siz i, a, b, h=R[0].h, w=R[0].w, m=R[0].m; RLE A, B;
-  if(n==0) { rleInit(M,0,0,0,0); return; }
-  if(n==1) { rleInit(M,h,w,m,R[0].cnts); return; }
-  cnts = new uint[h*w+1];
-  // cnts = malloc(sizeof(uint)*(h*w+1));
-  for( a=0; a<m; a++ ) cnts[a]=R[0].cnts[a];
-  for( i=1; i<n; i++ ) {
-    B=R[i]; if(B.h!=h||B.w!=w) { h=w=m=0; break; }
-    rleInit(&A,h,w,m,cnts); ca=A.cnts[0]; cb=B.cnts[0];
-    v=va=vb=0; m=0; a=b=1; cc=0; ct=1;
-    while( ct>0 ) {
-      c=umin(ca,cb); cc+=c; ct=0;
-      ca-=c; if(!ca && a<A.m) { ca=A.cnts[a++]; va=!va; } ct+=ca;
-      cb-=c; if(!cb && b<B.m) { cb=B.cnts[b++]; vb=!vb; } ct+=cb;
-      vp=v; if(intersect) v=va&&vb; else v=va||vb;
-      if( v!=vp||ct==0 ) { cnts[m++]=cc; cc=0; }
+  uint *cnts, c, ca, cb, cc, ct;
+  int v, va, vp, vb;
+  siz i, a, b, h = R[0].h, w = R[0].w, m = R[0].m;
+  RLE A, B;
+  if (n == 0) {
+    rleInit(M, 0, 0, 0, 0);
+    return;
+  }
+
+  if (n == 1) {
+    rleInit(M, h, w, m, R[0].cnts);
+    return;
+  }
+
+  cnts = new uint[h * w + 1];
+  
+  for (a = 0; a < m; a++) {
+    cnts[a] = R[0].cnts[a];
+  }
+
+  for (i = 1; i < n; i++) {
+    B = R[i];
+    if (B.h != h || B.w != w) {
+      h = w = m = 0;
+      break;
+    }
+
+    rleInit(&A, h, w, m, cnts);
+    ca = A.cnts[0];
+    cb = B.cnts[0];
+    v = va = vb = 0;
+    m = 0;
+    a = b = 1;
+    cc = 0;
+    ct = 1;
+    
+    while (ct > 0) {
+      c = umin(ca, cb);
+      cc += c;
+      ct = 0;
+      ca -= c;
+      if(!ca && a<A.m) {
+        ca = A.cnts[a++];
+        va =! va;
+      }
+      
+      ct += ca;
+      cb -= c;
+      
+      if (!cb && b < B.m) {
+        cb = B.cnts[b++];
+        vb = !vb;
+      }
+      
+      ct += cb;
+      vp = v;
+      
+      if (intersect) {
+        v = va && vb;
+      }
+      else {
+        v = va || vb;
+      }
+      
+      if(v != vp || ct == 0) {
+        cnts[m++] = cc;
+        cc = 0;
+      }
     }
     rleFree(&A);
   }
-  rleInit(M,h,w,m,cnts); delete[] cnts;//free(cnts);
+  rleInit(M, h, w, m, cnts);
+  delete[] cnts;
 }
 
 void rleArea(const RLE *R, siz n, uint *a) {
-  siz i, j; for( i=0; i<n; i++ ) {
-    a[i]=0; for( j=1; j<R[i].m; j+=2 ) a[i]+=R[i].cnts[j]; }
+  siz i, j;
+  for (i = 0; i < n; i++) {
+    a[i]=0;
+    for (j = 1; j < R[i].m; j += 2) {
+      a[i] += R[i].cnts[j];
+    }
+  }
 }
 
 void rleIou(RLE *dt, RLE *gt, siz m, siz n, byte *iscrowd, double *o) {
@@ -310,4 +364,4 @@ void rleFrString( RLE *R, std::string s, siz h, siz w ) {
   delete[] cnts;//free(cnts);
 }
 
-}//coco
+} // namespace coco

@@ -3,11 +3,9 @@
 #include <THC/THC.h>
 #include <THC/THCDeviceUtils.cuh>
 #include <torch/torch.h>
-#include <iostream>
 
-
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
 
 __global__ void box_iou_cuda_kernel(float *box_iou, float4 *box1, float4 *box2, long M, 
                                     long N, int idxJump) {
@@ -46,8 +44,7 @@ __global__ void box_iou_cuda_kernel(float *box_iou, float4 *box1, float4 *box2, 
         area2 = (xmax2 - xmin2 + 1) * (ymax2 - ymin2 + 1);
         iou = inter / (area1 + area2 - inter);
         box_iou[b1_idx * N + b2_idx] = iou;
-    }  
-
+    }
 }
 
 torch::Tensor box_iou_cuda(torch::Tensor box1, torch::Tensor box2){
@@ -71,14 +68,14 @@ torch::Tensor box_iou_cuda(torch::Tensor box1, torch::Tensor box2){
     dim3 blockDim(blockSize);
     int idxJump = minGridSize * blockSize;
     auto stream = at::cuda::getCurrentCUDAStream();
-    box_iou_cuda_kernel<<<gridDim, blockDim, 0, stream.stream()>>>(box_iou.data<float>(), 
-                                                                  (float4*) box1.data<float>(), 
-                                                                  (float4*) box2.data<float>(), 
+    box_iou_cuda_kernel<<<gridDim, blockDim, 0, stream.stream()>>>(box_iou.data_ptr<float>(), 
+                                                                  (float4*) box1.data_ptr<float>(), 
+                                                                  (float4*) box2.data_ptr<float>(), 
                                                                   M, N, 
                                                                   idxJump);
     THCudaCheck(cudaSetDevice(current_device));
     return box_iou;
 }
 
-}
-}
+} // namespace layers
+} // namespace rcnn

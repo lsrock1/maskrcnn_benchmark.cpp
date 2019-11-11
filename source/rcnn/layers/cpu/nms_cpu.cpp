@@ -1,12 +1,13 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #include "vision_cpu.h"
 
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
+
 template <typename scalar_t>
 torch::Tensor nms_cpu_kernel(const torch::Tensor& dets,
-                          const torch::Tensor& scores,
-                          const float threshold) {
+                             const torch::Tensor& scores,
+                             const float threshold) {
   AT_ASSERTM(!dets.type().is_cuda(), "dets must be a CPU tensor");
   AT_ASSERTM(!scores.type().is_cuda(), "scores must be a CPU tensor");
   AT_ASSERTM(dets.type() == scores.type(), "dets should have the same type as scores");
@@ -27,13 +28,13 @@ torch::Tensor nms_cpu_kernel(const torch::Tensor& dets,
   auto ndets = dets.size(0);
   torch::Tensor suppressed_t = torch::zeros({ndets}, dets.options().dtype(at::kByte).device(at::kCPU));
 
-  auto suppressed = suppressed_t.data<uint8_t>();
-  auto order = order_t.data<int64_t>();
-  auto x1 = x1_t.data<scalar_t>();
-  auto y1 = y1_t.data<scalar_t>();
-  auto x2 = x2_t.data<scalar_t>();
-  auto y2 = y2_t.data<scalar_t>();
-  auto areas = areas_t.data<scalar_t>();
+  auto suppressed = suppressed_t.data_ptr<uint8_t>();
+  auto order = order_t.data_ptr<int64_t>();
+  auto x1 = x1_t.data_ptr<scalar_t>();
+  auto y1 = y1_t.data_ptr<scalar_t>();
+  auto x2 = x2_t.data_ptr<scalar_t>();
+  auto y2 = y2_t.data_ptr<scalar_t>();
+  auto areas = areas_t.data_ptr<scalar_t>();
 
   for (int64_t _i = 0; _i < ndets; _i++) {
     auto i = order[_i];
@@ -66,8 +67,8 @@ torch::Tensor nms_cpu_kernel(const torch::Tensor& dets,
 }
 
 torch::Tensor nms_cpu(const torch::Tensor& dets,
-               const torch::Tensor& scores,
-               const float threshold) {
+                      const torch::Tensor& scores,
+                      const float threshold) {
   torch::Tensor result;
   AT_DISPATCH_FLOATING_TYPES(dets.type(), "nms", [&] {
     result = nms_cpu_kernel<scalar_t>(dets, scores, threshold);
@@ -75,5 +76,5 @@ torch::Tensor nms_cpu(const torch::Tensor& dets,
   return result;
 }
 
-}
-}
+} // namespace layers
+} // namespace rcnn

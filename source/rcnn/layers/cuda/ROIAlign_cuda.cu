@@ -7,13 +7,13 @@
 #include <THC/THCDeviceUtils.cuh>
 #include "vision_cuda.h"
 
-namespace rcnn{
-namespace layers{
+namespace rcnn {
+namespace layers {
+
 // TODO make it in a common file
 #define CUDA_1D_KERNEL_LOOP(i, n)                            \
   for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n; \
        i += blockDim.x * gridDim.x)
-
 
 template <typename T>
 __device__ T bilinear_interpolate(const T* bottom_data,
@@ -353,5 +353,6 @@ torch::Tensor ROIAlign_backward_cuda(const torch::Tensor& grad,
   THCudaCheck(cudaSetDevice(current_device));
   return grad_input;
 }
-}
-}
+
+} // namespace layers
+} // namespace rcnn

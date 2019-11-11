@@ -8,11 +8,10 @@
 #include "segmentation_mask.h"
 #include "mask.h"
 
+namespace rcnn {
+namespace structures {
 
-namespace rcnn{
-namespace structures{
-
-namespace{
+namespace {
   using XMin = torch::Tensor;
   using YMin = torch::Tensor;
   using XMax = torch::Tensor;
@@ -21,8 +20,7 @@ namespace{
   using Height = int64_t;
 }
 
-class BoxList{
-
+class BoxList {
 
 public:
   BoxList();

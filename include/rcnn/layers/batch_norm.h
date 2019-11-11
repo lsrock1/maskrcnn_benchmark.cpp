@@ -9,7 +9,7 @@ class FrozenBatchNorm2dImpl : public torch::nn::Module {
 public:
   FrozenBatchNorm2dImpl(int64_t dimension);
   torch::Tensor forward(torch::Tensor x);
-  std::shared_ptr<FrozenBatchNorm2dImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
+  std::shared_ptr<torch::nn::Module> clone(const torch::optional<torch::Device>& device = torch::nullopt) const override;
 
 private:
   torch::Tensor weight, bias, mean, var;

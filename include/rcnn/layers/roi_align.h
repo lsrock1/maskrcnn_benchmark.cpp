@@ -21,7 +21,8 @@ public:
                                  const int64_t output_size_height,
                                  const int64_t output_size_width,
                                  const double spatial_scale,
-                                 const int64_t sampling_ratio) {
+                                 const int64_t sampling_ratio,
+                                 bool aligned) {
     ctx->save_for_backward({roi});
     ctx->saved_data["output_size_height"] = output_size_height;
     ctx->saved_data["output_size_width"] = output_size_width;
@@ -31,12 +32,12 @@ public:
 
     if (input.type().is_cuda()) {
   #ifdef WITH_CUDA
-      return ROIAlign_forward_cuda(input, roi, spatial_scale, output_size_height, output_size_width, sampling_ratio);
+      return ROIAlign_forward_cuda(input, roi, spatial_scale, output_size_height, output_size_width, sampling_ratio, aligned);
   #else
       AT_ERROR("Not compiled with GPU support");
   #endif
     }
-    return ROIAlign_forward_cpu(input, roi, spatial_scale, output_size_height, output_size_width, sampling_ratio);
+    return ROIAlign_forward_cpu(input, roi, spatial_scale, output_size_height, output_size_width, sampling_ratio, aligned);
   }
 
   static inline variable_list backward(AutogradContext *ctx, variable_list grad_outputs) {
@@ -64,15 +65,16 @@ public:
 class ROIAlignImpl : public torch::nn::Module {
 
 public:
-  ROIAlignImpl(std::pair<int64_t, int64_t> output_size, double spatial_scale, int64_t sampling_ratio);
+  ROIAlignImpl(std::pair<int64_t, int64_t> output_size, double spatial_scale, int64_t sampling_ratio, bool aligned);
   torch::Tensor forward(const torch::Tensor& x, torch::Tensor rois);
-  std::shared_ptr<ROIAlignImpl> clone(torch::optional<torch::Device> device = torch::nullopt) const;
+  std::shared_ptr<torch::nn::Module> clone(const torch::optional<torch::Device>& device = torch::nullopt) const override;
 
 private:
   int64_t pooled_height_;
   int64_t pooled_width_;
   double spatial_scale_;
   int64_t sampling_ratio_;
+  bool aligned_;
 };
 
 TORCH_MODULE(ROIAlign);
