@@ -12,7 +12,7 @@ namespace structures{
 torch::Tensor ArrayToTensor(coco::Masks mask){
   int shape = mask._h * mask._n * mask._w;
   torch::Tensor mask_tensor = torch::empty({shape});
-  float* data = mask_tensor.data<float>();
+  float* data = mask_tensor.data_ptr<float>();
   for(int i = 0; i < shape; ++i){
     data[i] = static_cast<float>(mask._mask[i]);
   }
@@ -28,7 +28,7 @@ Polygons::Polygons(std::vector<std::vector<double>> polygons, std::pair<int, int
   torch::Tensor tmp;
   for(auto& poly : polygons){
     tmp = torch::empty({static_cast<int64_t>(poly.size())}).to(torch::kF64);
-    double* data = tmp.data<double>();
+    double* data = tmp.data_ptr<double>();
     for(size_t i = 0; i < poly.size(); ++i){
       data[i] = poly[i];
     }

@@ -110,7 +110,7 @@ torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allo
     THCudaCheck(cudaSetDevice(match_quality_matrix.get_device()));
     int gt = match_quality_matrix.size(0);
     long long preds = match_quality_matrix.size(1);
-    float *match_quality_data = match_quality_matrix.data<float>();
+    float *match_quality_data = match_quality_matrix.data_ptr<float>();
     using namespace torch;
     //predictions are reduced by chunks of 2048 elements per block
     int num_chunks = (preds + 2047) / 2048;
@@ -125,8 +125,8 @@ torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allo
     dim3 block(1024, 1, 1);
     dim3 grid(gt, num_chunks, 1);
     if (allow_low_quality_matches) max_along_preds<<<grid, block, 0, stream.stream()>>>(
-                                                        match_quality_matrix.data<float>(), 
-                                                        intergt.data<float>(), 
+                                                        match_quality_matrix.data_ptr<float>(), 
+                                                        intergt.data_ptr<float>(), 
                                                         gt, 
                                                         preds);  
     //final reduction to find best iou per gt  
@@ -134,23 +134,23 @@ torch::Tensor match_proposals_cuda(torch::Tensor match_quality_matrix, bool allo
     int numBlocks=(gt + numThreads - 1) / numThreads;    
 
     if (allow_low_quality_matches) max_along_preds_reduced<<<numBlocks, numThreads, 0, stream.stream()>>>(
-                                                        intergt.data<float>(), 
-                                                        best_pred_per_gt.data<float>(), 
+                                                        intergt.data_ptr<float>(), 
+                                                        best_pred_per_gt.data_ptr<float>(), 
                                                         gt, 
                                                         num_chunks); 
     numBlocks=(preds + numThreads - 1) / numThreads;
     //if low_quality_matches are allowed, mark some predictions to keep their best matching gt even though
     //iou < threshold
     if (allow_low_quality_matches) forgive_preds<<<numBlocks, numThreads, 0, stream.stream()>>>(
-                                                        match_quality_matrix.data<float>(), 
-                                                        best_pred_per_gt.data<float>(), 
-                                                        pred_forgiven.data<unsigned char>(), 
+                                                        match_quality_matrix.data_ptr<float>(), 
+                                                        best_pred_per_gt.data_ptr<float>(), 
+                                                        pred_forgiven.data_ptr<unsigned char>(), 
                                                         gt, 
                                                         preds); 
     //compute resulting tensor of indices
-    max_along_gt_idx<<<numBlocks, numThreads, 0, stream.stream()>>>(match_quality_matrix.data<float>(), 
-                                                                    pred_forgiven.data<unsigned char>(), 
-                                                                    result.data<long>(), 
+    max_along_gt_idx<<<numBlocks, numThreads, 0, stream.stream()>>>(match_quality_matrix.data_ptr<float>(), 
+                                                                    pred_forgiven.data_ptr<unsigned char>(), 
+                                                                    result.data_ptr<long>(), 
                                                                     gt, 
                                                                     preds, 
                                                                     allow_low_quality_matches, 

@@ -288,7 +288,7 @@ torch::Tensor ROIAlign_forward_cuda(const torch::Tensor& input,
   AT_DISPATCH_FLOATING_TYPES(input.type(), "ROIAlign_forward", [&] {
     RoIAlignForward<scalar_t><<<grid, block, 0, stream>>>(
          output_size,
-         input.contiguous().data<scalar_t>(),
+         input.contiguous().data_ptr<scalar_t>(),
          spatial_scale,
          channels,
          height,
@@ -296,8 +296,8 @@ torch::Tensor ROIAlign_forward_cuda(const torch::Tensor& input,
          pooled_height,
          pooled_width,
          sampling_ratio,
-         rois.contiguous().data<scalar_t>(),
-         output.data<scalar_t>());
+         rois.contiguous().data_ptr<scalar_t>(),
+         output.data_ptr<scalar_t>());
   });
   THCudaCheck(cudaGetLastError());
   THCudaCheck(cudaSetDevice(current_device));
@@ -337,7 +337,7 @@ torch::Tensor ROIAlign_backward_cuda(const torch::Tensor& grad,
   AT_DISPATCH_FLOATING_TYPES(grad.type(), "ROIAlign_backward", [&] {
     RoIAlignBackwardFeature<scalar_t><<<grid, block, 0, stream>>>(
          grad.numel(),
-         grad.contiguous().data<scalar_t>(),
+         grad.contiguous().data_ptr<scalar_t>(),
          num_rois,
          spatial_scale,
          channels,
@@ -346,8 +346,8 @@ torch::Tensor ROIAlign_backward_cuda(const torch::Tensor& grad,
          pooled_height,
          pooled_width,
          sampling_ratio,
-         grad_input.data<scalar_t>(),
-         rois.contiguous().data<scalar_t>());
+         grad_input.data_ptr<scalar_t>(),
+         rois.contiguous().data_ptr<scalar_t>());
   });
   THCudaCheck(cudaGetLastError());
   THCudaCheck(cudaSetDevice(current_device));

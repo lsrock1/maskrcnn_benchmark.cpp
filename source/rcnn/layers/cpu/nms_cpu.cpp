@@ -27,13 +27,13 @@ torch::Tensor nms_cpu_kernel(const torch::Tensor& dets,
   auto ndets = dets.size(0);
   torch::Tensor suppressed_t = torch::zeros({ndets}, dets.options().dtype(at::kByte).device(at::kCPU));
 
-  auto suppressed = suppressed_t.data<uint8_t>();
-  auto order = order_t.data<int64_t>();
-  auto x1 = x1_t.data<scalar_t>();
-  auto y1 = y1_t.data<scalar_t>();
-  auto x2 = x2_t.data<scalar_t>();
-  auto y2 = y2_t.data<scalar_t>();
-  auto areas = areas_t.data<scalar_t>();
+  auto suppressed = suppressed_t.data_ptr<uint8_t>();
+  auto order = order_t.data_ptr<int64_t>();
+  auto x1 = x1_t.data_ptr<scalar_t>();
+  auto y1 = y1_t.data_ptr<scalar_t>();
+  auto x2 = x2_t.data_ptr<scalar_t>();
+  auto y2 = y2_t.data_ptr<scalar_t>();
+  auto areas = areas_t.data_ptr<scalar_t>();
 
   for (int64_t _i = 0; _i < ndets; _i++) {
     auto i = order[_i];

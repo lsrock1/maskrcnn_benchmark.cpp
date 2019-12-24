@@ -115,7 +115,7 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
   //because of current bug, set requires true is necessary
   //Remove next release TODO
   input.set_requires_grad(true);
-  auto scattered_tensors = fmap<torch::Tensor>(scatter.apply({std::move(input)}));
+  auto scattered_tensors = torch::fmap<torch::Tensor>(scatter.apply({std::move(input)}));
   std::vector<rcnn::structures::ImageList> scattered_inputs;
   int tensor_index = 0;
   for(auto& tensor : scattered_tensors){
@@ -153,7 +153,7 @@ std::pair<torch::Tensor, std::map<std::string, torch::Tensor>> data_parallel(
   //waiting for release this version...
   std::cout << "end loss cal\n";
   return std::make_pair(torch::autograd::Gather(*output_device, dim)
-      .apply(fmap<torch::autograd::Variable>(std::move(total_loss)))
+      .apply(torch::fmap<torch::autograd::Variable>(std::move(total_loss)))
       .front(), outputs[0]);
 #else
   AT_ERROR("data_parallel not supported without CUDA");
