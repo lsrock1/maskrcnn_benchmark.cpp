@@ -6,8 +6,8 @@
 #include <cassert>
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
 FastRCNNLossComputation::FastRCNNLossComputation(Matcher proposal_matcher, 
                                                  BalancedPositiveNegativeSampler fg_bg_sampler, 
@@ -41,7 +41,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> FastRCNNLossCo
   {
     auto proposal = proposals.begin();
     auto target = targets.begin();
-    for(; proposal != proposals.end(); ++proposal, ++target){
+    for (; proposal != proposals.end(); ++proposal, ++target) {
       matched_targets = MatchTargetsToProposals(*proposal, *target);
       matched_idxs = matched_targets.GetField("matched_idxs");
       labels_per_image = matched_targets.GetField("labels");
@@ -81,9 +81,9 @@ std::vector<rcnn::structures::BoxList> FastRCNNLossComputation::Subsample(std::v
   torch::Tensor img_sampled_inds;
   rcnn::structures::BoxList proposals_per_image;
 
-  for(int img_idx = 0; img_idx < sampled_pos_inds.size(); ++img_idx){
-    img_sampled_inds = torch::nonzero(sampled_pos_inds[img_idx].__or__(sampled_neg_inds[img_idx])).squeeze(1);
-    proposals_per_image = proposals[img_idx][img_sampled_inds];
+  for (decltype(sampled_pos_inds.size()) img_idx = 0; img_idx < sampled_pos_inds.size(); ++img_idx){
+    img_sampled_inds = torch::nonzero(sampled_pos_inds[static_cast<int>(img_idx)].__or__(sampled_neg_inds[static_cast<int>(img_idx)])).squeeze(1);
+    proposals_per_image = proposals[static_cast<int>(img_idx)][img_sampled_inds];
     _proposals.push_back(proposals_per_image);
   }
 

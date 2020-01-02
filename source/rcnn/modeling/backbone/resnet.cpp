@@ -4,15 +4,15 @@
 #include <cmath>
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
 ResNetImpl::StageSpec::StageSpec(int index, int block_count, bool return_features)
   :index_(index),
-  block_count_(block_count),
-  return_features_(return_features){}
+   block_count_(block_count),
+   return_features_(return_features){}
 
-ResNetImpl::ResNetImpl(){
+ResNetImpl::ResNetImpl() {
   std::string name = rcnn::config::GetCFG<std::string>({"MODEL", "BACKBONE", "CONV_BODY"});
   std::vector<StageSpec> stage_specs = rcnn::registry::STAGE_SPECS(name);
   stem_ = register_module("stem", BaseStem());
@@ -22,7 +22,7 @@ ResNetImpl::ResNetImpl(){
   int64_t stage2_bottleneck_channels = num_groups * width_per_group;
   int64_t stage2_out_channels = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "RES2_OUT_CHANNELS"});
 
-  for(auto& stage_spec: stage_specs){
+  for (auto& stage_spec: stage_specs) {
     std::string name = "layer" + std::to_string(stage_spec.index_);
     int64_t stage2_relative_factor = pow((int64_t) 2, (int64_t) (stage_spec.index_ - 1));
     int64_t bottleneck_channels = stage2_bottleneck_channels * stage2_relative_factor;
@@ -47,65 +47,65 @@ ResNetImpl::ResNetImpl(){
   freeze_backbone(rcnn::config::GetCFG<int64_t>({"MODEL", "BACKBONE", "FREEZE_CONV_BODY_AT"}));
 }
 
-std::shared_ptr<ResNetImpl> ResNetImpl::clone(torch::optional<torch::Device> device) const{
+std::shared_ptr<ResNetImpl> ResNetImpl::clone(torch::optional<torch::Device> device) const {
   torch::NoGradGuard no_grad;
   std::shared_ptr<ResNetImpl> copy = std::make_shared<ResNetImpl>();
   auto named_params = named_parameters();
   auto named_bufs = named_buffers();
-  for(auto& i : copy->named_parameters()){
+  for (auto& i : copy->named_parameters()) {
     i.value().copy_(named_params[i.key()]);
   }
-  for(auto& i : copy->named_buffers()){
+  for (auto& i : copy->named_buffers()) {
     i.value().copy_(named_bufs[i.key()]);
   }
-  if(device.has_value())
+  if (device.has_value())
     copy->to(device.value());
   return copy;
 }
 
-std::vector<torch::Tensor> ResNetImpl::forward(torch::Tensor x){
+std::vector<torch::Tensor> ResNetImpl::forward(torch::Tensor x) {
   std::vector<torch::Tensor> results;
   x = stem_(x);
-  for(size_t i = 0; i < stages_.size(); ++i){
+  for (size_t i = 0; i < stages_.size(); ++i) {
     x = stages_.at(i)->forward(x);
-    if(return_features_.at(i))
+    if (return_features_.at(i))
       results.push_back(x);
   }
   return results;
 }
 
-void ResNetImpl::freeze_backbone(int freeze_at){
-  if(freeze_at < 0){
+void ResNetImpl::freeze_backbone(int freeze_at) {
+  if (freeze_at < 0) {
     return;
   }
-  else{
-    if(0 < freeze_at){
+  else {
+    if (0 < freeze_at) {
       std::vector<torch::Tensor> params = stem_->parameters();
-      for(auto& i: params)
+      for (auto& i: params)
         i.set_requires_grad(false);
     }
 
-    if(1 < freeze_at){
+    if (1 < freeze_at) {
       std::vector<torch::Tensor> params = stages_.at(0)->parameters();
-      for(auto& i: params)
+      for (auto& i: params)
         i.set_requires_grad(false);
     }
 
-    if(2 < freeze_at){
+    if (2 < freeze_at) {
       std::vector<torch::Tensor> params = stages_.at(1)->parameters();
-      for(auto& i: params)
+      for (auto& i: params)
         i.set_requires_grad(false);
     }
 
-    if(3 < freeze_at){
+    if (3 < freeze_at) {
       std::vector<torch::Tensor> params = stages_.at(2)->parameters();
-      for(auto& i: params)
+      for (auto& i: params)
         i.set_requires_grad(false);
     }
 
-    if(4 < freeze_at){
+    if (4 < freeze_at) {
       std::vector<torch::Tensor> params = stages_.at(3)->parameters();
-      for(auto& i: params)
+      for (auto& i: params)
         i.set_requires_grad(false);
     }
   }
@@ -123,7 +123,7 @@ torch::nn::Sequential MakeStage(/*transformation_module, */
   torch::nn::Sequential blocks;
   int64_t stride = first_stride;
 
-  for(size_t i = 0; i < block_count; ++i){
+  for (int64_t i = 0; i < block_count; ++i) {
     blocks->push_back(
       Bottleneck(
         in_channels,
@@ -149,9 +149,9 @@ BottleneckImpl::BottleneckImpl(
   int64_t num_groups, 
   bool stride_in_1x1, 
   int64_t stride, 
-  int64_t dilation/*, norm_func , dcn_config*/){
+  int64_t dilation/*, norm_func , dcn_config*/) {
     
-  if(in_channels != out_channels){
+  if (in_channels != out_channels) {
     int64_t down_stride = (dilation == 1 ? stride : 1);
     downsample_ = register_module("downsample", torch::nn::Sequential(
       rcnn::layers::Conv2d(
@@ -160,22 +160,22 @@ BottleneckImpl::BottleneckImpl(
       rcnn::layers::FrozenBatchNorm2d(out_channels)
     )
     );
-    for(auto& param : downsample_->named_parameters()){
-      if(param.key().find("weight") != std::string::npos && param.key().find("conv") != std::string::npos) {
+    for (auto& param : downsample_->named_parameters()) {
+      if (param.key().find("weight") != std::string::npos && param.key().find("conv") != std::string::npos) {
         torch::nn::init::kaiming_uniform_(param.value(), 1);
       }
     }
   }
 
-  if(dilation > 1)
+  if (dilation > 1)
     stride = 1;
 
   int64_t stride_1x1, stride_3x3;
-  if(stride_in_1x1){
+  if (stride_in_1x1) {
     stride_1x1 = stride;
     stride_3x3 = 1;
   }
-  else{
+  else {
     stride_1x1 = 1;
     stride_3x3 = stride;
   }
@@ -205,12 +205,12 @@ BottleneckImpl::BottleneckImpl(
   torch::nn::init::kaiming_uniform_(conv3_->weight, 1);
 };
 
-torch::Tensor BottleneckImpl::forward(torch::Tensor x){
+torch::Tensor BottleneckImpl::forward(torch::Tensor x) {
   torch::Tensor identity;
-  if(downsample_){
+  if (downsample_) {
     identity = downsample_->forward(x);
   }
-  else{
+  else {
     identity = x;
   }
 
@@ -221,7 +221,7 @@ torch::Tensor BottleneckImpl::forward(torch::Tensor x){
   return x.relu_();
 }
 
-BaseStemImpl::BaseStemImpl(){
+BaseStemImpl::BaseStemImpl() {
   int64_t out_channels = rcnn::config::GetCFG<int64_t>({"MODEL", "RESNETS", "STEM_OUT_CHANNELS"});
   conv1_ = register_module(
     "conv1", rcnn::layers::Conv2d(torch::nn::Conv2dOptions(3, out_channels, 7).stride(2).padding(3).with_bias(false))
@@ -231,7 +231,7 @@ BaseStemImpl::BaseStemImpl(){
   torch::nn::init::kaiming_uniform_(conv1_->weight, 1);
 }
 
-torch::Tensor BaseStemImpl::forward(torch::Tensor& x){
+torch::Tensor BaseStemImpl::forward(torch::Tensor& x) {
   x = bn1_->forward(conv1_->forward(x)).relu_();
   x = torch::max_pool2d(x, 3, 2, 1);
   return x;
@@ -244,8 +244,8 @@ ResNetHeadImpl::ResNetHeadImpl(
   bool stride_in_1x1, 
   int64_t stride_init, 
   int64_t res2_out_channels, 
-  int64_t dilation)
-{
+  int64_t dilation) {
+
   int64_t stage2_relative_factor = pow((int64_t)2, (int64_t) (stages.at(0).index_ - 1));
   int64_t stage2_bottleneck_channels = num_groups * width_per_groups;
   int64_t out_channels = res2_out_channels * stage2_relative_factor;
@@ -254,9 +254,9 @@ ResNetHeadImpl::ResNetHeadImpl(
 
   int64_t stride = stride_init;
 
-  for(auto& stage_spec: stages){
+  for (auto& stage_spec: stages) {
     std::string name = "layer" + std::to_string(stage_spec.index_);
-    if(stride == 0)
+    if (stride == 0)
       stride = ((int) (stage_spec.index_ > 1)) + 1;
     stages_.push_back(
       register_module(
@@ -278,22 +278,22 @@ ResNetHeadImpl::ResNetHeadImpl(
   out_channels_ = out_channels;
 }
 
-int64_t ResNetHeadImpl::out_channels() const{
+int64_t ResNetHeadImpl::out_channels() const {
   return out_channels_;
 }
 
-torch::Tensor ResNetHeadImpl::forward(torch::Tensor x){
-  for(auto& stage: stages_)
+torch::Tensor ResNetHeadImpl::forward(torch::Tensor x) {
+  for (auto& stage: stages_)
     x = stage->forward(x);
 
   return x;
 }
 
-}//modeling
+} // namespace modeling
 
-namespace registry{
+namespace registry {
 
-std::vector<rcnn::modeling::ResNetImpl::StageSpec> STAGE_SPECS(std::string name){
+std::vector<rcnn::modeling::ResNetImpl::StageSpec> STAGE_SPECS(std::string name) {
   std::map<std::string, std::vector<rcnn::modeling::ResNetImpl::StageSpec>> _STAGE_SPECS{
     {"R-50-C4", std::vector<rcnn::modeling::ResNetImpl::StageSpec>{
       rcnn::modeling::ResNetImpl::StageSpec(1, 3, false),
@@ -340,6 +340,5 @@ std::vector<rcnn::modeling::ResNetImpl::StageSpec> STAGE_SPECS(std::string name)
   return _STAGE_SPECS.find(name)->second;
 }
 
-}
-
-}
+} // namespace registry
+} // namespace rcnn

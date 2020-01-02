@@ -3,8 +3,8 @@
 #include "cat.h"
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
 torch::Tensor ProjectMasksOnBoxes(rcnn::structures::SegmentationMask segmentation_masks, rcnn::structures::BoxList proposals, int discretization_size){
   std::vector<torch::Tensor> masks;
@@ -14,14 +14,14 @@ torch::Tensor ProjectMasksOnBoxes(rcnn::structures::SegmentationMask segmentatio
   assert(segmentation_masks.Length() == proposals.Length());
 
   torch::Tensor proposals_tensor = proposals.get_bbox().to(torch::Device("CPU"));
-  for(int i = 0; i < proposals.Length(); ++i){
+  for (int i = 0; i < proposals.Length(); ++i) {
     rcnn::structures::SegmentationMask cropped_mask = segmentation_masks.Crop(proposals_tensor.select(0, i));
     rcnn::structures::SegmentationMask scaled_mask = cropped_mask.Resize({M, M});
     torch::Tensor mask = scaled_mask.GetMaskTensor();
     masks.push_back(mask);
   }
 
-  if(masks.size() == 0)
+  if (masks.size() == 0)
     return torch::empty({0}).to(torch::kF32).to(device);
   return torch::stack(masks, 0).to(device).to(torch::kF32);
     
@@ -31,21 +31,21 @@ MaskRCNNLossComputation::MaskRCNNLossComputation(Matcher* proposal_matcher, int 
                                                 :proposal_matcher_(proposal_matcher), 
                                                  discretization_size_(discretization_size){};
 
-MaskRCNNLossComputation::~MaskRCNNLossComputation(){
-  if(proposal_matcher_)
+MaskRCNNLossComputation::~MaskRCNNLossComputation() {
+  if (proposal_matcher_)
     delete proposal_matcher_;
 }
 
-MaskRCNNLossComputation::MaskRCNNLossComputation(const MaskRCNNLossComputation& other){
-  if(proposal_matcher_)
+MaskRCNNLossComputation::MaskRCNNLossComputation(const MaskRCNNLossComputation& other) {
+  if (proposal_matcher_)
     delete proposal_matcher_;
 
   proposal_matcher_ = new Matcher(*other.proposal_matcher_);
   discretization_size_ = other.discretization_size_;
 }
 
-MaskRCNNLossComputation::MaskRCNNLossComputation(MaskRCNNLossComputation&& other){
-  if(proposal_matcher_)
+MaskRCNNLossComputation::MaskRCNNLossComputation(MaskRCNNLossComputation&& other) {
+  if (proposal_matcher_)
     delete proposal_matcher_;
 
   proposal_matcher_ = other.proposal_matcher_;
@@ -53,8 +53,8 @@ MaskRCNNLossComputation::MaskRCNNLossComputation(MaskRCNNLossComputation&& other
   other.proposal_matcher_ = nullptr;
 }
 
-MaskRCNNLossComputation MaskRCNNLossComputation::operator=(const MaskRCNNLossComputation& other){
-  if(proposal_matcher_)
+MaskRCNNLossComputation MaskRCNNLossComputation::operator=(const MaskRCNNLossComputation& other) {
+  if (proposal_matcher_)
     delete proposal_matcher_;
 
   proposal_matcher_ = new Matcher(*other.proposal_matcher_);
@@ -63,8 +63,8 @@ MaskRCNNLossComputation MaskRCNNLossComputation::operator=(const MaskRCNNLossCom
   return *this;
 }
 
-MaskRCNNLossComputation MaskRCNNLossComputation::operator=(MaskRCNNLossComputation&& other){
-  if(proposal_matcher_)
+MaskRCNNLossComputation MaskRCNNLossComputation::operator=(MaskRCNNLossComputation&& other) {
+  if (proposal_matcher_)
     delete proposal_matcher_;
 
   proposal_matcher_ = other.proposal_matcher_;
@@ -90,7 +90,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> MaskRCNNLossCo
   std::vector<torch::Tensor> labels, masks;
 
   assert(proposals.size() == targets.size());
-  for(int i = 0; i < proposals.size(); ++i){
+  for (decltype(proposals.size()) i = 0; i < proposals.size(); ++i) {
     rcnn::structures::BoxList matched_targets = MatchTargetsToProposals(proposals[i], targets[i]);
     torch::Tensor matched_idxs = matched_targets.GetField("matched_idxs");
     torch::Tensor labels_per_image = matched_targets.GetField("labels");
@@ -123,7 +123,7 @@ torch::Tensor MaskRCNNLossComputation::operator()(std::vector<rcnn::structures::
   torch::Tensor labels_vec = rcnn::layers::cat(labels), mask_targets_vec = rcnn::layers::cat(masks);
   torch::Tensor positive_inds = torch::nonzero(labels_vec > 0).squeeze(1);
   torch::Tensor labels_pos = labels_vec.index_select(0, positive_inds);
-  if(mask_targets_vec.numel() == 0)
+  if (mask_targets_vec.numel() == 0)
     return mask_logits.sum() * 0;
 
   return torch::binary_cross_entropy_with_logits(mask_logits.index_select(0, positive_inds).index_select(1, labels_pos), 
@@ -131,7 +131,7 @@ torch::Tensor MaskRCNNLossComputation::operator()(std::vector<rcnn::structures::
 
 }
 
-MaskRCNNLossComputation MakeROIMaskLossEvaluator(){
+MaskRCNNLossComputation MakeROIMaskLossEvaluator() {
   Matcher* matcher = new Matcher(
     rcnn::config::GetCFG<float>({"MODEL", "ROI_HEADS", "FG_IOU_THRESHOLD"}),
     rcnn::config::GetCFG<float>({"MODEL", "ROI_HEADS", "BG_IOU_THRESHOLD"}),
@@ -141,5 +141,5 @@ MaskRCNNLossComputation MakeROIMaskLossEvaluator(){
   return MaskRCNNLossComputation(matcher, rcnn::config::GetCFG<int64_t>({"MODEL", "ROI_MASK_HEAD", "RESOLUTION"}));
 }
 
-}
-}
+} // namespace modeling
+} // namespace rcnn

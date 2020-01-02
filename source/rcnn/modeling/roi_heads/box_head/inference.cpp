@@ -3,8 +3,8 @@
 #include <iostream>
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
 PostProcessorImpl::PostProcessorImpl(float score_thresh,
                              float nms, 
@@ -17,7 +17,7 @@ PostProcessorImpl::PostProcessorImpl(float score_thresh,
                               detections_per_img_(detections_per_img),
                               box_coder_(box_coder),
                               cls_agnostic_bbox_reg_(cls_agnostic_bbox_reg),
-                              bbox_aug_enabled_(bbox_aug_enabled){}
+                              bbox_aug_enabled_(bbox_aug_enabled) {}
 
 std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torch::Tensor, torch::Tensor> x, std::vector<rcnn::structures::BoxList> boxes){
   torch::Tensor class_logits, box_regression, class_prob, concat_boxes;
@@ -32,18 +32,18 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   boxes_per_image.reserve(boxes.size());
   concat_boxes_vec.reserve(boxes.size());
 
-  for(auto& box: boxes){
+  for (auto& box: boxes) {
     image_shapes.push_back(box.get_size());
     boxes_per_image.push_back(box.Length());
     concat_boxes_vec.push_back(box.get_bbox());
   }
   concat_boxes = torch::cat(concat_boxes_vec, /*dim=*/0);
   
-  if(cls_agnostic_bbox_reg_)
+  if (cls_agnostic_bbox_reg_)
     box_regression = box_regression.slice(/*dim=*/1, /*start=*/-4);
 
   torch::Tensor proposals = box_coder_.decode(box_regression.view({std::accumulate(boxes_per_image.begin(), boxes_per_image.end(), 0), -1}), concat_boxes);
-  if(cls_agnostic_bbox_reg_)
+  if (cls_agnostic_bbox_reg_)
     proposals = proposals.repeat({1, class_prob.size(1)});
 
   int64_t num_classes = class_prob.size(1);
@@ -55,10 +55,10 @@ std::vector<rcnn::structures::BoxList> PostProcessorImpl::forward(std::pair<torc
   results.reserve(proposals_per_img.size());
   rcnn::structures::BoxList boxlist;
 
-  for(size_t i = 0; i < proposals_per_img.size(); ++i){
+  for (size_t i = 0; i < proposals_per_img.size(); ++i) {
     boxlist = prepare_boxlist(proposals_per_img[i], class_prob_per_img[i], image_shapes[i]);
     boxlist = boxlist.ClipToImage(false);
-    if(!bbox_aug_enabled_)
+    if (!bbox_aug_enabled_)
       boxlist = filter_results(boxlist, num_classes);
     results.push_back(std::move(boxlist));
   }
@@ -74,7 +74,7 @@ rcnn::structures::BoxList PostProcessorImpl::prepare_boxlist(torch::Tensor boxes
   return boxlist;
 }
 
-rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::BoxList boxlist, int num_classes){
+rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::BoxList boxlist, int num_classes) {
   torch::Tensor boxes = boxlist.get_bbox().reshape({-1, num_classes * 4}),
   scores = boxlist.GetField("scores").reshape({-1, num_classes}),
   inds_all = scores > score_thresh_,
@@ -85,7 +85,7 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
   std::vector<rcnn::structures::BoxList> results_vec;
   results_vec.reserve(num_classes);
 
-  for(size_t i = 1; i < num_classes; ++i){
+  for (auto i = 1; i < num_classes; ++i) {
     inds = inds_all.select(1, i).nonzero().squeeze(1);
     scores_i = scores.index_select(0, inds).select(1, i);
     boxes_i = boxes.index_select(0, inds).slice(1, i * 4, (i + 1) * 4);
@@ -100,7 +100,7 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
   rcnn::structures::BoxList results = rcnn::structures::BoxList::CatBoxList(results_vec);
   int64_t number_of_detections = results.Length();
 
-  if(number_of_detections > detections_per_img_ && detections_per_img_ > 0){
+  if (number_of_detections > detections_per_img_ && detections_per_img_ > 0) {
     torch::Tensor cls_scores = results.GetField("scores");
     torch::Tensor image_thresh, indice;
     std::tie(image_thresh, indice) = torch::kthvalue(cls_scores.cpu(), number_of_detections - detections_per_img_ + 1);
@@ -112,7 +112,7 @@ rcnn::structures::BoxList PostProcessorImpl::filter_results(rcnn::structures::Bo
   return results;
 }
 
-PostProcessor MakeROIBoxPostProcessor(){
+PostProcessor MakeROIBoxPostProcessor() {
   bool use_fpn = rcnn::config::GetCFG<bool>({"MODEL", "ROI_HEADS", "USE_FPN"});
   std::vector<float> bbox_reg_weights = rcnn::config::GetCFG<std::vector<float>>({"MODEL", "ROI_HEADS", "BBOX_REG_WEIGHTS"});
   BoxCoder box_coder{bbox_reg_weights};
@@ -133,5 +133,5 @@ PostProcessor MakeROIBoxPostProcessor(){
   return postprocessor;
 }
 
-}
-}
+} // namespace modeling
+} // namespace rcnn

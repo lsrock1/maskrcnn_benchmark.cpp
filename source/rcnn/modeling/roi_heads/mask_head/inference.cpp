@@ -5,10 +5,10 @@
 #include "defaults.h"
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
-torch::Tensor ExpandBoxes(torch::Tensor& boxes, float scale){
+torch::Tensor ExpandBoxes(torch::Tensor& boxes, float scale) {
   torch::Tensor w_half = (boxes.select(1, 2) - boxes.select(1, 0)) * 0.5;
   torch::Tensor h_half = (boxes.select(1, 3) - boxes.select(1, 1)) * 0.5;
   torch::Tensor x_c = (boxes.select(1, 2) + boxes.select(1, 0)) * 0.5;
@@ -25,7 +25,7 @@ torch::Tensor ExpandBoxes(torch::Tensor& boxes, float scale){
   return boxes_exp;
 }
 
-std::pair<torch::Tensor, float> ExpandMasks(torch::Tensor mask, int padding){
+std::pair<torch::Tensor, float> ExpandMasks(torch::Tensor mask, int padding) {
   int64_t N = mask.size(0);
   int64_t M = mask.size(-1);
   int pad2 = 2 * padding;
@@ -58,7 +58,7 @@ torch::Tensor PasteMaskInImage(torch::Tensor mask, torch::Tensor box, int64_t im
   mask = rcnn::layers::interpolate(mask, {h, w});
   mask = mask.select(0, 0).select(0, 0);
 
-  if(threshold >= 0)
+  if (threshold >= 0)
     mask = mask > threshold;
   else
     mask = (mask * 255).to(torch::kU8);
@@ -74,24 +74,24 @@ torch::Tensor PasteMaskInImage(torch::Tensor mask, torch::Tensor box, int64_t im
   return im_mask;
 }
 
-Masker::Masker(float threshold, int padding) :threshold_(threshold), padding_(padding){}
+Masker::Masker(float threshold, int padding) :threshold_(threshold), padding_(padding) {}
 
-Masker::Masker(const Masker& other){
+Masker::Masker(const Masker& other) {
   threshold_ = other.threshold_;
   padding_ = other.padding_;
 }
 
-torch::Tensor Masker::ForwardSingleImage(torch::Tensor& masks, rcnn::structures::BoxList& boxes){
+torch::Tensor Masker::ForwardSingleImage(torch::Tensor& masks, rcnn::structures::BoxList& boxes) {
   boxes = boxes.Convert("xyxy");
   int64_t im_w, im_h;
   std::tie(im_w, im_h) = boxes.get_size();
   std::vector<torch::Tensor> res;
   torch::Tensor res_tensor;
 
-  for(int i = 0; i < masks.size(0); ++i)
+  for (int i = 0; i < masks.size(0); ++i)
     res.push_back(PasteMaskInImage(masks.select(0, i).select(0, 0), boxes.get_bbox().select(0, i), im_h, im_w, threshold_, padding_));
 
-  if(res.size() > 0)
+  if (res.size() > 0)
     res_tensor = torch::stack(res, 0).unsqueeze(1);
   else
     res_tensor = torch::empty({0, 1, masks.size(-2), masks.size(-1)}, masks.options());
@@ -103,49 +103,49 @@ std::vector<torch::Tensor> Masker::operator()(std::vector<torch::Tensor>& masks,
 
   std::vector<torch::Tensor> results;
 
-  for(int i = 0; i < masks.size(); ++i){
+  for (decltype(masks.size()) i = 0; i < masks.size(); ++i) {
     assert(masks[i].size(0) == boxes[i].Length());
     results.push_back(ForwardSingleImage(masks[i], boxes[i]));
   }
   return results;
 }
 
-MaskPostProcessorImpl::MaskPostProcessorImpl(Masker* masker) :masker_(masker){}
+MaskPostProcessorImpl::MaskPostProcessorImpl(Masker* masker) :masker_(masker) {}
 
-MaskPostProcessorImpl::~MaskPostProcessorImpl(){
-  if(masker_)
+MaskPostProcessorImpl::~MaskPostProcessorImpl() {
+  if (masker_)
     delete masker_;
 }
 
-MaskPostProcessorImpl::MaskPostProcessorImpl(const MaskPostProcessorImpl& other){
-  if(masker_)
+MaskPostProcessorImpl::MaskPostProcessorImpl(const MaskPostProcessorImpl& other) {
+  if (masker_)
     delete masker_;
   masker_ = new Masker((*other.masker_));
 }
 
-MaskPostProcessorImpl::MaskPostProcessorImpl(MaskPostProcessorImpl&& other){
-  if(masker_)
+MaskPostProcessorImpl::MaskPostProcessorImpl(MaskPostProcessorImpl&& other) {
+  if (masker_)
     delete masker_;
   masker_ = other.masker_;
   other.masker_ = nullptr;
 }
 
-MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(const MaskPostProcessorImpl& other){
-  if(masker_)
+MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(const MaskPostProcessorImpl& other) {
+  if (masker_)
     delete masker_;
   masker_ = new Masker(*other.masker_);
   return *this;
 }
 
-MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(MaskPostProcessorImpl&& other){
-  if(masker_)
+MaskPostProcessorImpl& MaskPostProcessorImpl::operator=(MaskPostProcessorImpl&& other) {
+  if (masker_)
     delete masker_;
   masker_ = other.masker_;
   other.masker_ = nullptr;
   return *this;
 }
 
-std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes){
+std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes) {
   torch::Tensor mask_prob = x.sigmoid();
   int64_t num_masks = x.size(0);
   std::vector<torch::Tensor> labels_vec, mask_prob_vec;
@@ -153,7 +153,7 @@ std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Ten
   std::vector<int64_t> boxes_per_image;
   std::vector<rcnn::structures::BoxList> results;
   
-  for(auto& box : boxes){
+  for (auto& box : boxes) {
     labels_vec.push_back(box.GetField("labels"));
     boxes_per_image.push_back(box.Length());
   }
@@ -163,10 +163,10 @@ std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Ten
   mask_prob = mask_prob.index_select(1, labels_tensor).unsqueeze(1);
   mask_prob_vec = mask_prob.split_with_sizes(boxes_per_image);
 
-  if(masker_)
+  if (masker_)
     mask_prob_vec = (*masker_)(mask_prob_vec, boxes);
 
-  for(int i = 0; i < boxes.size(); ++i){
+  for (decltype(boxes.size()) i = 0; i < boxes.size(); ++i) {
     auto bbox = boxes[i].Convert("xyxy");
     bbox.AddField("mask", mask_prob_vec[i]);
     results.push_back(bbox);
@@ -174,15 +174,15 @@ std::vector<rcnn::structures::BoxList> MaskPostProcessorImpl::forward(torch::Ten
   return results;
 }
 
-std::vector<rcnn::structures::BoxList> MaskPostProcessorCOCOFormatImpl::forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes){
+std::vector<rcnn::structures::BoxList> MaskPostProcessorCOCOFormatImpl::forward(torch::Tensor& x, std::vector<rcnn::structures::BoxList>& boxes) {
   std::vector<rcnn::structures::BoxList> results = MaskPostProcessorImpl::forward(x, boxes);
-  for(auto& result : results){
+  for (auto& result : results) {
     torch::Tensor masks = result.GetField("mask").cpu();
     std::vector<coco::RLEstr> rles;
-    for(int i = 0; i < masks.size(0); ++i){
+    for (int i = 0; i < masks.size(0); ++i) {
       coco::byte* mask_array = new coco::byte[masks.numel()];
       torch::Tensor masks_reshape = masks.reshape({-1});
-      for(int i = 0; i < masks_reshape.numel(); ++i)
+      for (int i = 0; i < masks_reshape.numel(); ++i)
         mask_array[i] = static_cast<coco::byte>(masks_reshape[i].item<float>());
       rles.push_back(coco::encode(mask_array, masks.size(1), masks.size(2), masks.size(0))[0]);
       delete[] mask_array;
@@ -195,9 +195,9 @@ std::vector<rcnn::structures::BoxList> MaskPostProcessorCOCOFormatImpl::forward(
   return results;
 }
 
-MaskPostProcessor MakeRoiMaskPostProcessor(){
+MaskPostProcessor MakeRoiMaskPostProcessor() {
   bool postprocess_masks = rcnn::config::GetCFG<bool>({"MODEL", "ROI_MASK_HEAD", "POSTPROCESS_MASKS"});
-  if(postprocess_masks){
+  if (postprocess_masks) {
     Masker* masker = new Masker(rcnn::config::GetCFG<float>({"MODEL", "ROI_MASK_HEAD", "POSTPROCESS_MASKS_THRESHOLD"}), 1);
     return MaskPostProcessor(masker);
   }
@@ -205,5 +205,5 @@ MaskPostProcessor MakeRoiMaskPostProcessor(){
     return MaskPostProcessor(nullptr);
 }
 
-}//modeling
-}//rcnn
+} // namespace modeling
+} // namespace rcnn

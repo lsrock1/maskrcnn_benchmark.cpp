@@ -5,8 +5,8 @@
 #include <bounding_box.h>
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
   using Width = torch::Tensor;
   using Height = torch::Tensor;
   using CoordCenterX = torch::Tensor;
@@ -48,5 +48,5 @@ namespace modeling{
   TORCH_MODULE(AnchorGenerator);
 
   AnchorGenerator MakeAnchorGenerator();
-}
-}//rcnn
+} // namespace modeling
+} // namespace rcnn

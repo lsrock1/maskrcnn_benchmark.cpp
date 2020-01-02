@@ -7,8 +7,8 @@
 #include <defaults.h>
 
 
-namespace rcnn{
-namespace modeling{
+namespace rcnn {
+namespace modeling {
 
 
 RPNLossComputation::RPNLossComputation(Matcher proposal_matcher, BalancedPositiveNegativeSampler fg_bg_sampler, 
@@ -34,7 +34,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> RPNLossComputa
   regression_targets.reserve(anchors.size());
   assert(anchors.size() == targets.size());
   
-  for(int i = 0; i < anchors.size(); ++i){
+  for (decltype(anchors.size()) i = 0; i < anchors.size(); ++i) {
     rcnn::structures::BoxList matched_targets = MatchTargetsToAnchors(anchors[i], targets[i], copied_fields_);
     torch::Tensor matched_idxs = matched_targets.GetField("matched_idxs");
     torch::Tensor labels_per_image = generate_labels_func_(matched_targets);
@@ -113,5 +113,5 @@ RPNLossComputation MakeRPNLossEvaluator(BoxCoder box_coder){
   );
 }
 
-}
-}
+} // namespace modeling
+} // namespace rcnn
