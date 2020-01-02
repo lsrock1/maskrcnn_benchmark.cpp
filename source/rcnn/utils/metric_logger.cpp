@@ -1,8 +1,8 @@
 #include "metric_logger.h"
 
 
-namespace rcnn{
-namespace utils{
+namespace rcnn {
+namespace utils {
 
 void SmoothedValue::update(float value){
   if(deque.size() < 21)
@@ -15,14 +15,14 @@ void SmoothedValue::update(float value){
 
 float SmoothedValue::median() const{
   auto d = torch::zeros({static_cast<int64_t>(deque.size())});
-  for(int i = 0; i < deque.size(); ++i)
+  for(decltype(deque.size()) i = 0; i < deque.size(); ++i)
     d[i] = deque[i];
   return d.median().item<float>();
 }
 
 float SmoothedValue::avg() const{
   auto d = torch::zeros({static_cast<int64_t>(deque.size())});
-  for(int i = 0; i < deque.size(); ++i)
+  for(decltype(deque.size()) i = 0; i < deque.size(); ++i)
     d[i] = deque[i];
   return d.mean().item<float>();
 }

@@ -7,11 +7,10 @@
 #include <algorithm>
 #include <iostream>
 
+namespace rcnn {
+namespace structures {
 
-namespace rcnn{
-namespace structures{
-
-torch::Tensor BoxList::BoxListIOU(BoxList a, BoxList b){
+torch::Tensor BoxList::BoxListIOU(BoxList a, BoxList b) {
   assert(a.get_size() == b.get_size());
   return rcnn::layers::box_iou(a.Area(), b.Area(), a.get_bbox(), b.get_bbox());
   // int TO_REMOVE = 1;
@@ -28,7 +27,7 @@ torch::Tensor BoxList::BoxListIOU(BoxList a, BoxList b){
   // return inter / (area_a.unsqueeze(1) + area_b - inter);
 }
 
-BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
+BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists) {
   std::pair<Width, Height> size = boxlists[0].get_size();
   std::string mode = boxlists[0].get_mode();
   std::vector<std::string> fields = boxlists[0].Fields();
@@ -36,7 +35,7 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   std::sort(fields.begin(), fields.end());
   std::vector<torch::Tensor> cat_bbox;
   
-  for(auto& boxlist: boxlists){
+  for (auto& boxlist: boxlists) {
     compared_field = boxlist.Fields();
     std::sort(compared_field.begin(), compared_field.end());
     cat_bbox.push_back(boxlist.get_bbox());
@@ -46,9 +45,9 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   }
   BoxList cat_boxlists = BoxList(rcnn::layers::cat(cat_bbox, 0), size, mode);
   std::vector<torch::Tensor> cat_field;
-  for(auto& field: fields){
+  for (auto& field: fields) {
     cat_field.reserve(boxlists.size());
-    for(auto& boxlist: boxlists){
+    for (auto& boxlist: boxlists) {
       cat_field.push_back(boxlist.GetField(field));
     }
     cat_boxlists.AddField(field, rcnn::layers::cat(cat_field, 0));
@@ -57,21 +56,21 @@ BoxList BoxList::CatBoxList(std::vector<BoxList> boxlists){
   return cat_boxlists;
 }
 
-BoxList::BoxList(): size_(std::make_pair(0, 0)), mode_("xyxy"), device_("cpu"){}
+BoxList::BoxList(): device_("cpu"), size_(std::make_pair(0, 0)), mode_("xyxy"){}
 
 //size<width, height>
 BoxList::BoxList(torch::Tensor bbox, std::pair<Width, Height> image_size, std::string mode)
     : device_(bbox.device()),
-      size_(std::move(image_size)),
       bbox_(std::move(bbox)),
+      size_(std::move(image_size)),
       mode_(std::move(mode)){};
 
-BoxList::~BoxList(){
+BoxList::~BoxList() {
   if(masks_)
     delete masks_;
 }
 
-BoxList::BoxList(const BoxList& other) :device_(other.device_){
+BoxList::BoxList(const BoxList& other) :device_(other.device_) {
   size_ = other.size_;
   bbox_ = other.bbox_;
   mode_ = other.mode_;
@@ -81,9 +80,9 @@ BoxList::BoxList(const BoxList& other) :device_(other.device_){
     masks_ = new SegmentationMask(*other.masks_);
 }
 
-BoxList& BoxList::operator=(const BoxList& other){
-  if(this != &other){
-    if(masks_)
+BoxList& BoxList::operator=(const BoxList& other) {
+  if (this != &other) {
+    if (masks_)
       delete masks_;
     device_ = other.device_;
     size_ = other.size_;
@@ -91,7 +90,7 @@ BoxList& BoxList::operator=(const BoxList& other){
     mode_ = other.mode_;
     extra_fields_ = other.extra_fields_;
     rles_ = other.rles_;
-    if(other.masks_)
+    if (other.masks_)
       masks_ = new SegmentationMask(*other.masks_);
   }
   return *this;
@@ -104,15 +103,15 @@ BoxList::BoxList(BoxList&& other) noexcept :device_(other.device_) {
   mode_ = std::move(other.mode_);
   extra_fields_ = std::move(other.extra_fields_);
   rles_ = std::move(other.rles_);
-  if(other.masks_){
+  if (other.masks_) {
     masks_ = other.masks_;
     other.masks_ = nullptr;
   }
 }
 
-BoxList& BoxList::operator=(BoxList&& other) noexcept{
-  if(this != &other){
-    if(masks_)
+BoxList& BoxList::operator=(BoxList&& other) noexcept {
+  if (this != &other) {
+    if (masks_)
       delete masks_;
     device_ = std::move(other.device_);
     size_ = std::move(other.size_);
@@ -120,7 +119,7 @@ BoxList& BoxList::operator=(BoxList&& other) noexcept{
     mode_ = std::move(other.mode_);
     extra_fields_ = std::move(other.extra_fields_);
     rles_ = std::move(other.rles_);
-    if(other.masks_){
+    if (other.masks_) {
       masks_ = other.masks_;
       other.masks_ = nullptr;
     }

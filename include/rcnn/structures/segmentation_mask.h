@@ -38,7 +38,7 @@ friend std::ostream& operator << (std::ostream& os, const Polygons& bml);
 
 };
 
-class SegmentationMask{
+class SegmentationMask {
 
 public:
   SegmentationMask(std::vector<std::vector<std::vector<double>>> polygons, std::pair<int, int> size, std::string mode);
