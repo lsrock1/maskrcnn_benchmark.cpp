@@ -97,6 +97,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 * opencv
 
 # MODELS
+[Weight python to cpp](MODEL.md)
 Download into /models 
 
 name | from | link 
