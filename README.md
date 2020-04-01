@@ -100,7 +100,7 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 [Weight python to cpp](MODEL.md)
 Download into /models 
 
-name | from | link(dropbox) | link(google drive
+name | from | link(dropbox) | link(google drive)
 -- | -- | -- | --
 R-50(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1Oh23W6kskAiQvMT7jP30G9SMxv4jN58w/view?usp=sharing)
 R-101(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/h5a51ur3qvrdjh5/resnet101_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/120ffTFleHkZJUD_CJ4mSx95g8IToce0s/view?usp=sharing)
