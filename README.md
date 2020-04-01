@@ -100,12 +100,12 @@ VoV-57(cpp) | Fast | 2x | 8 | 0.06713 | 0.409 | 7%
 [Weight python to cpp](MODEL.md)
 Download into /models 
 
-name | from | link 
--- | -- | -- 
-R-50(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0)
-R-101(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/h5a51ur3qvrdjh5/resnet101_cpp.pth?dl=0)
-R-50-FPN | python-trained | [link](https://www.dropbox.com/s/4uvdc8kaluelzx8/frcn_r50_fpn_cpp.pth?dl=0)
-R-101-FPN | python-trained | [link](https://www.dropbox.com/s/sgo3k502kegmcxa/frcn_r101_fpn_cpp.pth?dl=0)
-R-50-C4 | python-trained | [link](https://www.dropbox.com/s/zu1yzt9ydlnqin4/frcn_r50_c4_cpp.pth?dl=0)
-V-39-FPN | python-trained | [link](https://www.dropbox.com/s/h0rgqyy375m3rhv/frcn_v39_fpn_cpp.pth?dl=0)
-V-57-FPN | python-trained | [link](https://www.dropbox.com/s/18alpuwz8ft9d86/frcn_v57_fpn_cpp.pth?dl=0)
+name | from | link(dropbox) | link(google drive
+-- | -- | -- | --
+R-50(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/2q808v0p2j75lfq/resnet50_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1Oh23W6kskAiQvMT7jP30G9SMxv4jN58w/view?usp=sharing)
+R-101(backbone only) | python-pretrained | [link](https://www.dropbox.com/s/h5a51ur3qvrdjh5/resnet101_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/120ffTFleHkZJUD_CJ4mSx95g8IToce0s/view?usp=sharing)
+R-50-FPN | python-trained | [link](https://www.dropbox.com/s/4uvdc8kaluelzx8/frcn_r50_fpn_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1T92cKFPOo6b4NaeVQXkO1GGNGCCL0SFG/view?usp=sharing)
+R-101-FPN | python-trained | [link](https://www.dropbox.com/s/sgo3k502kegmcxa/frcn_r101_fpn_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/12Gs4PZ4Gzgo8XlBbQon6jCpoZgGhw9ZM/view?usp=sharing)
+R-50-C4 | python-trained | [link](https://www.dropbox.com/s/zu1yzt9ydlnqin4/frcn_r50_c4_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1D4tcN3dUMQ-DQqlmlHKCF8kLD_8gi10U/view?usp=sharing)
+V-39-FPN | python-trained | [link](https://www.dropbox.com/s/h0rgqyy375m3rhv/frcn_v39_fpn_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1I1pKZB4Zpf4w474g9QJsXWz7KD7lPean/view?usp=sharing)
+V-57-FPN | python-trained | [link](https://www.dropbox.com/s/18alpuwz8ft9d86/frcn_v57_fpn_cpp.pth?dl=0) | [link](https://drive.google.com/file/d/1bPHWbfh-CskTEc2WkXaTgpab9YblMHca/view?usp=sharing)
